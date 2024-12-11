@@ -84,7 +84,7 @@ public enum SpatialPredicate : String {
     case secondleft
     case secondright
     case mostleft
-    case mostricht
+    case mostright
     /// contact relations (derived)
     case on // on top of, unilateral
     case at // attached and aligned with, unilateral

@@ -24,7 +24,7 @@ struct SpatialTest {
         if enable3Dexport {
             let urls = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
             if urls.count > 0 {
-                let filename = (Test.current?.displayName ?? "scene").appending(".dae")
+                let filename = (Test.current?.displayName ?? "scene").appending(".usdz")
                 let fileURL:URL = urls.first!.appendingPathComponent(filename)
                 SpatialObject.export3D(to: fileURL, nodes: nodes)
             }
@@ -155,7 +155,7 @@ struct SpatialTest {
         let subject = SpatialObject(id: "subj", position: .init(x: -0.55, y: 0, z: 0.8), width: 1.01, height: 1.03, depth: 1.02)
         let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
         let observer = SpatialObject.createPerson(id: "V", position: .init(x: 0.3, y: 0, z: 3.8), name: "user")
-        observer.angle = .pi + 0.24
+        observer.angle = .pi/2.0 + 0.24
         export([subject.bboxCube(color: subjectTransparent), object.bboxCube(color: objectTransparent), observer.bboxCube(color: CGColor(red: 0, green: 1, blue: 0, alpha: 0))])
         let relations = object.asseen(subject: subject, observer: observer)
         printRelations(relations)

@@ -8,14 +8,8 @@
 * Powerful: inferencing on 3D objects and their spatial relations
 * Extensive: 100+ spatial predicates and relations 
 * Appropriate: handles fuzzyness and confidence of spatial situations
-* Comprehensible: simple yet powerful inference pipeline in plain text
+* Comprehensible: simple yet powerful inference pipeline in textual specification
 * Flexible: use for 3D queries, spatial rule engines, semantic processing in 3D, voice interaction in space, spatial-related LLMs, ...
-
-## Motivation
-
-This library deals with representing and reasoning about the topology of spatial 3D objects using derived attributes and deduced relations, such as the adjacency between or the topological arrangement of spatial objects. Spatial reasoning is the ability to conceptualize the three-dimensional relationships of objects in space and to evaluate spatial conditions in a specific indoor or outdoor context. Spatial reasoning can be executed as a succession of inference operations in a pipeline which takes spatial attributes of and spatial relations between objects into consideration. 
-
-Spatial fuzziness affects information retrieval in space. Object detection in state-of-the-art computer vision, machine learning, and Augmented Reality toolkits results in detected objects that vary their locations and do change over time their orientations and boundaries in space. The object description is usually fuzzy and imprecise, yet some non-trivial conclusion can anyhow be deduced. The geometric confidence typically improves over time. Additionally by taking spatial domain knowledge into account, semantic interpretation and therefore overall confidence can be improved. It is the goal of the Spatial Reasoning library to improve object detection with domain knowledge using spatial semantic and three-dimensional conditions.
 
 ## Usage
 
@@ -23,7 +17,7 @@ The main process of the Spatial Reasoning library consists of the following sequ
 - update and match objects in fact base
 - derive spatial attributes (done automatically)
 - deduce spatial relations (done automatically, configurable)
-- run pipeline of inference operations (defined as plain text)
+- run pipeline of inference operations (defined as text)
 - access result
 
 ```swift
@@ -44,9 +38,15 @@ if sr.run(pipeline) {
 }
 ```
 
+## Motivation
+
+This library deals with representing and reasoning about the topology of spatial 3D objects using derived attributes and deduced relations, such as the adjacency between or the topological arrangement of spatial objects. Spatial reasoning is the ability to conceptualize the three-dimensional relationships of objects in space and to evaluate spatial conditions in a specific indoor or outdoor context. Spatial reasoning can be executed as a succession of inference operations in a pipeline which takes spatial attributes of and spatial relations between objects into consideration. 
+
+Spatial fuzziness affects information retrieval in space. Object detection in state-of-the-art computer vision, machine learning, and Augmented Reality toolkits results in detected objects that vary their locations and do change over time their orientations and boundaries in space. The object description is usually fuzzy and imprecise, yet some non-trivial conclusion can anyhow be deduced. The geometric confidence typically improves over time. Additionally by taking spatial domain knowledge into account, semantic interpretation and therefore overall confidence can be improved. It is the goal of the Spatial Reasoning library to improve object detection with domain knowledge using spatial semantic and three-dimensional conditions.
+
 ## Syntax of Spatial Inference Pipeline
 
-The spatial inference pipeline is defined as plain text specification. The pipeline is a linear sequence of inference operations which cover:
+The spatial inference pipeline is defined as text specification. The pipeline is a linear sequence of inference operations which cover:
 - __filter__: filter objects by matching spatial attributes
 - __pick__: pick objects along their spatial relations
 - __select__: select objects having spatial relations with others

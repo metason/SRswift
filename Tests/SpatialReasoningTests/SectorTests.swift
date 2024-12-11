@@ -12,7 +12,7 @@ import SceneKit
 @Suite("BBox Sectors: Directional relations")
 struct SectorTests {
 
-    let enable3Dexport = true
+    let enable3Dexport = false
     let objectOpaque = CGColor(red: 1, green: 0, blue: 0, alpha: 0.0)
     let subjectOpaque = CGColor(red: 0, green: 0, blue: 1, alpha: 0.0)
     let objectTransparent = CGColor(red: 1, green: 0, blue: 0, alpha: 0.3)
