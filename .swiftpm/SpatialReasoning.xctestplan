@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "E1C70DB1-E876-40D4-8909-100C7739E45D",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SpatialReasoningTests",
+        "name" : "SpatialReasoningTests"
+      }
+    }
+  ],
+  "version" : 1
+}
