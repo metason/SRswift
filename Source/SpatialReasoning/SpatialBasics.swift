@@ -7,22 +7,23 @@
 
 import Foundation
 
-nonisolated(unsafe) var fuzzyDeviation = FuzzyDeviation()
+nonisolated(unsafe) var defaultAdjustment = SpatialAdjustment()
 
-// Deviations for elaborating spatial relations with fuzzyness
-// Set these parameters before calling relate() method
-class FuzzyDeviation {
-    /// gap ist max distance of deviation in all directions in meters
-    var gap:Float = 0.05
-    /// angle is max delta of yaw orientation in radiants in both directions
-    var angle:Float = 0.05 * .pi
-    /// nearbyLimit is maximal absolute distance
-    var nearbyLimit:Float = 1.5
-    /// nearbyFactor is multiplying radius sum of object and subject (relative to size) as max distance
-    var nearbyFactor:Float = 1.0
+// Set adjustment parameters before executing pipeline or calling relate() method
+class SpatialAdjustment {
+    // Max deviations
+    var gap:Float = 0.05 /// gap ist max distance of deviation in all directions in meters
+    var angle:Float = 0.05 * .pi /// angle is max delta of yaw orientation in radiants in both directions
+    // Vicinity
+    var nearbyLimit:Float = 1.5 /// nearbyLimit is maximal absolute distance
+    var nearbyFactor:Float = 1.0 /// nearbyFactor is multiplying radius sum of object and subject (relative to size) as max distance
     /// minimal ratio of max : min bbox sides to be thin
-    var thinRatio:Float = 4.0
-    /// get max delta of orientation in degrees
+    // Proportions
+    var longRatio:Float = 4.0 /// one dimension is factor larger than both others
+    var thinRatio:Float = 10.0 /// one dimension is 1/factor smaller than both others
+
+    
+    /// get/set max delta of orientation in degrees
     var yaw:Float {
         return angle * 180.0 / .pi
     }
@@ -101,7 +102,7 @@ public enum ObjectShape : String {
     case planar // plane, thin box
     case cubical // box
     case spherical
-    case cylindrical // along longest dimension when thin
+    case cylindrical // along longest dimension when long
     case conical
     case irregular // complex shape
     case changing // changing shape, e.g., of creature

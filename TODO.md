@@ -5,25 +5,39 @@
 //  Created by Philipp Ackermann on 17.11.2024.
 //
 
+- Vicinity  (Nähe)
+  - center - position - perimeter
+  - bbox - sectors - edges - corners?
+  - sectors
+  - sides
+- adjacency  (Nachbarschaft)
+  - voronoi graph??
+- Dynamic Vicinity and Adjacency Checking
+  - change SpatialAdjustment dynamiclly --> use in spatial rule engine demo
+  - step-wise relaxing of border conditions when pipeline not successful
+
 
 GITHUB
-- wo? Metason?
-- wann?
-- Spatial Reasoning Kit / Lib?
-  - SRkit: Spatial Reasoning Library
-  - Spatial Reasoning Language
-  - Spatial Predicates and Relations
+- wo: Metason
+- wann public: 2025
 - SR: Spatial Reasoning (Libs)
   - SRswift
   - SRpy
   - SRunity
   - SRjs
+  - SRdocu: Generic definitions of concepts
+    - Dynamic Vicinity and Adjacency Checking
+    - Sectors
+    - Predicates
 - Wording
   - check: https://www.merriam-webster.com/thesaurus/top
   - check: https://wikidiff.com
   
   
 ## BUG FIXES
+- contact graph
+- select
+- README for M. Loth
 - meeting: inverse not working!
 - FIXME: touching vs meeting at edge, check overlap < max.gap
 - 

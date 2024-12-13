@@ -30,17 +30,24 @@ struct SpatialAttributeTests {
         }
     }
 
-    @Test("is not thin")
-    func notthin() async throws {
+    @Test("is thin")
+    func isthin() async throws {
+        let object = SpatialObject(id: "2", position: .init(x: 0, y: 0, z: 0), width: 1.1, height: 0.1, depth: 1.2)
+        //print(object.asDict())
+        #expect(object.thin == true)
+    }
+    
+    @Test("is not long")
+    func notlong() async throws {
         let object = SpatialObject(id: "2", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.1, depth: 1.2)
         //print(object.asDict())
         #expect(object.thin == false)
     }
     
-    @Test("is thin with direction")
-    func isthin() async throws {
+    @Test("is long in y direction")
+    func islong() async throws {
         let object = SpatialObject(id: "2", position: .init(x: 0, y: 0, z: 0), width: 0.1, height: 1.0, depth: 0.1)
-        #expect(object.thin)
+        #expect(object.long)
         #expect(object.mainDirection() == 2)
     }
     
@@ -57,7 +64,7 @@ struct SpatialAttributeTests {
         #expect(object.label == "table")
         #expect(object.cause == .objectdetected)
         #expect(object.existence == .real)
-        #expect(object.thin == false)
+        #expect(object.long == false)
     }
 
     @Test("is building element")

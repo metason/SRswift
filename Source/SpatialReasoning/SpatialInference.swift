@@ -29,7 +29,10 @@ class SpatialInference {
         } else if operation.starts(with: "pick(") {
             let startIdx = operation.index(operation.startIndex, offsetBy: 5)
             pick(String(operation[startIdx..<endIdx]))
-        } else if operation.starts(with: "sort(") {
+        } else if operation.starts(with: "select(") {
+            let startIdx = operation.index(operation.startIndex, offsetBy: 7)
+            select(String(operation[startIdx..<endIdx]))
+        }else if operation.starts(with: "sort(") {
             let startIdx = operation.index(operation.startIndex, offsetBy: 5)
             sort(String(operation[startIdx..<endIdx]))
         } else if operation.starts(with: "analyse(") {
@@ -57,7 +60,7 @@ class SpatialInference {
         for i in input {
             let result = predicate!.evaluate(with: baseObjects[i])
             if result {
-                output.append(i)
+                add(index: i)
             }
         }
         succeeded = true
@@ -78,7 +81,42 @@ class SpatialInference {
                     }
                     let result = NSPredicate(format: cond).evaluate(with: nil)
                     if result {
-                        output.append(j)
+                        add(index: j)
+                    }
+                }
+            }
+        }
+        succeeded = !output.isEmpty
+    }
+    
+    func select(_ terms: String) {
+        let list = terms.split(separator: "?").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
+        if list.count != 2 {
+            error = "Invalid select query"
+            return
+        }
+        let conditions = list[1]
+        let relations = list[0]
+        let predicates = relations.keywords()
+        let baseObjects = fact.base["objects"] as! [Any]
+        for i in input {
+            for j in 0..<fact.objects.count {
+                var cond = relations
+                if i != j {
+                    for predicate in predicates {
+                        if fact.does(subject: fact.objects[j], have: predicate, with: i) {
+                            cond = cond.replacingOccurrences(of: predicate, with: "TRUEPREDICATE")
+                        } else {
+                            cond = cond.replacingOccurrences(of: predicate, with: "FALSEPREDICATE")
+                        }
+                    }
+                    let result = NSPredicate(format: cond).evaluate(with: nil)
+                    if result {
+                        let attrPredicate = SpatialInference.attributePredicate(conditions)
+                        let result2 = attrPredicate!.evaluate(with: baseObjects[j])
+                        if result2 {
+                            add(index: i)
+                        }
                     }
                 }
             }

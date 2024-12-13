@@ -1,29 +1,46 @@
 # Spatial Terms
 
 ## Spatial metric attributes
-location
-dimensions
-orientation
+
+Base values 
+- location
+  - position
+  - center
+- dimensions
+  - width
+  - height
+  - depth
+- orientation
+  - angle
+  
+Derived values
+- volume
+- ...
 
 ## Spatial boolean attributes
 - immobile
 - moving
 - equilateral
+- long
 - thin
 - visible
 - focused
 - tangible? reach radius 0.7+
 
 ## Spatial comparison values
+
 - volume: smaller - larger/bigger
 - area: smaller - larger/bigger
 - length: shorter - longer
 - width/depth: taller - wider (narrower?)
-- if both are thin: thinner, thicker
+- if both are long: thinner, thicker
 - height: lower - higher ???
 - 
 
 ## Spatial relations
+
+### Topology
+
 Adjacency : Nachbarschaft
 - left, right, ...
 Connectivity : Verbindung

@@ -11,7 +11,7 @@ import Foundation
 
 class SpatialRelation {
     var subject:SpatialObject // target subject
-    var predicate:SpatialPredicate // proposition matching fuzzy deviation
+    var predicate:SpatialPredicate // proposition matching spatial condition and max deviation
     var object:SpatialObject // reference object
     var gap:Float = 0.0 // distance gap: absolute minimimal distance between subject and object
     var angle:Float = 0.0 // deviation of front direction in radiants

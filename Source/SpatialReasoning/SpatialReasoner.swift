@@ -18,7 +18,7 @@ class SpatialReasoner {
     var relMap: [Int: [SpatialRelation]] = [:] // index:[SpatialRelation]
     var chain: [SpatialInference] = []
     var base:Dictionary<String, Any> = [:] // fact base, objects will be added
-    var maxDeviation = FuzzyDeviation()
+    var adjustment = SpatialAdjustment()
     
     // logging
     var name:String = "" // used as title for log
@@ -52,17 +52,14 @@ class SpatialReasoner {
         logCnt = 0
         chain = []
         let list = pipeline.split(separator: "|").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
-        var indices: [Int] = (0..<objects.count).indices.map { $0 }
+        let indices: [Int] = (0..<objects.count).indices.map { $0 }
         for op in list {
             if op.starts(with: "log(") {
                 let startIdx = op.index(op.startIndex, offsetBy: 4)
                 let endIdx = op.index(op.endIndex, offsetBy: -1)
                 log(String(op[startIdx..<endIdx]))
             } else {
-                if !chain.isEmpty {
-                    indices = chain.last!.output
-                }
-                let inference = SpatialInference(input: indices, operation: op, in: self)
+                let inference = SpatialInference(input: !chain.isEmpty ? chain.last!.output : indices, operation: op, in: self)
                 chain.append(inference)
                 if inference.hasFailed() {
                     logError()
@@ -137,9 +134,12 @@ class SpatialReasoner {
             }
         }
         logCnt += 1
-        var indices: [Int] = (0..<objects.count).indices.map { $0 }
+        let allIndices: [Int] = (0..<objects.count).indices.map { $0 }
+        var indices: [Int]
         if !chain.isEmpty {
             indices = chain.last!.output
+        } else {
+            indices = allIndices
         }
         var list = predicates.split(separator: " ").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
         if list.contains("base") {
@@ -150,6 +150,7 @@ class SpatialReasoner {
             list.removeAll(where: { $0 == "3D" })
             log3D()
         }
+        
         var md = "# "
         var str = name.count > 0 ? name : "Spatial Reasoning Log"
         var mmdObjs: String = ""
@@ -157,8 +158,23 @@ class SpatialReasoner {
         var rels: String = ""
         md = md + str + "\n"
         str = description.count > 0 ? description : ""
-        md = md + str + "\n"
-        md = md + "## Spatial Objects\n\n"
+        md = md + str + "\n## Inference Pipeline\n\n```\n"
+        
+        for i in (0..<chain.count).reversed() {
+            if i < chain.count - 1 {
+                md = md + "| "
+            }
+            md = md + chain[i].operation + "\n"
+        }
+        
+        md = md + "```\n\n## Spatial Objects\n\n### Fact Base\n\n"
+        
+        for i in allIndices {
+            str = objects[i].id
+            md = md + "\(i).  __" + str + "__: " + objects[i].desc() + "\n"
+        }
+        
+        md = md + "\n\n### Resulting Objects (Output)\n\n"
         for i in indices {
             str = objects[i].id
             mmdObjs = mmdObjs + "    " + str + "\n"
@@ -179,8 +195,11 @@ class SpatialReasoner {
                 rels = rels + "* " + relation.desc() + "\n"
             }
         }
-        md = md + "\n## Spatial Graph\n\n"
-        md = md + "```mermaid\ngraph LR;\n" + mmdObjs + mmdRels + "```\n"
+        //print("\(allIndices) : \(indices).")
+        if !mmdRels.isEmpty {
+            md = md + "\n## Spatial Graph\n\n"
+            md = md + "```mermaid\ngraph LR;\n" + mmdObjs + mmdRels + "```\n"
+        }
 
         md = md + "\n## Contact Graph\n\n"
 

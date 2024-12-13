@@ -32,13 +32,13 @@ struct SpatialReasoningTests {
         #expect(result)
     }
 
-    @Test("thin AND immobile")
+    @Test("long AND immobile")
     func predicate2() async throws {
         let object = SpatialObject(id: "2", position: .init(x: 0, y: 0, z: 0), width: 0.1, height: 1.0, depth: 0.1)
         object.immobile = true
         let dict = object.asDict()
         //print(dict as Any)
-        let condition = "(thin AND immobile) OR (thin AND volume > 1.5)"
+        let condition = "(long AND immobile) OR (long AND volume > 1.5)"
         let predicate = SpatialInference.attributePredicate(condition)
         let result = predicate!.evaluate(with: dict)
         #expect(result)
@@ -89,6 +89,23 @@ struct SpatialReasoningTests {
         let pipeline = """
             filter(supertype BEGINSWITH 'Building') 
             | log(base 3D above)
+        """
+        let done = sp.run(pipeline)
+        #expect(done)
+    }
+    
+    @Test("select()")
+    func log3() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.55, y: 0, z: 0.8), width: 1.01, height: 1.03, depth: 1.02)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
+        object.angle = .pi/2.0
+        let observer = SpatialObject.createPerson(id: "user", position: .init(x: 0.3, y: 0, z: 2.3), name: "observer")
+        observer.angle = .pi + 0.24
+        let sp = SpatialReasoner()
+        sp.load([subject, object, observer])
+        let pipeline = """
+            select(ahead ? volume > 0.3) 
+            | log(base 3D near infront)
         """
         let done = sp.run(pipeline)
         #expect(done)
