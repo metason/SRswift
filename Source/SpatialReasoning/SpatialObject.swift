@@ -502,13 +502,12 @@ class SpatialObject {
         return zone
     }
     
-    func topologies(subject:SpatialObject) -> [SpatialRelation] {
+    func topologies(subject: SpatialObject) -> [SpatialRelation] {
         var result = [SpatialRelation]()
-        var relation:SpatialRelation
-        var gap:Float = 0.0
-        var minDistance:Float = 0.0
+        var gap: Float = 0.0
+        var minDistance: Float = 0.0
 
-        /// calculations in global world space
+        // calculations in global world space
         let centerVector = subject.center - center
         let centerDistance = centerVector.length()
         let radiusSum = radius + subject.radius
@@ -516,232 +515,515 @@ class SpatialObject {
         let theta = subject.angle - angle
         var isNear = false
         var isDisjoint = true
-        
-        /// calculations in local object space
+
+        // calculations in local object space
         let localPts = intoLocal(pts: subject.points())
         var zones = [BBoxSector]()
         for pt in localPts {
             zones.append(sectorOf(point: pt))
         }
-        let center = intoLocal(pt: subject.center)
-        let centerZone = sectorOf(point: center)
-        
-        /// nearness evaluated by center
-        if centerDistance - radiusSum < maxDeviation.nearbyLimit && centerDistance < ((maxDeviation.nearbyFactor + 1.0) * radiusSum) {
-            isNear = true
-            gap = centerDistance - radiusSum
-            minDistance = gap
-            relation = SpatialRelation(subject: subject, predicate: .near, object: self, gap: gap, angle: theta)
-            result.append(relation)
-        }
-        /// basic adjacancy in relation to object bbox
-        if centerZone.contains(.l) {
-            gap = Float(center.x) - width/2.0 - subject.width/2.0
-            minDistance = gap
-            relation = SpatialRelation(subject: subject, predicate: .left, object: self, gap: gap, angle: theta)
-            result.append(relation)
-        } else if centerZone.contains(.r) {
-            gap = Float(-center.x) - width/2.0 - subject.width/2.0
-            minDistance = gap
-            relation = SpatialRelation(subject: subject, predicate: .right, object: self, gap: gap, angle: theta)
-            result.append(relation)
-        }
-        if centerZone.contains(.a) {
-            gap = Float(center.z) - depth/2.0 - subject.depth/2.0
-            minDistance = gap
-            relation = SpatialRelation(subject: subject, predicate: .ahead, object: self, gap: gap, angle: theta)
-            result.append(relation)
-        } else if centerZone.contains(.b) {
-            gap = Float(-center.z) - depth/2.0 - subject.depth/2.0
-            minDistance = gap
-            relation = SpatialRelation(subject: subject, predicate: .behind, object: self, gap: gap, angle: theta)
-            result.append(relation)
-        }
-        if centerZone.contains(.o) {
-            gap = Float(center.y) - subject.height/2.0 - height
-            minDistance = gap
-            relation = SpatialRelation(subject: subject, predicate: .above, object: self, gap: gap, angle: theta)
-            result.append(relation)
-        } else if centerZone.contains(.u) {
-            gap = Float(-center.y) - subject.height/2.0
-            minDistance = gap
-            relation = SpatialRelation(subject: subject, predicate: .below, object: self, gap: gap, angle: theta)
-            result.append(relation)
-        }
-        /// side-related adjacancy in relation to object bbox
-        if isNear && centerZone.divergencies() == 1 && centerZone != .i {
-            var aligned = false
-            if abs(theta.truncatingRemainder(dividingBy: .pi/2.0)) < maxDeviation.angle {
-                aligned = true
-            }
-            var min:Float = Float.greatestFiniteMagnitude
-            if centerZone == .l {
-                for pt in localPts {
-                    min = Float.minimum(min, Float(pt.x) - width/2.0)
-                }
-                if min > 0.0 {
-                    canNotOverlap = true
-                    minDistance = min
-                    relation = SpatialRelation(subject: subject, predicate: .leftside, object: self, gap: min, angle: theta)
-                    result.append(relation)
-                }
-            } else if centerZone == .r {
-                for pt in localPts {
-                    min = Float.minimum(min, Float(-pt.x) - width/2.0)
-                }
-                if min > 0.0 {
-                    canNotOverlap = true
-                    minDistance = min
-                    relation = SpatialRelation(subject: subject, predicate: .rightside, object: self, gap: min, angle: theta)
-                    result.append(relation)
-                }
-            } else if centerZone == .o {
-                for pt in localPts {
-                    min = Float.minimum(min, Float(pt.y) - height)
-                }
-                if min > 0.0 {
-                    canNotOverlap = true
-                    minDistance = min
-                    if min <= maxDeviation.gap {
-                        relation = SpatialRelation(subject: subject, predicate: .ontop, object: self, gap: min, angle: theta)
-                    } else {
-                        relation = SpatialRelation(subject: subject, predicate: .upperside, object: self, gap: min, angle: theta)
-                    }
-                    result.append(relation)
-                }
-                
-            } else if centerZone == .u {
-                for pt in localPts {
-                    min = Float.minimum(min, Float(-pt.y))
-                }
-                if min > 0.0 {
-                    canNotOverlap = true
-                    minDistance = min
-                    if min <= maxDeviation.gap {
-                        relation = SpatialRelation(subject: subject, predicate: .beneath, object: self, gap: min, angle: theta)
-                    } else {
-                        relation = SpatialRelation(subject: subject, predicate: .lowerside, object: self, gap: min, angle: theta)
-                    }
-                    result.append(relation)
-                }
-            } else if centerZone == .a {
-                for pt in localPts {
-                    min = Float.minimum(min, Float(pt.z) - depth/2.0)
-                }
-                if min > 0.0 {
-                    canNotOverlap = true
-                    minDistance = min
-                    relation = SpatialRelation(subject: subject, predicate: .frontside, object: self, gap: min, angle: theta)
-                    result.append(relation)
-                }
-            } else if centerZone == .b {
-                for pt in localPts {
-                    min = Float.minimum(min, Float(-pt.z) - depth/2.0)
-                }
-                if min > 0.0 {
-                    canNotOverlap = true
-                    minDistance = min
-                    relation = SpatialRelation(subject: subject, predicate: .backside, object: self, gap: min, angle: theta)
-                    result.append(relation)
-                }
-            }
-            if min >= -maxDeviation.gap &&  min <= maxDeviation.gap {
-                relation = SpatialRelation(subject: subject, predicate: aligned ? .meeting : .touching, object: self, gap: min, angle: theta)
-                result.append(relation)
-            }
-        }
-        /// check for topology
-        if centerDistance < radius + subject.radius {
-            if zones.allSatisfy({ $0 == .i }) {
-                isDisjoint = false
-                relation = SpatialRelation(subject: subject, predicate: .inside, object: self, gap: 0.0, angle: theta)
-                result.append(relation)
-            } else {
-                var d = 0
-                for z in zones {
-                    d += z.divergencies()
-                }
-                if d == 3 * zones.count {
-                    isDisjoint = false
-                    relation = SpatialRelation(subject: subject, predicate: .containing, object: self, gap: 0.0, angle: theta)
-                    result.append(relation)
-                } else {
-                    let cnt = zones.count(where: { $0.contains(.i) })
-                    if cnt > 0 {
-                        isDisjoint = false
-                        relation = SpatialRelation(subject: subject, predicate: .overlapping, object: self, gap: 0.0, angle: theta)
-                        result.append(relation)
-                    } else if !canNotOverlap {
-                        var crossings = 0
-                        let minY = Float(localPts.first!.y)
-                        let maxY = Float(localPts.last!.y)
-                        var minX:Float = Float.greatestFiniteMagnitude
-                        var maxX:Float = -Float.greatestFiniteMagnitude
-                        var minZ:Float = Float.greatestFiniteMagnitude
-                        var maxZ:Float = -Float.greatestFiniteMagnitude
-                        for pt in localPts {
-                            minX = Float.minimum(minX, Float(pt.x))
-                            maxX = Float.maximum(maxX, Float(pt.x))
-                            minZ = Float.minimum(minZ, Float(pt.z))
-                            maxZ = Float.maximum(maxZ, Float(pt.z))
-                        }
-                        if minX < -width/2.0 && maxX > width/2.0 {
-                            crossings += 1
-                        }
-                        if minZ < -depth/2.0 && maxZ > depth/2.0 {
-                            crossings += 1
-                        }
-                        if minY < 0.0 && maxY > height {
-                            crossings += 1
-                        }
-                        if crossings  > 0 {
-                            isDisjoint = false
-                            relation = SpatialRelation(subject: subject, predicate: .crossing, object: self, gap: 0.0, angle: theta)
-                            result.append(relation)
+        let centerLocal = intoLocal(pt: subject.center)
+        let centerZone = sectorOf(point: centerLocal)
 
-                        }
-                    }
-                }
-            }
-        }
+        // 1. Evaluate nearness
+        evaluateNearness(
+            subject: subject,
+            centerDistance: centerDistance,
+            radiusSum: radiusSum,
+            theta: theta,
+            isNear: &isNear,
+            minDistance: &minDistance,
+            result: &result
+        )
+
+        // 2. Basic adjacency in relation to object bbox
+        evaluateBasicAdjacency(
+            subject: subject,
+            centerLocal: centerLocal,
+            centerZone: centerZone,
+            theta: theta,
+            minDistance: &minDistance,
+            result: &result
+        )
+
+        // 3. Side-related adjacency in relation to object bbox
+        evaluateSideRelatedAdjacency(
+            subject: subject,
+            localPts: localPts,
+            centerZone: centerZone,
+            theta: theta,
+            isNear: isNear,
+            maxDeviation: maxDeviation,
+            canNotOverlap: &canNotOverlap,
+            minDistance: &minDistance,
+            result: &result
+        )
+
+        // 4. Check for topology (inside, containing, overlapping, crossing, etc.)
+        evaluateTopology(
+            subject: subject,
+            localPts: localPts,
+            zones: zones,
+            centerDistance: centerDistance,
+            radiusSum: radiusSum,
+            theta: theta,
+            canNotOverlap: canNotOverlap,
+            isDisjoint: &isDisjoint,
+            result: &result
+        )
+
+        // 5. If still disjoint, add .disjoint relation
         if isDisjoint {
             gap = centerDistance - radiusSum
-            relation = SpatialRelation(subject: subject, predicate: .disjoint, object: self, gap: gap, angle: theta)
+            let relation = SpatialRelation(subject: subject, predicate: .disjoint, object: self, gap: gap, angle: theta)
             result.append(relation)
         }
-        if isNear && isDisjoint && !centerZone.contains(.o) && !centerZone.contains(.u) {
-            relation = SpatialRelation(subject: subject, predicate: .beside, object: self, gap: minDistance, angle: theta)
+
+        // 6. If near but disjoint and not above/below
+        if isNear, isDisjoint, !centerZone.contains(.o), !centerZone.contains(.u) {
+            let relation = SpatialRelation(
+                subject: subject,
+                predicate: .beside,
+                object: self,
+                gap: minDistance,
+                angle: theta
+            )
             result.append(relation)
         }
-        /// orientation
+
+        // 7. Evaluate orientation (aligned, opposite, orthogonal)
+        evaluateOrientation(
+            subject: subject,
+            centerDistance: centerDistance,
+            radiusSum: radiusSum,
+            theta: theta,
+            centerLocal: centerLocal,
+            result: &result
+        )
+
+        // 8. If Person or self-tracked real object, evaluate "clock" angles
+        evaluateClockPredicate(
+            subject: subject,
+            centerDistance: centerDistance,
+            theta: theta,
+            result: &result
+        )
+
+        return result
+    }
+
+
+    // MARK: - Helper Functions
+
+    private func evaluateNearness(
+        subject: SpatialObject,
+        centerDistance: Float,
+        radiusSum: Float,
+        theta: Float,
+        isNear: inout Bool,
+        minDistance: inout Float,
+        result: inout [SpatialRelation]
+    ) {
+        if centerDistance - radiusSum < maxDeviation.nearbyLimit,
+           centerDistance < ((maxDeviation.nearbyFactor + 1.0) * radiusSum) {
+            isNear = true
+            let gap = centerDistance - radiusSum
+            minDistance = gap
+            let relation = SpatialRelation(
+                subject: subject,
+                predicate: .near,
+                object: self,
+                gap: gap,
+                angle: theta
+            )
+            result.append(relation)
+        }
+    }
+
+    private func evaluateBasicAdjacency(
+        subject: SpatialObject,
+        centerLocal: SCNVector3,
+        centerZone: BBoxSector,
+        theta: Float,
+        minDistance: inout Float,
+        result: inout [SpatialRelation]
+    ) {
+        var gap: Float = 0.0
+
+        // left / right
+        if centerZone.contains(.l) {
+            gap = Float(centerLocal.x) - width / 2.0 - subject.width / 2.0
+            minDistance = gap
+            let relation = SpatialRelation(subject: subject, predicate: .left, object: self, gap: gap, angle: theta)
+            result.append(relation)
+        } else if centerZone.contains(.r) {
+            gap = Float(-centerLocal.x) - width / 2.0 - subject.width / 2.0
+            minDistance = gap
+            let relation = SpatialRelation(subject: subject, predicate: .right, object: self, gap: gap, angle: theta)
+            result.append(relation)
+        }
+
+        // ahead / behind
+        if centerZone.contains(.a) {
+            gap = Float(centerLocal.z) - depth / 2.0 - subject.depth / 2.0
+            minDistance = gap
+            let relation = SpatialRelation(subject: subject, predicate: .ahead, object: self, gap: gap, angle: theta)
+            result.append(relation)
+        } else if centerZone.contains(.b) {
+            gap = Float(-centerLocal.z) - depth / 2.0 - subject.depth / 2.0
+            minDistance = gap
+            let relation = SpatialRelation(subject: subject, predicate: .behind, object: self, gap: gap, angle: theta)
+            result.append(relation)
+        }
+
+        // above / below
+        if centerZone.contains(.o) {
+            gap = Float(centerLocal.y) - subject.height / 2.0 - height
+            minDistance = gap
+            let relation = SpatialRelation(subject: subject, predicate: .above, object: self, gap: gap, angle: theta)
+            result.append(relation)
+        } else if centerZone.contains(.u) {
+            gap = Float(-centerLocal.y) - subject.height / 2.0
+            minDistance = gap
+            let relation = SpatialRelation(subject: subject, predicate: .below, object: self, gap: gap, angle: theta)
+            result.append(relation)
+        }
+    }
+
+    private func evaluateSideRelatedAdjacency(
+        subject: SpatialObject,
+        localPts: [SCNVector3],
+        centerZone: BBoxSector,
+        theta: Float,
+        isNear: Bool,
+        maxDeviation:FuzzyDeviation,
+        canNotOverlap: inout Bool,
+        minDistance: inout Float,
+        result: inout [SpatialRelation]
+    ) {
+        guard isNear, centerZone.divergencies() == 1, centerZone != .i else { return }
+
+        var aligned = false
+        if abs(theta.truncatingRemainder(dividingBy: .pi / 2.0)) < maxDeviation.angle {
+            aligned = true
+        }
+
+        var minVal: Float = Float.greatestFiniteMagnitude
+
+        func appendTouchingOrMeeting() {
+            if minVal >= -maxDeviation.gap, minVal <= maxDeviation.gap {
+                let relation = SpatialRelation(
+                    subject: subject,
+                    predicate: aligned ? .meeting : .touching,
+                    object: self,
+                    gap: minVal,
+                    angle: theta
+                )
+                result.append(relation)
+            }
+        }
+
+        switch centerZone {
+        case .l:
+            for pt in localPts {
+                minVal = Float.minimum(minVal, Float(pt.x) - width / 2.0)
+            }
+            if minVal > 0.0 {
+                canNotOverlap = true
+                minDistance = minVal
+                let relation = SpatialRelation(
+                    subject: subject,
+                    predicate: .leftside,
+                    object: self,
+                    gap: minVal,
+                    angle: theta
+                )
+                result.append(relation)
+            }
+
+        case .r:
+            for pt in localPts {
+                minVal = Float.minimum(minVal, Float(-pt.x) - width / 2.0)
+            }
+            if minVal > 0.0 {
+                canNotOverlap = true
+                minDistance = minVal
+                let relation = SpatialRelation(
+                    subject: subject,
+                    predicate: .rightside,
+                    object: self,
+                    gap: minVal,
+                    angle: theta
+                )
+                result.append(relation)
+            }
+
+        case .o:
+            for pt in localPts {
+                minVal = Float.minimum(minVal, Float(pt.y) - height)
+            }
+            if minVal > 0.0 {
+                canNotOverlap = true
+                minDistance = minVal
+                if minVal <= maxDeviation.gap {
+                    let relation = SpatialRelation(
+                        subject: subject,
+                        predicate: .ontop,
+                        object: self,
+                        gap: minVal,
+                        angle: theta
+                    )
+                    result.append(relation)
+                } else {
+                    let relation = SpatialRelation(
+                        subject: subject,
+                        predicate: .upperside,
+                        object: self,
+                        gap: minVal,
+                        angle: theta
+                    )
+                    result.append(relation)
+                }
+            }
+
+        case .u:
+            for pt in localPts {
+                minVal = Float.minimum(minVal, Float(-pt.y))
+            }
+            if minVal > 0.0 {
+                canNotOverlap = true
+                minDistance = minVal
+                if minVal <= maxDeviation.gap {
+                    let relation = SpatialRelation(
+                        subject: subject,
+                        predicate: .beneath,
+                        object: self,
+                        gap: minVal,
+                        angle: theta
+                    )
+                    result.append(relation)
+                } else {
+                    let relation = SpatialRelation(
+                        subject: subject,
+                        predicate: .lowerside,
+                        object: self,
+                        gap: minVal,
+                        angle: theta
+                    )
+                    result.append(relation)
+                }
+            }
+
+        case .a:
+            for pt in localPts {
+                minVal = Float.minimum(minVal, Float(pt.z) - depth / 2.0)
+            }
+            if minVal > 0.0 {
+                canNotOverlap = true
+                minDistance = minVal
+                let relation = SpatialRelation(
+                    subject: subject,
+                    predicate: .frontside,
+                    object: self,
+                    gap: minVal,
+                    angle: theta
+                )
+                result.append(relation)
+            }
+
+        case .b:
+            for pt in localPts {
+                minVal = Float.minimum(minVal, Float(-pt.z) - depth / 2.0)
+            }
+            if minVal > 0.0 {
+                canNotOverlap = true
+                minDistance = minVal
+                let relation = SpatialRelation(
+                    subject: subject,
+                    predicate: .backside,
+                    object: self,
+                    gap: minVal,
+                    angle: theta
+                )
+                result.append(relation)
+            }
+
+        default:
+            break
+        }
+
+        // meeting/touching logic
+        appendTouchingOrMeeting()
+    }
+
+    private func evaluateTopology(
+        subject: SpatialObject,
+        localPts: [SCNVector3],
+        zones: [BBoxSector],
+        centerDistance: Float,
+        radiusSum: Float,
+        theta: Float,
+        canNotOverlap: Bool,
+        isDisjoint: inout Bool,
+        result: inout [SpatialRelation]
+    ) {
+        guard centerDistance < radius + subject.radius else { return }
+
+        // fully inside
+        if zones.allSatisfy({ $0 == .i }) {
+            isDisjoint = false
+            let relation = SpatialRelation(
+                subject: subject,
+                predicate: .inside,
+                object: self,
+                gap: 0.0,
+                angle: theta
+            )
+            result.append(relation)
+            return
+        }
+
+        // check divergencies
+        var d = 0
+        for z in zones {
+            d += z.divergencies()
+        }
+
+        // fully containing
+        if d == 3 * zones.count {
+            isDisjoint = false
+            let relation = SpatialRelation(
+                subject: subject,
+                predicate: .containing,
+                object: self,
+                gap: 0.0,
+                angle: theta
+            )
+            result.append(relation)
+            return
+        }
+
+        // partially inside
+        let cnt = zones.count(where: { $0.contains(.i) })
+        if cnt > 0 {
+            isDisjoint = false
+            let relation = SpatialRelation(
+                subject: subject,
+                predicate: .overlapping,
+                object: self,
+                gap: 0.0,
+                angle: theta
+            )
+            result.append(relation)
+            return
+        }
+
+        // crossing
+        if !canNotOverlap {
+            var crossings = 0
+            let minY = Float(localPts.first!.y)
+            let maxY = Float(localPts.last!.y)
+            var minX: Float = Float.greatestFiniteMagnitude
+            var maxX: Float = -Float.greatestFiniteMagnitude
+            var minZ: Float = Float.greatestFiniteMagnitude
+            var maxZ: Float = -Float.greatestFiniteMagnitude
+
+            for pt in localPts {
+                minX = Float.minimum(minX, Float(pt.x))
+                maxX = Float.maximum(maxX, Float(pt.x))
+                minZ = Float.minimum(minZ, Float(pt.z))
+                maxZ = Float.maximum(maxZ, Float(pt.z))
+            }
+
+            if minX < -width / 2.0, maxX > width / 2.0 {
+                crossings += 1
+            }
+            if minZ < -depth / 2.0, maxZ > depth / 2.0 {
+                crossings += 1
+            }
+            if minY < 0.0, maxY > height {
+                crossings += 1
+            }
+
+            if crossings > 0 {
+                isDisjoint = false
+                let relation = SpatialRelation(
+                    subject: subject,
+                    predicate: .crossing,
+                    object: self,
+                    gap: 0.0,
+                    angle: theta
+                )
+                result.append(relation)
+            }
+        }
+    }
+
+    private func evaluateOrientation(
+        subject: SpatialObject,
+        centerDistance: Float,
+        radiusSum: Float,
+        theta: Float,
+        centerLocal: SCNVector3,
+        result: inout [SpatialRelation]
+    ) {
         if abs(theta) < maxDeviation.angle {
-            gap = Float(center.z)
-            relation = SpatialRelation(subject: subject, predicate: .aligned, object: self, gap: gap, angle: theta)
+            let gap = Float(centerLocal.z)
+            let relation = SpatialRelation(
+                subject: subject,
+                predicate: .aligned,
+                object: self,
+                gap: gap,
+                angle: theta
+            )
             result.append(relation)
         } else {
             if abs(theta.truncatingRemainder(dividingBy: .pi)) < maxDeviation.angle {
-                gap = centerDistance - radiusSum
-                relation = SpatialRelation(subject: subject, predicate: .opposite, object: self, gap: gap, angle: theta)
+                let gap = centerDistance - radiusSum
+                let relation = SpatialRelation(
+                    subject: subject,
+                    predicate: .opposite,
+                    object: self,
+                    gap: gap,
+                    angle: theta
+                )
                 result.append(relation)
-            } else if abs(theta.truncatingRemainder(dividingBy: .pi/2.0)) < maxDeviation.angle {
-                relation = SpatialRelation(subject: subject, predicate: .orthogonal, object: self, gap: 0.0, angle: theta)
+            } else if abs(theta.truncatingRemainder(dividingBy: .pi / 2.0)) < maxDeviation.angle {
+                let relation = SpatialRelation(
+                    subject: subject,
+                    predicate: .orthogonal,
+                    object: self,
+                    gap: 0.0,
+                    angle: theta
+                )
                 result.append(relation)
             }
         }
+    }
+
+    private func evaluateClockPredicate(
+        subject: SpatialObject,
+        centerDistance: Float,
+        theta: Float,
+        result: inout [SpatialRelation]
+    ) {
         if type == "Person" || (cause == .selftracked && existence == .real) {
             let rad = Float(atan2(subject.center.x, subject.center.z))
-            var angle:Float = rad * 180.0 / Float.pi
+            var angle: Float = rad * 180.0 / Float.pi
             print(angle)
-            let hourAngle:Float = 30.0 // 360.0/12.0
+            let hourAngle: Float = 30.0 // 360.0 / 12.0
+
             if angle < 0.0 {
-                angle = angle - hourAngle/2.0
+                angle -= hourAngle / 2.0
             } else {
-                angle = angle + hourAngle/2.0
+                angle += hourAngle / 2.0
             }
-            let cnt = Int(angle/hourAngle)
+
+            let cnt = Int(angle / hourAngle)
             print(cnt)
             var doit = true
-            var pred:SpatialPredicate = .twelveoclock
+            var pred: SpatialPredicate = .twelveoclock
+
             switch cnt {
             case 4:
                 pred = .eightoclock
@@ -764,106 +1046,234 @@ class SpatialObject {
             default:
                 doit = false
             }
+
             if doit {
-                relation = SpatialRelation(subject: subject, predicate: pred, object: self, gap: centerDistance, angle: rad)
+                let relation = SpatialRelation(
+                    subject: subject,
+                    predicate: pred,
+                    object: self,
+                    gap: centerDistance,
+                    angle: rad
+                )
                 result.append(relation)
-                if centerDistance <= 1.25 { // 70cm arm length plus 25cm shoulder plus 30cm leaning forward
-                    relation = SpatialRelation(subject: subject, predicate: .tangible, object: self, gap: centerDistance, angle: rad)
-                    result.append(relation)
+
+                // tangible if within ~1.25m
+                if centerDistance <= 1.25 {
+                    let tangibleRelation = SpatialRelation(
+                        subject: subject,
+                        predicate: .tangible,
+                        object: self,
+                        gap: centerDistance,
+                        angle: rad
+                    )
+                    result.append(tangibleRelation)
                 }
             }
         }
+    }
+
+    
+    func similarities(subject: SpatialObject) -> [SpatialRelation] {
+        var result = [SpatialRelation]()
+        let theta = subject.angle - angle
+        
+        var sameWidth: Bool = false
+        var sameDepth: Bool = false
+        var sameHeight: Bool = false
+        
+        // Evaluate same center
+        evaluateSameCenter(subject: subject, theta: theta, result: &result)
+        
+        // Evaluate same width, depth, height
+        evaluateSameWidth(subject: subject, theta: theta, sameWidth: &sameWidth, result: &result)
+        evaluateSameDepth(subject: subject, theta: theta, sameDepth: &sameDepth, result: &result)
+        evaluateSameHeight(subject: subject, theta: theta, sameHeight: &sameHeight, result: &result)
+        
+        // Evaluate same cuboid
+        evaluateSameCuboid(subject: subject, theta: theta, sameWidth: sameWidth, sameDepth: sameDepth, sameHeight: sameHeight, result: &result)
+
+        // Evaluate same length
+        evaluateSameLength(subject: subject, theta: theta, result: &result)
+        
+        // Evaluate same front, side, footprint
+        evaluateSameFront(subject: subject, theta: theta, result: &result)
+        evaluateSameSide(subject: subject, theta: theta, result: &result)
+        evaluateSameFootprint(subject: subject, theta: theta, result: &result)
+        
+        // Evaluate same volume (and possibly congruent)
+        evaluateSameVolume(subject: subject, theta: theta, sameWidth: sameWidth, sameDepth: sameDepth, sameHeight: sameHeight, result: &result)
+        
+        // Evaluate same shape
+        evaluateSameShape(subject: subject, theta: theta, result: &result)
+
         return result
     }
-    
-    func similarities(subject:SpatialObject) -> [SpatialRelation] {
-        var result = [SpatialRelation]()
-        var relation:SpatialRelation
-        let theta = subject.angle - angle
-        var val:Float = 0.0
-        var minVal:Float = 0.0
-        var maxVal:Float = 0.0
-        var sameWidth:Bool = false
-        var sameDepth:Bool = false
-        var sameHeight:Bool = false
 
-        val = (position - subject.position).length()
+    // MARK: - Helper Functions
+
+    private func evaluateSameCenter(
+        subject: SpatialObject,
+        theta: Float,
+        result: inout [SpatialRelation]
+    ) {
+        var val = (position - subject.position).length()
         if val < maxDeviation.gap {
-            relation = SpatialRelation(subject: subject, predicate: .samecenter, object: self, gap: val, angle: theta)
+            let relation = SpatialRelation(subject: subject, predicate: .samecenter, object: self, gap: val, angle: theta)
             result.append(relation)
         }
-        val = abs(width - subject.width)
+    }
+
+    private func evaluateSameWidth(
+        subject: SpatialObject,
+        theta: Float,
+        sameWidth: inout Bool,
+        result: inout [SpatialRelation]
+    ) {
+        var val = abs(width - subject.width)
         if val < maxDeviation.gap {
             sameWidth = true
-            relation = SpatialRelation(subject: subject, predicate: .samewidth, object: self, gap: val, angle: theta)
+            let relation = SpatialRelation(subject: subject, predicate: .samewidth, object: self, gap: val, angle: theta)
             result.append(relation)
         }
-        val = abs(depth - subject.depth)
+    }
+
+    private func evaluateSameDepth(
+        subject: SpatialObject,
+        theta: Float,
+        sameDepth: inout Bool,
+        result: inout [SpatialRelation]
+    ) {
+        var val = abs(depth - subject.depth)
         if val < maxDeviation.gap {
             sameDepth = true
-            relation = SpatialRelation(subject: subject, predicate: .samedepth, object: self, gap: val, angle: theta)
+            let relation = SpatialRelation(subject: subject, predicate: .samedepth, object: self, gap: val, angle: theta)
             result.append(relation)
         }
-        val = abs(height - subject.height)
+    }
+
+    private func evaluateSameHeight(
+        subject: SpatialObject,
+        theta: Float,
+        sameHeight: inout Bool,
+        result: inout [SpatialRelation]
+    ) {
+        var val = abs(height - subject.height)
         if val < maxDeviation.gap {
             sameHeight = true
-            relation = SpatialRelation(subject: subject, predicate: .sameheight, object: self, gap: val, angle: theta)
+            let relation = SpatialRelation(subject: subject, predicate: .sameheight, object: self, gap: val, angle: theta)
             result.append(relation)
         }
-        if sameWidth && sameDepth && sameHeight {
-            val = subject.volume - volume
-            relation = SpatialRelation(subject: subject, predicate: .samecuboid, object: self, gap: val, angle: theta)
-            result.append(relation)
-        }
-        val = abs(length - subject.length)
+    }
+
+    private func evaluateSameCuboid(
+        subject: SpatialObject,
+        theta: Float,
+        sameWidth: Bool,
+        sameDepth: Bool,
+        sameHeight: Bool,
+        result: inout [SpatialRelation]
+    ) {
+        guard sameWidth, sameDepth, sameHeight else { return }
+        let val = subject.volume - volume
+        let relation = SpatialRelation(subject: subject, predicate: .samecuboid, object: self, gap: val, angle: theta)
+        result.append(relation)
+    }
+
+    private func evaluateSameLength(
+        subject: SpatialObject,
+        theta: Float,
+        result: inout [SpatialRelation]
+    ) {
+        let val = abs(length - subject.length)
         if val < maxDeviation.gap {
-            relation = SpatialRelation(subject: subject, predicate: .samelength, object: self, gap: val, angle: theta)
+            let relation = SpatialRelation(subject: subject, predicate: .samelength, object: self, gap: val, angle: theta)
             result.append(relation)
         }
-        val = subject.height * subject.width
-        minVal = (height-maxDeviation.gap) * (width-maxDeviation.gap)
-        maxVal = (height+maxDeviation.gap) * (width+maxDeviation.gap)
+    }
+
+    private func evaluateSameFront(
+        subject: SpatialObject,
+        theta: Float,
+        result: inout [SpatialRelation]
+    ) {
+        var val = subject.height * subject.width
+        let minVal = (height - maxDeviation.gap) * (width - maxDeviation.gap)
+        let maxVal = (height + maxDeviation.gap) * (width + maxDeviation.gap)
         if val > minVal && val < maxVal {
-            let gap = height*width - val
-            relation = SpatialRelation(subject: subject, predicate: .samefront, object: self, gap: gap, angle: theta)
+            let gap = height * width - val
+            let relation = SpatialRelation(subject: subject, predicate: .samefront, object: self, gap: gap, angle: theta)
             result.append(relation)
         }
-        val = subject.height * subject.depth
-        minVal = (height-maxDeviation.gap) * (depth-maxDeviation.gap)
-        maxVal = (height+maxDeviation.gap) * (depth+maxDeviation.gap)
+    }
+
+    private func evaluateSameSide(
+        subject: SpatialObject,
+        theta: Float,
+        result: inout [SpatialRelation]
+    ) {
+        var val = subject.height * subject.depth
+        let minVal = (height - maxDeviation.gap) * (depth - maxDeviation.gap)
+        let maxVal = (height + maxDeviation.gap) * (depth + maxDeviation.gap)
         if val > minVal && val < maxVal {
-            let gap = height*depth - val
-            relation = SpatialRelation(subject: subject, predicate: .sameside, object: self, gap: gap, angle: theta)
+            let gap = height * depth - val
+            let relation = SpatialRelation(subject: subject, predicate: .sameside, object: self, gap: gap, angle: theta)
             result.append(relation)
         }
-        val = subject.width * subject.depth
-        minVal = (width-maxDeviation.gap) * (depth-maxDeviation.gap)
-        maxVal = (width+maxDeviation.gap) * (depth+maxDeviation.gap)
+    }
+
+    private func evaluateSameFootprint(
+        subject: SpatialObject,
+        theta: Float,
+        result: inout [SpatialRelation]
+    ) {
+        var val = subject.width * subject.depth
+        let minVal = (width - maxDeviation.gap) * (depth - maxDeviation.gap)
+        let maxVal = (width + maxDeviation.gap) * (depth + maxDeviation.gap)
         if val > minVal && val < maxVal {
-            let gap = width*depth - val
-            relation = SpatialRelation(subject: subject, predicate: .samefootprint, object: self, gap: gap, angle: theta)
+            let gap = width * depth - val
+            let relation = SpatialRelation(subject: subject, predicate: .samefootprint, object: self, gap: gap, angle: theta)
             result.append(relation)
         }
-        val = subject.width * subject.depth * subject.height
-        minVal = (width-maxDeviation.gap) * (depth-maxDeviation.gap) * (height-maxDeviation.gap)
-        maxVal = (width+maxDeviation.gap) * (depth+maxDeviation.gap) * (height+maxDeviation.gap)
+    }
+
+    private func evaluateSameVolume(
+        subject: SpatialObject,
+        theta: Float,
+        sameWidth: Bool,
+        sameDepth: Bool,
+        sameHeight: Bool,
+        result: inout [SpatialRelation]
+    ) {
+        var val = subject.width * subject.depth * subject.height
+        let minVal = (width - maxDeviation.gap) * (depth - maxDeviation.gap) * (height - maxDeviation.gap)
+        let maxVal = (width + maxDeviation.gap) * (depth + maxDeviation.gap) * (height + maxDeviation.gap)
+
         if val > minVal && val < maxVal {
-            let gap = width*depth*height - val
-            relation = SpatialRelation(subject: subject, predicate: .samevolume, object: self, gap: gap, angle: theta)
+            let gap = width * depth * height - val
+            let relation = SpatialRelation(subject: subject, predicate: .samevolume, object: self, gap: gap, angle: theta)
             result.append(relation)
-            val = (position - subject.position).length()
+
+            // If the objects share the same width, depth, height, are close, and angles match, they might be 'congruent'.
+            let posDiff = (position - subject.position).length()
             let angleDiff = abs(angle - subject.angle)
-            if sameWidth && sameDepth && sameHeight && val < maxDeviation.gap && angleDiff < maxDeviation.angle {
-                relation = SpatialRelation(subject: subject, predicate: .congruent, object: self, gap: gap, angle: theta)
-                result.append(relation)
+            if sameWidth && sameDepth && sameHeight
+                && posDiff < maxDeviation.gap
+                && angleDiff < maxDeviation.angle {
+                let congruentRelation = SpatialRelation(subject: subject, predicate: .congruent, object: self, gap: gap, angle: theta)
+                result.append(congruentRelation)
             }
         }
-        if shape == subject.shape && shape != .unknown && subject.shape != .unknown {
-            val = (position - subject.position).length()
-            relation = SpatialRelation(subject: subject, predicate: .sameshape, object: self, gap: val, angle: theta)
-            result.append(relation)
-        }
-        return result
+    }
+
+    private func evaluateSameShape(
+        subject: SpatialObject,
+        theta: Float,
+        result: inout [SpatialRelation]
+    ) {
+        guard shape == subject.shape, shape != .unknown, subject.shape != .unknown else { return }
+        let val = (position - subject.position).length()
+        let relation = SpatialRelation(subject: subject, predicate: .sameshape, object: self, gap: val, angle: theta)
+        result.append(relation)
     }
     
     func comparisons(subject:SpatialObject) -> [SpatialRelation] {
