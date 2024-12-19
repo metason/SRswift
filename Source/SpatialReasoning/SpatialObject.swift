@@ -55,6 +55,15 @@ class SpatialObject {
         }
         return false
     }
+    var real:Bool {
+        return existence == .real
+    }
+    var virtual:Bool {
+        return existence == .virtual
+    }
+    var conceptual:Bool {
+        return existence == .conceptual
+    }
     var perimeter:Float { // footprint perimeter
         return (depth+width) * 2.0
     }
@@ -117,7 +126,7 @@ class SpatialObject {
         return container?.adjustment ?? defaultAdjustment
     }
     nonisolated(unsafe) static var north = SCNVector3(0.0, 0.0, -1.0) // north direction
-    static let booleanAttributes: [String] = ["immobile", "moving", "focused", "visible", "equilateral", "thin", "long"]
+    static let booleanAttributes: [String] = ["immobile", "moving", "focused", "visible", "equilateral", "thin", "long", "real", "virtual", "conceptual"]
     
     init(id: String, position: SCNVector3, width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0, angle: Float = 0.0, label: String = "", confidence: Float = 0.0) {
         self.id = id
@@ -140,7 +149,7 @@ class SpatialObject {
         let object = SpatialObject(id: id, position: .init(x: 0, y: 0, z: 0), width: width, height: height, depth: depth)
         object.label = label.lowercased()
         object.type = label
-        object.cause = .objectdetected
+        object.cause = .object_detected
         object.existence = .real
         object.confidence.setValue(0.25)
         object.immobile = false
@@ -150,7 +159,7 @@ class SpatialObject {
     
     static func createVirtualObject(id: String, width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0) -> SpatialObject {
         let object = SpatialObject(id: id, position: .init(x: 0, y: 0, z: 0), width: width, height: height, depth: depth)
-        object.cause = .usergenerated
+        object.cause = .user_generated
         object.existence = .virtual
         object.confidence.setSpatial(1.0)
         object.immobile = false
@@ -162,7 +171,7 @@ class SpatialObject {
         object.label = type.lowercased()
         object.type = type
         object.supertype = "Building Element"
-        object.cause = .planedetected
+        object.cause = .plane_detected
         object.existence = .real
         object.confidence.setValue(0.5)
         object.immobile = true
@@ -181,7 +190,7 @@ class SpatialObject {
         object.label = type.lowercased()
         object.type = type
         object.supertype = "Building Element"
-        object.cause = .usercaptured
+        object.cause = .user_captured
         object.existence = .real
         object.confidence.setValue(0.9)
         object.immobile = true
@@ -193,7 +202,7 @@ class SpatialObject {
         /// create with average dimension of a person
         let person = SpatialObject(id: id, position: position, width: 0.46, height: 1.72, depth: 0.34)
         person.label = name
-        person.cause = .selftracked
+        person.cause = .self_tracked
         person.existence = .real
         person.confidence.setValue(1.0)
         person.immobile = false
@@ -221,6 +230,9 @@ class SpatialObject {
             "thin": thin,
             "long": long,
             "equilateral": equilateral,
+            "real": real,
+            "virtual": virtual,
+            "conceptual": conceptual,
             "moving": moving,
             "perimeter": perimeter,
             "footprint": footprint,
@@ -525,6 +537,41 @@ class SpatialObject {
         return zone
     }
     
+    func sectorLenghts(_ sector:BBoxSector = .i) -> SCNVector3 {
+        var result = SCNVector3(x: UFloat(width), y: UFloat(height), z: UFloat(depth))
+        if sector.contains(.a) || sector.contains(.b) {
+            switch adjustment.sectorSchema {
+            case .fixed: result.z = CGFloat(adjustment.fixSectorLenght)
+            case .area: result.z = CGFloat(min(height*width*adjustment.sectorFactor, adjustment.sectorLimit))
+            case .dimension: result.z = CGFloat(min(depth*adjustment.sectorFactor, adjustment.sectorLimit))
+            case .perimeter: result.z = CGFloat(min(height+width*adjustment.sectorFactor, adjustment.sectorLimit))
+            case .nearby: result.z = CGFloat(min(radius*adjustment.nearbyFactor, adjustment.nearbyLimit))
+            case .wide: result.z = CGFloat(adjustment.wideSectorLenght)
+            }
+        }
+        if sector.contains(.l) || sector.contains(.r) {
+            switch adjustment.sectorSchema {
+            case .fixed: result.x = CGFloat(adjustment.fixSectorLenght)
+            case .area: result.x = CGFloat(min(height*depth*adjustment.sectorFactor, adjustment.sectorLimit))
+            case .dimension: result.x = CGFloat(min(width*adjustment.sectorFactor, adjustment.sectorLimit))
+            case .perimeter: result.x = CGFloat(min(height+depth*adjustment.sectorFactor, adjustment.sectorLimit))
+            case .nearby: result.x = CGFloat(min(radius*adjustment.nearbyFactor, adjustment.nearbyLimit))
+            case .wide: result.x = CGFloat(adjustment.wideSectorLenght)
+            }
+        }
+        if sector.contains(.o) || sector.contains(.u) {
+            switch adjustment.sectorSchema {
+            case .fixed: result.y = CGFloat(adjustment.fixSectorLenght)
+            case .area: result.y = CGFloat(min(width*depth*adjustment.sectorFactor, adjustment.sectorLimit))
+            case .dimension: result.y = CGFloat(min(height*adjustment.sectorFactor, adjustment.sectorLimit))
+            case .perimeter: result.y = CGFloat(min(width+depth*adjustment.sectorFactor, adjustment.sectorLimit))
+            case .nearby: result.y = CGFloat(min(radius*adjustment.nearbyFactor, adjustment.nearbyLimit))
+            case .wide: result.y = CGFloat(adjustment.wideSectorLenght)
+            }
+        }
+        return result
+    }
+    
     func topologies(subject:SpatialObject) -> [SpatialRelation] {
         var result = [SpatialRelation]()
         var relation:SpatialRelation
@@ -751,7 +798,7 @@ class SpatialObject {
                 result.append(relation)
             }
         }
-        if type == "Person" || (cause == .selftracked && existence == .real) {
+        if type == "Person" || (cause == .self_tracked && existence == .real) {
             let rad = Float(atan2(subject.center.x, subject.center.z))
             var angle:Float = rad * 180.0 / Float.pi
             print(angle)
@@ -1048,26 +1095,27 @@ class SpatialObject {
     }
     
     func sectorCube(_ sector:BBoxSector = .i) -> SCNNode {
-        let box = SCNBox(width: CGFloat(width), height: CGFloat(height), length: CGFloat(depth), chamferRadius: 0.0)
+        let dims = sectorLenghts(sector)
+        let box = SCNBox(width: dims.x, height: dims.y, length: dims.z, chamferRadius: 0.0)
         box.firstMaterial?.diffuse.contents = CGColor(gray: 0.1, alpha: 0.5)
         box.firstMaterial?.transparency = 0.5
         let node = SCNNode(geometry: box)
         node.name = sector.description + " sector"
         var shift:SCNVector3 = .init()
         if sector.contains(.o) {
-            shift.y = CGFloat(height)
+            shift.y = (CGFloat(height) + dims.y)/2.0
         } else if sector.contains(.u) {
-            shift.y = CGFloat(-height)
+            shift.y = (CGFloat(-height) - dims.y)/2.0
         }
         if sector.contains(.r) {
-            shift.x = CGFloat(-width)
+            shift.x = (CGFloat(-width) - dims.x)/2.0
         } else if sector.contains(.l) {
-            shift.x = CGFloat(width)
+            shift.x = (CGFloat(width) + dims.x)/2.0
         }
         if sector.contains(.a) {
-            shift.z = CGFloat(depth)
+            shift.z = (CGFloat(depth) + dims.z)/2.0
         } else if sector.contains(.b) {
-            shift.z = CGFloat(-depth)
+            shift.z = (CGFloat(-depth) - dims.z)/2.0
         }
         node.position = center + shift
         return node

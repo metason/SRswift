@@ -1,4 +1,4 @@
-# Spatial Terms
+# Spatial Terms (Brain-Storming Level)
 
 ## Spatial metric attributes
 

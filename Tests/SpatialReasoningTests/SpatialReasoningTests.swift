@@ -88,7 +88,7 @@ struct SpatialReasoningTests {
         sp.load([wall1, wall2, wall3, wall4, floor, door, window, table, book, picture])
         let pipeline = """
             filter(supertype BEGINSWITH 'Building') 
-            | log(base 3D above)
+            | log(base 3D above inside)
         """
         let done = sp.run(pipeline)
         #expect(done)

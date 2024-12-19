@@ -62,7 +62,7 @@ struct SpatialAttributeTests {
         let object = SpatialObject.createDetectedObject(id: "1", label: "Table", width: 1.6, height: 0.8, depth: 0.9)
         //print(object.asDict())
         #expect(object.label == "table")
-        #expect(object.cause == .objectdetected)
+        #expect(object.cause == .object_detected)
         #expect(object.existence == .real)
         #expect(object.long == false)
     }
@@ -82,7 +82,7 @@ struct SpatialAttributeTests {
     @Test("is virtual")
     func virtual() async throws {
         let object = SpatialObject.createVirtualObject(id: "1", width: 1.0, height: 0.0, depth: 0.3)
-        #expect(object.cause == .usergenerated)
+        #expect(object.cause == .user_generated)
         #expect(object.existence == .virtual)
         #expect(object.confidence.spatial == 1.0)
     }

@@ -47,10 +47,16 @@ class SpatialReasoner {
     func load(_ json: String) {
        
     }
+    
+    func record(_ inference: SpatialInference) {
+        chain.append(inference)
+        base["chain"] = base["chain"] as? [String:Any] ?? [] + [inference.asDict()]
+    }
 
     func run(_ pipeline: String) -> Bool {
         logCnt = 0
         chain = []
+        base["chain"] = [Any]()
         let list = pipeline.split(separator: "|").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
         let indices: [Int] = (0..<objects.count).indices.map { $0 }
         for op in list {
@@ -60,7 +66,7 @@ class SpatialReasoner {
                 log(String(op[startIdx..<endIdx]))
             } else {
                 let inference = SpatialInference(input: !chain.isEmpty ? chain.last!.output : indices, operation: op, in: self)
-                chain.append(inference)
+                record(inference)
                 if inference.hasFailed() {
                     logError()
                     break

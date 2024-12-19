@@ -144,6 +144,17 @@ class SpatialInference {
         return !error.isEmpty
     }
     
+    public func asDict() -> Dictionary<String, Any>? {
+        let output = [
+            "operation": operation,
+            "input": input,
+            "output": output,
+            "error": error,
+            "succeeded": succeeded
+        ] as [String : Any]
+        return output
+    }
+    
     static func attributePredicate(_ condition: String) -> NSPredicate? {
         var cond = condition
         /// for boolean attributes: add comparison (e.g., == TRUE) if missing
