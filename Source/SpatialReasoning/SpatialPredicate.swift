@@ -20,7 +20,7 @@ nonisolated(unsafe) let comparisons:[SpatialPredicate] = [.smaller, .bigger, .sh
 nonisolated(unsafe) let similarities:[SpatialPredicate] = [.sameside, .sameheight, .samewidth, .samefront, .sameside, .samefootprint, .samelength, .samevolume, .samecenter, .samecuboid, .congruent, .sameshape]
 nonisolated(unsafe) let comparability = comparisons + similarities
 nonisolated(unsafe) let visibility:[SpatialPredicate] = [.seenleft, .seenright, .infront, .atrear, .tangible, .eightoclock, .nineoclock, .tenoclock, .elevenoclock, .twelveoclock, .oneoclock, .twooclock, .threeoclock, .fouroclock]
-
+nonisolated(unsafe) let geography:[SpatialPredicate] = [.north, .south, .east, .west, .northwest, .northeast, .southwest, .southeast]
 
 // Spatial predicates used for: Subject - predicate - Object
 public enum SpatialPredicate : String {

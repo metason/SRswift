@@ -107,11 +107,13 @@ Log files are used for debug purposes and are saved per default in the Downloads
 
 ## Setup Operation deduce()
 
-Relation categories:
+Spatial predicate categories of relations:
 - topology
-- connectivity
-- sectors
-- contacts
+- connectivity (contacts)
+- directionality (sectors)
+- comparability
+- visibility
+- geography
 
 ## Spatial Adjustment
 
