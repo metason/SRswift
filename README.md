@@ -52,7 +52,7 @@ The spatial inference pipeline is defined as text specification. The pipeline is
 - __pick__: pick objects along their spatial relations
 - __select__: select objects having spatial relations with others
 - __log__: log the current status of the processing pipeline
-- (deduce: optional setup to specify relation categories to be deduced)
+- __deduce__: optional setup to specify relation categories to be deduced)
 - (sort: sort objects by metric attributes)
 - (calc: calculate global variables in fact base)
 - (map: calculate new object attributes)
@@ -77,7 +77,7 @@ The filter, pick, and select operations do change the list of output objects to 
 | __pick__  | `pick(`_relation conditions_`)` | `pick(near); pick(ahead AND smaller); pick(near AND (left OR right))` |
 | __select__  | `select(`_relation ? attribute conditions_`)` | `select(ontop ? id == 'table1'); select(on ? type == 'floor'); select(ahead AND smaller ? footprint < 0.5)` |
 | __log__  | `log(base 3D `_relations_`)` | `log(); log(base); log(3D); log(near right); log(3D near right)` |
-| __deduce__  | `deduce(`_relation categories_`)` | `deduce(topology); deduce(connectivity); deduce(sectors)` |
+| __deduce__  | `deduce(`_relation categories_`)` | `deduce(topology); deduce(connectivity); deduce(visibility)` |
 | __sort__  | `sort(`_metric attribute_`)` | `sort(length); sort(volume); sort(width ASC); sort(width DESC)` |
 | __sort__  | `sort(`_relation attribute_`)` | `sort(near.gap); sort(frontside.angle); sort(near.gap ASC);` |
 | __map__  | `map(`_attribute assignment_`)` | `map(weight = volume * 140.0)` |
