@@ -52,13 +52,13 @@ Orientation
 - parallel, orthogonal
 Directional
 - sector? of center?
-Projective
+Visibility
 - seenleft, seenright
 Proximity
 - near, close, far, 
-Topological
+Topology
 - inside, contains, disjoint
-Comparative
+Comparativity
 - larger, longer
 
 

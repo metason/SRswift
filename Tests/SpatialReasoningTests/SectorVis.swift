@@ -37,6 +37,7 @@ struct SectorVis {
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relation = object.direction(subject: subject)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), object.sectorCube(.o)])
+        //print(relation.predicate)
         #expect(relation.predicate == .o)
     }
     

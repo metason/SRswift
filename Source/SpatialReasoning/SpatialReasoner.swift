@@ -15,10 +15,12 @@ import SceneKit
 class SpatialReasoner {
 
     var objects: [SpatialObject] = []
+    var observer:SpatialObject? = nil
     var relMap: [Int: [SpatialRelation]] = [:] // index:[SpatialRelation]
     var chain: [SpatialInference] = []
     var base:Dictionary<String, Any> = [:] // fact base, objects will be added
     var adjustment = SpatialAdjustment()
+    var deduce = SpatialPredicateCategories()
     
     // logging
     var name:String = "" // used as title for log
@@ -28,13 +30,18 @@ class SpatialReasoner {
 
     func load(_ objs: [SpatialObject]) {
         objects = objs
+        observer = nil
         relMap = [:]
         base["objects"] = []
         if !objs.isEmpty {
             let indices: [Int] = (0..<objs.count).indices.map { $0 }
             var objList = [Any]()
             for idx in indices {
+                objs[idx].context = self
                 objList.append(objs[idx].asDict() as Any)
+                if objs[idx].observing {
+                    observer = objs[idx]
+                }
             }
             base["objects"] = objList
         }
@@ -64,6 +71,10 @@ class SpatialReasoner {
                 let startIdx = op.index(op.startIndex, offsetBy: 4)
                 let endIdx = op.index(op.endIndex, offsetBy: -1)
                 log(String(op[startIdx..<endIdx]))
+            } else if op.starts(with: "deduce(") {
+                let startIdx = op.index(op.startIndex, offsetBy: 7)
+                let endIdx = op.index(op.endIndex, offsetBy: -1)
+                deduce(String(op[startIdx..<endIdx]))
             } else {
                 let inference = SpatialInference(input: !chain.isEmpty ? chain.last!.output : indices, operation: op, in: self)
                 record(inference)
@@ -129,6 +140,15 @@ class SpatialReasoner {
         return false
     }
     
+    func deduce(_ categories: String) {
+        deduce.topology = categories.contains("topo")
+        deduce.connectivity = categories.contains("connect")
+        deduce.comparability = categories.contains("compar")
+        deduce.directionality = categories.contains("direct")
+        deduce.visibility = categories.contains("visib")
+        deduce.geography = categories.contains("geo")
+    }
+    
     func log(_ predicates: String) {
 #if os(macOS)
         if logFolder == nil {
@@ -161,13 +181,14 @@ class SpatialReasoner {
         var str = name.count > 0 ? name : "Spatial Reasoning Log"
         var mmdObjs: String = ""
         var mmdRels: String = ""
+        var mmdContacts: String = ""
         var rels: String = ""
         md = md + str + "\n"
         str = description.count > 0 ? description : ""
         md = md + str + "\n## Inference Pipeline\n\n```\n"
         
-        for i in (0..<chain.count).reversed() {
-            if i < chain.count - 1 {
+        for i in (0..<chain.count) {
+            if i > 0 {
                 md = md + "| "
             }
             md = md + chain[i].operation + "\n"
@@ -197,17 +218,26 @@ class SpatialReasoner {
                 }
                 if doAdd {
                     mmdRels = mmdRels + "    " + relation.subject.id + " -- " + relation.predicate.rawValue + " --> " + relation.object.id + "\n"
+                    if contacts.contains(relation.predicate) {
+                        mmdContacts = mmdContacts + "    " + relation.subject.id + " -- " + relation.predicate.rawValue + " --> " + relation.object.id + "\n"
+                    }
+                }
+                if contacts.contains(relation.predicate) {
+                    mmdContacts = mmdContacts + "    " + relation.subject.id + " -- " + relation.predicate.rawValue + " --> " + relation.object.id + "\n"
                 }
                 rels = rels + "* " + relation.desc() + "\n"
             }
         }
         //print("\(allIndices) : \(indices).")
         if !mmdRels.isEmpty {
-            md = md + "\n## Spatial Graph\n\n"
+            md = md + "\n## Spatial Relations Graph\n\n"
             md = md + "```mermaid\ngraph LR;\n" + mmdObjs + mmdRels + "```\n"
         }
-
-        md = md + "\n## Contact Graph\n\n"
+        
+        if !mmdContacts.isEmpty {
+            md = md + "\n## Connectivity Graph\n\n"
+            md = md + "```mermaid\ngraph TD;\n" + mmdContacts + "```\n"
+        }
 
         md = md + "\n## Spatial Relations\n\n"
         md = md + rels + "\n"

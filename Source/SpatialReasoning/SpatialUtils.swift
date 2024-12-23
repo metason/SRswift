@@ -25,7 +25,15 @@ extension CGPoint {
         return sqrt(x*x + y*y)
     }
     
-    func rotate(_ radians: UFloat, pivot: CGPoint = CGPoint(x: 0.0, y: 0.0)) -> CGPoint {
+    func rotate(_ radians: UFloat) -> CGPoint {
+        let rotationSin = sin(radians)
+        let rotationCos = cos(radians)
+        let x = self.x * rotationCos - self.y * rotationSin
+        let y = self.x * rotationSin + self.y * rotationCos
+        return CGPoint(x: x, y: y)
+    }
+    
+    func rotate(_ radians: UFloat, pivot: CGPoint) -> CGPoint {
         let shiftedX = self.x - pivot.x
         let shiftedY = self.y - pivot.y
         let rotationSin = sin(radians)

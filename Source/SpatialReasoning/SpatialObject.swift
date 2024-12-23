@@ -16,8 +16,8 @@ class SpatialObject {
     var existence:SpatialExistence = .real
     var cause:ObjectCause = .unknown
     var label:String = "" // name or label
-    var type:String = ""
-    var supertype:String = ""
+    var type:String = "" // class
+    var supertype:String = "" // superclass
     var look:String = "" // textual description of appearance: color, bright/dark, dull/shiny, metallic, transparent, ...
     var created:Date // creation time
     var updated:Date // last update time
@@ -33,8 +33,7 @@ class SpatialObject {
     var shape:ObjectShape = .unknown
     var visible:Bool = false // in screen
     var focused:Bool = false // in center of screen, for some time
-    ///context
-    var container:SpatialReasoner? = nil // optional, max deviation defined in container instead of global
+    var context:SpatialReasoner? = nil // optional, defines fact base and adjustment settings
     
     /// derived attributes
     var center:SCNVector3 {
@@ -105,6 +104,9 @@ class SpatialObject {
     var moving:Bool {
         return motion == .moving
     }
+    var observing:Bool {
+        return cause == .self_tracked
+    }
     var length:Float {
         let alignment = long(ratio: 1.1)
         if alignment == 1 {
@@ -123,7 +125,7 @@ class SpatialObject {
         return now.timeIntervalSince(updated)
     }
     var adjustment:SpatialAdjustment {
-        return container?.adjustment ?? defaultAdjustment
+        return context?.adjustment ?? defaultAdjustment
     }
     nonisolated(unsafe) static var north = SCNVector3(0.0, 0.0, -1.0) // north direction
     static let booleanAttributes: [String] = ["immobile", "moving", "focused", "visible", "equilateral", "thin", "long", "real", "virtual", "conceptual"]
@@ -343,11 +345,10 @@ class SpatialObject {
         var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
         var pos = SCNVector3()
         if local == false {
-            let pivot = CGPoint(x:UFloat(position.x), y: UFloat(position.z))
-            p0 = p0.rotate(UFloat(angle), pivot: pivot)
-            p1 = p1.rotate(UFloat(angle), pivot: pivot)
-            p2 = p2.rotate(UFloat(angle), pivot: pivot)
-            p3 = p3.rotate(UFloat(angle), pivot: pivot)
+            p0 = p0.rotate(UFloat(angle))
+            p1 = p1.rotate(UFloat(angle))
+            p2 = p2.rotate(UFloat(angle))
+            p3 = p3.rotate(UFloat(angle))
             pos = position
         }
         return [
@@ -365,11 +366,10 @@ class SpatialObject {
         var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
         var pos = SCNVector3()
         if local == false {
-            let pivot = CGPoint(x:UFloat(position.x), y: UFloat(position.z))
-            p0 = p0.rotate(UFloat(angle), pivot: pivot)
-            p1 = p1.rotate(UFloat(angle), pivot: pivot)
-            p2 = p2.rotate(UFloat(angle), pivot: pivot)
-            p3 = p3.rotate(UFloat(angle), pivot: pivot)
+            p0 = p0.rotate(UFloat(angle))
+            p1 = p1.rotate(UFloat(angle))
+            p2 = p2.rotate(UFloat(angle))
+            p3 = p3.rotate(UFloat(angle))
             pos = position
         }
         return [
@@ -385,9 +385,8 @@ class SpatialObject {
         var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
         var pos = SCNVector3()
         if local == false {
-            let pivot = CGPoint(x:UFloat(position.x), y: UFloat(position.z))
-            p0 = p0.rotate(UFloat(angle), pivot: pivot)
-            p1 = p1.rotate(UFloat(angle), pivot: pivot)
+            p0 = p0.rotate(UFloat(angle))
+            p1 = p1.rotate(UFloat(angle))
             pos = position
         }
         return [
@@ -403,9 +402,8 @@ class SpatialObject {
         var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
         var pos = SCNVector3()
         if local == false {
-            let pivot = CGPoint(x:UFloat(position.x), y: UFloat(position.z))
-            p2 = p2.rotate(UFloat(angle), pivot: pivot)
-            p3 = p3.rotate(UFloat(angle), pivot: pivot)
+            p2 = p2.rotate(UFloat(angle))
+            p3 = p3.rotate(UFloat(angle))
             pos = position
         }
         return [
@@ -421,9 +419,8 @@ class SpatialObject {
         var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
         var pos = SCNVector3()
         if local == false {
-            let pivot = CGPoint(x:UFloat(position.x), y: UFloat(position.z))
-            p1 = p1.rotate(UFloat(angle), pivot: pivot)
-            p2 = p2.rotate(UFloat(angle), pivot: pivot)
+            p1 = p1.rotate(UFloat(angle))
+            p2 = p2.rotate(UFloat(angle))
             pos = position
         }
         return [
@@ -439,9 +436,8 @@ class SpatialObject {
         var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
         var pos = SCNVector3()
         if local == false {
-            let pivot = CGPoint(x:UFloat(position.x), y: UFloat(position.z))
-            p0 = p0.rotate(UFloat(angle), pivot: pivot)
-            p3 = p3.rotate(UFloat(angle), pivot: pivot)
+            p0 = p0.rotate(UFloat(angle))
+            p3 = p3.rotate(UFloat(angle))
             pos = position
         }
         return [
@@ -459,11 +455,10 @@ class SpatialObject {
         var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
         var pos = SCNVector3()
         if local == false {
-            let pivot = CGPoint(x:UFloat(position.x), y: UFloat(position.z))
-            p0 = p0.rotate(UFloat(angle), pivot: pivot)
-            p1 = p1.rotate(UFloat(angle), pivot: pivot)
-            p2 = p2.rotate(UFloat(angle), pivot: pivot)
-            p3 = p3.rotate(UFloat(angle), pivot: pivot)
+            p0 = p0.rotate(UFloat(angle))
+            p1 = p1.rotate(UFloat(angle))
+            p2 = p2.rotate(UFloat(angle))
+            p3 = p3.rotate(UFloat(angle))
             pos = position
         }
         return [
@@ -490,49 +485,56 @@ class SpatialObject {
     
     // transfer point into local coordinate system
     func intoLocal(pt:SCNVector3) -> SCNVector3 {
-        let pivot = CGPoint(x:UFloat(position.x), y: UFloat(position.z))
-        let rotated = CGPoint(x: UFloat(pt.x), y: UFloat(pt.z)).rotate(UFloat(-angle), pivot: pivot)
-        return SCNVector3(x: UFloat(rotated.x)-position.x, y: pt.y-position.y, z: UFloat(rotated.y)-position.z)
+        let vx = Float(pt.x - position.x)
+        let vy = Float(pt.z - position.z)
+        let rotsin = sinf(-angle)
+        let rotcos = cosf(-angle)
+        let x = vx * rotcos - vy * rotsin
+        let y = vx * rotsin + vy * rotcos
+        return SCNVector3(x: CGFloat(x), y: pt.y-position.y, z: CGFloat(y))
     }
+    
+
     
     // transfer points into local coordinate system
     func intoLocal(pts:[SCNVector3]) -> [SCNVector3] {
         var result = [SCNVector3]()
-        let pivot = CGPoint(x:UFloat(position.x), y: UFloat(position.z))
+        let rotsin = sinf(-angle)
+        let rotcos = cosf(-angle)
         for pt in pts {
-            let rotated = CGPoint(x: UFloat(pt.x), y: UFloat(pt.z)).rotate(UFloat(-angle), pivot: pivot)
-            result.append(SCNVector3(x: UFloat(rotated.x)-position.x, y: pt.y-position.y, z: UFloat(rotated.y)-position.z))
+            let vx = Float(pt.x - position.x)
+            let vy = Float(pt.z - position.z)
+            let x = vx * rotcos - vy * rotsin
+            let y = vx * rotsin + vy * rotcos
+            result.append(SCNVector3(x: CGFloat(x), y: pt.y-position.y, z: CGFloat(y)))
         }
         return result
     }
     
     // point must be transformed upfront into local object coordinate system
     func sectorOf(point: SCNVector3) -> BBoxSector {
+        let epsilon = UFloat(context?.adjustment.gap ?? defaultAdjustment.gap)/2.0
         var zone: BBoxSector = []
-        var inner = 0
+        if point.x < UFloat(width)/2.0 + epsilon && -point.x < UFloat(width)/2.0 + epsilon &&
+            point.z < UFloat(depth)/2.0 + epsilon && -point.z < UFloat(depth)/2.0 + epsilon &&
+            point.y < UFloat(height) + epsilon && point.y > -epsilon {
+            zone = .i
+            return zone
+        }
         if point.x > UFloat(width)/2.0 {
             zone.insert(.l)
         } else if -point.x > UFloat(width)/2.0 {
             zone.insert(.r)
-        } else {
-            inner += 1
         }
         if point.z > UFloat(depth)/2.0 {
             zone.insert(.a)
         } else if -point.z > UFloat(depth)/2.0 {
             zone.insert(.b)
-        } else {
-            inner += 1
         }
         if point.y > UFloat(height) {
             zone.insert(.o)
         } else if point.y < 0.0 {
             zone.insert(.u)
-        } else {
-            inner += 1
-        }
-        if inner == 3 {
-            zone.insert(.i)
         }
         return zone
     }
@@ -649,7 +651,7 @@ class SpatialObject {
                 for pt in localPts {
                     min = Float.minimum(min, Float(pt.x) - width/2.0)
                 }
-                if min > 0.0 {
+                if min >= 0.0 {
                     canNotOverlap = true
                     minDistance = min
                     relation = SpatialRelation(subject: subject, predicate: .leftside, object: self, gap: min, angle: theta)
@@ -659,7 +661,7 @@ class SpatialObject {
                 for pt in localPts {
                     min = Float.minimum(min, Float(-pt.x) - width/2.0)
                 }
-                if min > 0.0 {
+                if min >= 0.0 {
                     canNotOverlap = true
                     minDistance = min
                     relation = SpatialRelation(subject: subject, predicate: .rightside, object: self, gap: min, angle: theta)
@@ -669,15 +671,21 @@ class SpatialObject {
                 for pt in localPts {
                     min = Float.minimum(min, Float(pt.y) - height)
                 }
-                if min > 0.0 {
+                if min >= 0.0 {
                     canNotOverlap = true
                     minDistance = min
                     if min <= adjustment.gap {
                         relation = SpatialRelation(subject: subject, predicate: .ontop, object: self, gap: min, angle: theta)
+                        result.append(relation)
+                        if context?.deduce.connectivity ?? true {
+                            relation = SpatialRelation(subject: subject, predicate: .on, object: self, gap: min, angle: theta)
+                            result.append(relation)
+                        }
                     } else {
                         relation = SpatialRelation(subject: subject, predicate: .upperside, object: self, gap: min, angle: theta)
+                        result.append(relation)
                     }
-                    result.append(relation)
+                    
                 }
                 
             } else if centerZone == .u {
@@ -726,6 +734,10 @@ class SpatialObject {
                 isDisjoint = false
                 relation = SpatialRelation(subject: subject, predicate: .inside, object: self, gap: 0.0, angle: theta)
                 result.append(relation)
+                if context?.deduce.connectivity ?? true {
+                    relation = SpatialRelation(subject: subject, predicate: .in, object: self, gap: 0.0, angle: theta)
+                    result.append(relation)
+                }
             } else {
                 var d = 0
                 for z in zones {
@@ -798,51 +810,54 @@ class SpatialObject {
                 result.append(relation)
             }
         }
-        if type == "Person" || (cause == .self_tracked && existence == .real) {
-            let rad = Float(atan2(subject.center.x, subject.center.z))
-            var angle:Float = rad * 180.0 / Float.pi
-            print(angle)
-            let hourAngle:Float = 30.0 // 360.0/12.0
-            if angle < 0.0 {
-                angle = angle - hourAngle/2.0
-            } else {
-                angle = angle + hourAngle/2.0
-            }
-            let cnt = Int(angle/hourAngle)
-            print(cnt)
-            var doit = true
-            var pred:SpatialPredicate = .twelveoclock
-            switch cnt {
-            case 4:
-                pred = .eightoclock
-            case 3:
-                pred = .nineoclock
-            case 2:
-                pred = .tenoclock
-            case 1:
-                pred = .elevenoclock
-            case 0:
-                pred = .twelveoclock
-            case -1:
-                pred = .oneoclock
-            case -2:
-                pred = .twooclock
-            case -3:
-                pred = .threeoclock
-            case -4:
-                pred = .fouroclock
-            default:
-                doit = false
-            }
-            if doit {
-                relation = SpatialRelation(subject: subject, predicate: pred, object: self, gap: centerDistance, angle: rad)
-                result.append(relation)
-                if centerDistance <= 1.25 { // 70cm arm length plus 25cm shoulder plus 30cm leaning forward
-                    relation = SpatialRelation(subject: subject, predicate: .tangible, object: self, gap: centerDistance, angle: rad)
+        if context?.deduce.visibility ?? true {
+            if type == "Person" || (cause == .self_tracked && existence == .real) {
+                let rad = Float(atan2(subject.center.x, subject.center.z))
+                var angle:Float = rad * 180.0 / Float.pi
+                print(angle)
+                let hourAngle:Float = 30.0 // 360.0/12.0
+                if angle < 0.0 {
+                    angle = angle - hourAngle/2.0
+                } else {
+                    angle = angle + hourAngle/2.0
+                }
+                let cnt = Int(angle/hourAngle)
+                print(cnt)
+                var doit = true
+                var pred:SpatialPredicate = .twelveoclock
+                switch cnt {
+                case 4:
+                    pred = .eightoclock
+                case 3:
+                    pred = .nineoclock
+                case 2:
+                    pred = .tenoclock
+                case 1:
+                    pred = .elevenoclock
+                case 0:
+                    pred = .twelveoclock
+                case -1:
+                    pred = .oneoclock
+                case -2:
+                    pred = .twooclock
+                case -3:
+                    pred = .threeoclock
+                case -4:
+                    pred = .fouroclock
+                default:
+                    doit = false
+                }
+                if doit {
+                    relation = SpatialRelation(subject: subject, predicate: pred, object: self, gap: centerDistance, angle: rad)
                     result.append(relation)
+                    if centerDistance <= 1.25 { // 70cm arm length plus 25cm shoulder plus 30cm leaning forward
+                        relation = SpatialRelation(subject: subject, predicate: .tangible, object: self, gap: centerDistance, angle: rad)
+                        result.append(relation)
+                    }
                 }
             }
         }
+        
         return result
     }
     
@@ -1004,16 +1019,19 @@ class SpatialObject {
         return SpatialRelation(subject:subject, predicate: pred, object:self, gap: centerDistance, angle:theta)
     }
     
-    func relate(subject:SpatialObject, topology:Bool = true, similarity:Bool = true, comparison:Bool = true) -> [SpatialRelation] {
+    func relate(subject:SpatialObject, topology:Bool = false, similarity:Bool = false, comparison:Bool = false) -> [SpatialRelation] {
         var result = [SpatialRelation]()
-        if topology {
+        if topology || context?.deduce.topology ?? false || context?.deduce.connectivity ?? false {
             result.append(contentsOf: topologies(subject:subject))
         }
-        if similarity {
+        if similarity || context?.deduce.comparability ?? false{
             result.append(contentsOf: similarities(subject:subject))
         }
-        if comparison {
+        if comparison || context?.deduce.comparability ?? false{
             result.append(contentsOf: comparisons(subject:subject))
+        }
+        if context?.observer != nil && context?.deduce.visibility ?? false {
+            result.append(contentsOf: asseen(subject:subject, observer:context!.observer!))
         }
         return result
     }

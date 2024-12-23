@@ -17,14 +17,14 @@ public enum SectorSchema {
     case wide // use fix wide
 }
 
-// Default adjustment only used when no SpatialReasoner builds container
+// Default adjustment only used when no SpatialReasoner builds context
 nonisolated(unsafe) var defaultAdjustment = SpatialAdjustment()
 
 // Set adjustment parameters before executing pipeline or calling relate() method.
 // SpatialReasoner has its own local adjustment that should be set upfront.
 class SpatialAdjustment {
     // Max deviations
-    var gap:Float = 0.05 /// gap ist max distance of deviation in all directions in meters
+    var gap:Float = 0.02 /// gap ist max distance of deviation in all directions in meters
     var angle:Float = 0.05 * .pi /// angle is max delta of yaw orientation in radiants in both directions
     // Sector size
     var sectorSchema:SectorSchema = .wide
@@ -46,6 +46,15 @@ class SpatialAdjustment {
     func setYaw(_ degrees:Float) {
         angle = degrees * .pi / 180.0
     }
+}
+
+class SpatialPredicateCategories {
+    var topology = true
+    var connectivity = true
+    var comparability = false
+    var directionality = false
+    var visibility = true
+    var geography = false
 }
 
 class ObjectConfidence { // plausability values between 0.0 and 1.0
@@ -93,6 +102,7 @@ public enum SpatialExistence: String {
     case real // visual, detected, real object
     case virtual // visual, created, virtual object
     case conceptual // non-visual, conceptual area, e.g., corner, zone, sensing area, region of interest, interaction field
+    case aggregational // non-visual part-of group, container
 }
 
 public enum ObjectCause : String {

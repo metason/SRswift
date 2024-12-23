@@ -51,7 +51,7 @@ struct SpatialReasoningTests {
         let obj3 = SpatialObject(id: "3", position: .init(x: 0, y: 1.2, z: 0.75), width: 0.7, height: 0.7, depth: 0.7)
         let sr = SpatialReasoner()
         sr.load([obj1, obj2, obj3])
-        let done = sr.run("filter(volume < 20.4) | log(3D) | pick(ahead AND smaller) | log()")
+        let done = sr.run("deduce(topology comparability) | filter(volume < 20.4) | log(3D) | pick(ahead AND smaller) | log()")
         print(sr.base["objects"] as Any)
         #expect(done)
     }
@@ -78,7 +78,6 @@ struct SpatialReasoningTests {
         let floor = SpatialObject.createBuildingElement(id: "floor", position: .init(x: 0, y: -0.2, z: 1.25), width: 4.5, height: 0.2, depth: 3.0)
         let door = SpatialObject.createBuildingElement(id: "door", from: .init(x: 0.4, y: 0, z: 0), to: .init(x: 1.3, y: 0, z: 0), height: 2.05)
         let window = SpatialObject.createBuildingElement(id: "window", from: .init(x: 2, y: 0.7, z: 1), to: .init(x: 2, y: 0.7, z: 2.2), height: 1.35)
-
         let table = SpatialObject(id: "table", position: .init(x: -0.65, y: 0, z: 0.9), width: 1.4, height: 0.72, depth: 0.9)
         let book = SpatialObject(id: "book", position: .init(x: -0.75, y: 0.725, z: 0.72), width: 0.22, height: 0.02, depth: 0.32)
         book.angle = 0.4
@@ -87,7 +86,8 @@ struct SpatialReasoningTests {
         let sp = SpatialReasoner()
         sp.load([wall1, wall2, wall3, wall4, floor, door, window, table, book, picture])
         let pipeline = """
-            filter(supertype BEGINSWITH 'Building') 
+            deduce(topology connectivity)
+            | filter(supertype BEGINSWITH 'Building') 
             | log(base 3D above inside)
         """
         let done = sp.run(pipeline)
@@ -104,7 +104,8 @@ struct SpatialReasoningTests {
         let sp = SpatialReasoner()
         sp.load([subject, object, observer])
         let pipeline = """
-            select(ahead ? volume > 0.3) 
+            deduce(topology)
+            | select(ahead ? volume > 0.3) 
             | log(base 3D near infront)
         """
         let done = sp.run(pipeline)

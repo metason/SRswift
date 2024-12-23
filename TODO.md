@@ -15,6 +15,8 @@
 - Dynamic Vicinity and Adjacency Checking
   - change SpatialAdjustment dynamiclly --> use in spatial rule engine demo
   - step-wise relaxing of border conditions when pipeline not successful
+- Euclidean Signed Distance Function (ESDF) 
+- room segmentation: walls
 
 
 GITHUB
@@ -235,3 +237,23 @@ Voice-based Interaction and Language Models
 Route Finding
 - Voronoi-based Route Graph
 - 
+
+
+## Motivation
+
+Cardinal Direction Relations in 3D --> sectors
+higher-level spatial concepts (e.g., objects, agents, places, rooms), not point clouds or polygon meshes
+Agents, robots and autonomous systems
+High-level representations are required to understand and execute instructions from humans (e.g., bring me the cup of tea I left on the dining room table)
+also enable efficient planning (e.g., by allowing planning over compact abstractions rather than dense low-level geometry)
+reasoning in real-time to support just-in-time decision-making
+mostly concerned with objects and their relations while disregarding the top layers
+Part-of assembly graph versus "flat" 3D scene graphs
+navigation, capturing moving entities in the environment
+metric-semantic mapping
+hierarchical map
+metric and topological representations in 2D
+compute a Voronoi graph from a 2D occupancy grid
+project 3D point clouds to 2D maps
+Hierarchical 3D Representation: grouping of inside/parts as layers in 3D with relation lines
+- calculate aggregation/group bbox

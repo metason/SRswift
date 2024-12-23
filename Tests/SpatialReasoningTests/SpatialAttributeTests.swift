@@ -6,29 +6,11 @@
 //
 
 import Testing
-import SceneKit
+//import SceneKit
 @testable import SpatialReasoning
 
 @Suite("Spatial Object: Derived Attributes")
 struct SpatialAttributeTests {
-    
-    let enable3Dexport = false
-    let objectOpaque = CGColor(red: 1, green: 0, blue: 0, alpha: 0.0)
-    let subjectOpaque = CGColor(red: 0, green: 0, blue: 1, alpha: 0.0)
-    let objectTransparent = CGColor(red: 1, green: 0, blue: 0, alpha: 0.3)
-    let subjectTransparent = CGColor(red: 0, green: 0, blue: 1, alpha: 0.3)
-    
-    // write USDZ file to Downloads folder
-    func export(_ nodes:[SCNNode]) {
-        if enable3Dexport {
-            let urls = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
-            if urls.count > 0 {
-                let filename = (Test.current?.displayName ?? "scene").appending(".usdz")
-                let fileURL:URL = urls.first!.appendingPathComponent(filename)
-                SpatialObject.export3D(to: fileURL, nodes: nodes)
-            }
-        }
-    }
 
     @Test("is thin")
     func isthin() async throws {
@@ -67,7 +49,7 @@ struct SpatialAttributeTests {
         #expect(object.long == false)
     }
 
-    @Test("is building element")
+    @Test("wall is building element")
     func buildingElement() async throws {
         let object = SpatialObject.createBuildingElement(id: "1", type: "Wall", position: .init(x: 0, y: 0, z: 0), width: 3.2, height: 2.2, depth: 0.3)
         //print(object.asDict())

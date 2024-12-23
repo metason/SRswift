@@ -7,17 +7,33 @@
 
 import Foundation
 
+// Spatial predicate categories
+
+nonisolated(unsafe) let contacts:[SpatialPredicate] = [.on, .at, .by, .in]
+nonisolated(unsafe) let connectivity = contacts
+nonisolated(unsafe) let adjacency:[SpatialPredicate] = [.left, .right, .above, .below, .ahead, .behind]
+nonisolated(unsafe) let proximity:[SpatialPredicate] = [.leftside, .rightside, .ontop, .beneath, .upperside, .lowerside, .frontside, .backside]
+nonisolated(unsafe) let orientations:[SpatialPredicate] = [.aligned, .orthogonal, .opposite]
+nonisolated(unsafe) let arrangements:[SpatialPredicate] = [.disjoint, .inside, .containing, .overlapping, .crossing, .touching, .meeting, .near, .beside, .fitting, .exceeding]
+nonisolated(unsafe) let topology = adjacency + proximity + orientations + arrangements
+nonisolated(unsafe) let comparisons:[SpatialPredicate] = [.smaller, .bigger, .shorter, .longer, .taller, .thinner, .wider]
+nonisolated(unsafe) let similarities:[SpatialPredicate] = [.sameside, .sameheight, .samewidth, .samefront, .sameside, .samefootprint, .samelength, .samevolume, .samecenter, .samecuboid, .congruent, .sameshape]
+nonisolated(unsafe) let comparability = comparisons + similarities
+nonisolated(unsafe) let visibility:[SpatialPredicate] = [.seenleft, .seenright, .infront, .atrear, .tangible, .eightoclock, .nineoclock, .tenoclock, .elevenoclock, .twelveoclock, .oneoclock, .twooclock, .threeoclock, .fouroclock]
+
+
 // Spatial predicates used for: Subject - predicate - Object
 public enum SpatialPredicate : String {
     case undefined // try to resolve by synonym or inverse
-    /// alignment: in relation to position and orientation of object comparing center
+    // TOPOLOGY
+    /// adjacency: in relation to position and orientation of object comparing center
     case left
     case right
     case above
     case below
     case ahead
     case behind
-    /// adjacancy/proximity: near by and at one side
+    /// proximity: near by and at one side
     case ontop // A is on top of B, very close contact
     case beneath // A is beneath of B, very close contact
     case upperside // A is at upper side of B
@@ -26,11 +42,11 @@ public enum SpatialPredicate : String {
     case rightside
     case frontside // A is at front side of B, ahead
     case backside
-    /// orientation
+    /// orientations
     case aligned // equally aligned orientation, parallel with
     case orthogonal // A is orthogonal to B, perpendicular to
     case opposite // opposite alignement
-    /// topology
+    /// arrangements
     case disjoint // no space in common
     case inside // A is inside B
     case containing // A is containing/contains B
@@ -43,6 +59,7 @@ public enum SpatialPredicate : String {
     case beside // near but not above or below
     case fitting // is fitting into
     case exceeding // not fitting into
+    // COMPARABILITY
     /// comparisons
     case smaller // volume
     case bigger // syn:larger
@@ -65,7 +82,8 @@ public enum SpatialPredicate : String {
     case congruent // A is congruent to B, similar w,h,d, center and orientation, identical
     case sameshape
     //case samecause
-    /// perspective: seen from user  / observer
+    // VISIBILITY
+    /// perspectives: seen from user  / observer
     case seenleft // A is seen left of B by P
     case seenright
     case infront // (partially) covering
@@ -85,12 +103,14 @@ public enum SpatialPredicate : String {
     case secondright
     case mostleft
     case mostright
-    /// contact relations (derived)
+    // CONNECTIVITY
+    /// contacts
     case on // on top of, unilateral
     case at // attached and aligned with, unilateral
     case by // connected, bilateral
     case `in` // within, unilateral
-    /// directional: center in bbox sector
+    // DIRECTIONALITY
+    /// directions: center within bbox sector
     case i
     case a
     case b
@@ -118,6 +138,7 @@ public enum SpatialPredicate : String {
     case aru
     case blu
     case bru
+    // GEOGRAPHY
     /// geographic direction
     case north
     case south
@@ -189,6 +210,11 @@ struct SpatialTerms {
         .init(code: .beside, predicate: "beside", preposition: "", inverse: "beside", antonym: "", synonym: ""),
         .init(code: .fitting, predicate: "fitting", preposition: "into", inverse: "exceeding", antonym: "", synonym: ""),
         .init(code: .exceeding, predicate: "exceeding", preposition: "into", inverse: "fitting", antonym: "", synonym: ""),
+        /// connectivity
+        .init(code: .on, predicate: "on", preposition: "", inverse: "beneath", antonym: "", synonym: ""),
+        .init(code: .at, predicate: "at", preposition: "", inverse: "at", antonym: "", synonym: ""),
+        .init(code: .by, predicate: "by", preposition: "", inverse: "by", antonym: "", synonym: ""),
+        .init(code: .in, predicate: "in", preposition: "", inverse: "containing", antonym: "", synonym: ""),
         /// similarity
         .init(code: .samewidth, predicate: "same width", preposition: "as", inverse: "same width", antonym: "", synonym: "similar width", verb: "has"),
         .init(code: .sameheight, predicate: "same height", preposition: "as", inverse: "same height", antonym: "", synonym: "similar height", verb: "has"),
