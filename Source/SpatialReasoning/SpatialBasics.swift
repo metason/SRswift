@@ -17,20 +17,17 @@ public enum SectorSchema {
     case wide // use fix wide
 }
 
-// Default adjustment only used when no SpatialReasoner builds context
-nonisolated(unsafe) var defaultAdjustment = SpatialAdjustment()
-
 // Set adjustment parameters before executing pipeline or calling relate() method.
 // SpatialReasoner has its own local adjustment that should be set upfront.
 class SpatialAdjustment {
     // Max deviations
-    var gap:Float = 0.02 /// gap ist max distance of deviation in all directions in meters
+    var maxgap:Float = 0.02 /// max distance of deviation in all directions in meters
     var angle:Float = 0.05 * .pi /// angle is max delta of yaw orientation in radiants in both directions
     // Sector size
-    var sectorSchema:SectorSchema = .wide
+    var sectorSchema:SectorSchema = .nearby
     var sectorFactor:Float = 1.0 /// sectorFactor is multiplying the result of claculation schema
     var sectorLimit:Float = 2.5 /// sectorLimit is maximal length
-    var fixSectorLenght:Float = 0.25
+    var fixSectorLenght:Float = 0.5
     var wideSectorLenght:Float = 10.0
     // Vicinity
     var nearbyFactor:Float = 1.0 /// nearbyFactor is multiplying radius sum of object and subject (relative to size) as max distance
@@ -46,7 +43,23 @@ class SpatialAdjustment {
     func setYaw(_ degrees:Float) {
         angle = degrees * .pi / 180.0
     }
+    
+    init(gap:Float = 0.02, angle:Float = 0.05 * .pi, sectorSchema:SectorSchema = .nearby, sectorFactor:Float = 1.0, sectorLimit:Float = 2.5, fixSectorLenght:Float = 0.5, wideSectorLenght:Float = 10.0, nearbyFactor:Float = 1.0, nearbyLimit:Float = 2.0) {
+        self.maxgap = gap
+        self.angle = angle
+        self.sectorSchema = sectorSchema
+        self.sectorFactor = sectorFactor
+        self.sectorLimit = sectorLimit
+        self.fixSectorLenght = fixSectorLenght
+        self.wideSectorLenght = wideSectorLenght
+        self.nearbyFactor = nearbyFactor
+        self.nearbyLimit = nearbyLimit
+    }
 }
+
+// Default adjustment only used when no SpatialReasoner builds context
+nonisolated(unsafe) var defaultAdjustment = SpatialAdjustment()
+nonisolated(unsafe) var tightAdjustment = SpatialAdjustment(gap:0.002, angle:0.01 * .pi, sectorFactor:0.5)
 
 class SpatialPredicateCategories {
     var topology = true
@@ -88,13 +101,19 @@ public enum SpatialAtribute: String {
     case width
     case height
     case depth
+    case length
+    case angle
+    case yaw
     case footprint // base surface
     case frontface // front surface
     case sideface // side surface
+    case surface
     case volume
     case perimeter
     case groundradius // radius of 2D floorground circle
     case radius // radius of sphere including 3D bbox around center
+    case speed
+    case confidence
     case lifespan
 }
 

@@ -52,8 +52,8 @@ The spatial inference pipeline is defined as text specification. The pipeline is
 - __pick__: pick objects along their spatial relations
 - __select__: select objects having spatial relations with others
 - __log__: log the current status of the processing pipeline
-- __deduce__: optional setup to specify relation categories to be deduced)
-- (sort: sort objects by metric attributes)
+- __deduce__: optional setup to specify relation categories to be deduced
+- __sort__: sort objects by metric attributes of spatial objects
 - (calc: calculate global variables in fact base)
 - (map: calculate new object attributes)
 - (produce: create new spatial objects relative to relations and add to fact base)
@@ -78,8 +78,8 @@ The filter, pick, and select operations do change the list of output objects to 
 | __select__  | `select(`_relation ? attribute conditions_`)` | `select(ontop ? id == 'table1'); select(on ? type == 'floor'); select(ahead AND smaller ? footprint < 0.5)` |
 | __log__  | `log(base 3D `_relations_`)` | `log(); log(base); log(3D); log(near right); log(3D near right)` |
 | __deduce__  | `deduce(`_relation categories_`)` | `deduce(topology); deduce(connectivity); deduce(visibility)` |
-| __sort__  | `sort(`_metric attribute_`)` | `sort(length); sort(volume); sort(width ASC); sort(width DESC)` |
-| __sort__  | `sort(`_relation attribute_`)` | `sort(near.gap); sort(frontside.angle); sort(near.gap ASC);` |
+| __sort__  | `sort(`_metric attribute_`)` | `sort(length); sort(volume); sort(width <); sort(width >)` |
+| __sort__  | `sort(`_relation attribute_`)` | `sort(near.delta); sort(frontside.angle); sort(near.delta <);` |
 | __map__  | `map(`_attribute assignment_`)` | `map(weight = volume * 140.0)` |
 | __calc__  | `calc(`_variable assignment_`)` | `calc(cnt = objects.@count); calc(maxvol = objects.volume@max; median = objects.volume@median)` |
 | __produce__  | `produce(`_relation conditions_` : `_type wxdxh_`) | `produce(container : room); produce(wall by wall on floor : corner 0.2x0.2x0.2)` |
@@ -109,8 +109,8 @@ Log files are used for debug purposes and are saved per default in the Downloads
 
 Spatial predicate categories of relations:
 - topology
-- connectivity (contacts)
-- directionality (sectors)
+- connectivity (= contacts)
+- directionality (= sectors)
 - comparability
 - visibility
 - geography
@@ -160,7 +160,7 @@ Different BBox sectors size depending on calculation schema and adjustment setti
 
 Example of different spatial adjustments and calculation scheme:
 
-![adjustable sector size](DOCU/images/sectors.png "Title")
+![adjustable sector size](DOCU/images/sectors.png)
 left: `.fized`, middle: `.dimension`, right: `.nearby`
 
 ## Spatial Object
@@ -170,3 +170,5 @@ left: `.fized`, middle: `.dimension`, right: `.nearby`
 
 - Spatial relation: subject - predicate - object
 - Spatial predicates
+
+See detailed description of all [spatial relatioms](DOCU/Relations.md).

@@ -12,15 +12,17 @@ import Foundation
 nonisolated(unsafe) let contacts:[SpatialPredicate] = [.on, .at, .by, .in]
 nonisolated(unsafe) let connectivity = contacts
 nonisolated(unsafe) let adjacency:[SpatialPredicate] = [.left, .right, .above, .below, .ahead, .behind]
-nonisolated(unsafe) let proximity:[SpatialPredicate] = [.leftside, .rightside, .ontop, .beneath, .upperside, .lowerside, .frontside, .backside]
+nonisolated(unsafe) let proximity:[SpatialPredicate] = [.near, .leftside, .rightside, .ontop, .beneath, .upperside, .lowerside, .frontside, .backside]
 nonisolated(unsafe) let orientations:[SpatialPredicate] = [.aligned, .orthogonal, .opposite]
-nonisolated(unsafe) let arrangements:[SpatialPredicate] = [.disjoint, .inside, .containing, .overlapping, .crossing, .touching, .meeting, .near, .beside, .fitting, .exceeding]
+nonisolated(unsafe) let arrangements:[SpatialPredicate] = [.disjoint, .inside, .containing, .overlapping, .crossing, .touching, .meeting, .beside, .fitting, .exceeding]
 nonisolated(unsafe) let topology = adjacency + proximity + orientations + arrangements
 nonisolated(unsafe) let comparisons:[SpatialPredicate] = [.smaller, .bigger, .shorter, .longer, .taller, .thinner, .wider]
 nonisolated(unsafe) let similarities:[SpatialPredicate] = [.sameside, .sameheight, .samewidth, .samefront, .sameside, .samefootprint, .samelength, .samevolume, .samecenter, .samecuboid, .congruent, .sameshape]
 nonisolated(unsafe) let comparability = comparisons + similarities
 nonisolated(unsafe) let visibility:[SpatialPredicate] = [.seenleft, .seenright, .infront, .atrear, .tangible, .eightoclock, .nineoclock, .tenoclock, .elevenoclock, .twelveoclock, .oneoclock, .twooclock, .threeoclock, .fouroclock]
 nonisolated(unsafe) let geography:[SpatialPredicate] = [.north, .south, .east, .west, .northwest, .northeast, .southwest, .southeast]
+nonisolated(unsafe) let sectors:[SpatialPredicate] = [ .i, .a, .b, .o, .u, .l, .r, .al, .ar, .bl, .br, .ao, .au, .bo, .bu, .lo, .lu, .ro, .ru, .alo, .aro, .blo, .bro, .alu, .aru, .blu, .bru]
+nonisolated(unsafe) let directionality = sectors
 
 // Spatial predicates used for: Subject - predicate - Object
 public enum SpatialPredicate : String {
@@ -54,6 +56,7 @@ public enum SpatialPredicate : String {
     case crossing // intersecting by going through object
     //case dividing // crossing and dividing into parts
     case touching // touching edge-to-edge or edge-to-side
+    case frontaligned // same orientation and in same front plane
     case meeting // meeting side-by-side
     case near // A is near to B, is close
     case beside // near but not above or below
@@ -150,11 +153,10 @@ public enum SpatialPredicate : String {
     case southeast
     
     static func named(_ name:String) -> SpatialPredicate {
-        return SpatialPredicate(rawValue: name)  ?? .undefined
+        return SpatialPredicate(rawValue: name) ?? .undefined
     }
 }
 
-// desc?, reason (w,d, h, volume...)?, post? (A is dividing B into parts)
 struct PredicateTerm {
     var code:SpatialPredicate
     var predicate:String
@@ -169,7 +171,7 @@ struct PredicateTerm {
 /* observer-related
  case facing // facing towards user
  case focusing // gazing; +/-10 = 20 degrees
- case seenleft // A is seen left of B by P
+ case seenleft // A is seen left of B (by observer)
  case seenright
  case infront // (partially) covering
  case atrear
@@ -204,6 +206,7 @@ struct SpatialTerms {
         .init(code: .overlapping, predicate: "overlapping", preposition: "", inverse: "overlapping", antonym: "disjoint", synonym: "intersecting"),
         .init(code: .disjoint, predicate: "disjoint", preposition: "to", inverse: "disjoint", antonym: "overlapping", synonym: ""),
         .init(code: .touching, predicate: "touching", preposition: "", inverse: "touching", antonym: "", synonym: ""),
+        .init(code: .frontaligned, predicate: "front aligned", preposition: "with", inverse: "front aligned", antonym: "", synonym: ""),
         .init(code: .meeting, predicate: "meeting", preposition: "", inverse: "meeting", antonym: "", synonym: ""),
         .init(code: .near, predicate: "near", preposition: "to", inverse: "near", antonym: "far", synonym: "close"),
         .init(code: .near, predicate: "nearby", preposition: "", inverse: "near", antonym: "far", synonym: ""),

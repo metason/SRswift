@@ -5,6 +5,50 @@
 //  Created by Philipp Ackermann on 17.11.2024.
 //
 
+# TODOs
+- Wording
+  - check: https://www.merriam-webster.com/thesaurus/top
+  - check: https://wikidiff.com
+  
+## BUG FIXES
+- match under over to below above
+- match to synonyms??
+- .aligned: front aligned, only same angle?, frontaligned, backaligned, sidealigned?
+- inside gap? center or ?
+- sectorOf nearby? check calls
+- gap calculation? Euclidean Signed Distance Function (ESDF)?
+- SpatialTerms: seenleft, ...
+- contact graph: at, by
+- meeting: inverse not working!
+- FIXME: touching vs meeting at edge, check overlap < maxgap
+- 
+
+## TODO
+
+GITHUB
+- SR: Spatial Reasoning (Libs)
+  - SRswift
+  - SRpy
+  - SRunity
+  - SRjs
+  - SRdocu: Generic definitions of concepts
+    - Dynamic Vicinity and Adjacency Checking
+    - Sectors
+    - Predicates
+    
+- validate succeeded
+- is fitting into, exceeding
+- is facing towards
+- is closest to, nearest to,
+- furthest away from, farthest, remotest, outermost
+- Nr3D dataset: sample sentences https://referit3d.github.io/benchmarks.html
+- topological, directional, and distance relations
+- multi-stage spatial reasoning, multi-stage relations
+- Spatial reasoning, involves understanding and navigating the relationships among objects in space
+- limitations in representing the complexity found in real-world spatial reasoning
+- Objects are described and distinguished using a combination of label, look/color, size, and shape
+    - plus the spatial characteristics: global world-oriented, local  object-related, intra-object-related
+
 - Vicinity  (Nähe)
   - center - position - perimeter
   - bbox - sectors - edges - corners?
@@ -17,50 +61,10 @@
   - step-wise relaxing of border conditions when pipeline not successful
 - Euclidean Signed Distance Function (ESDF) 
 - room segmentation: walls
-
-
-GITHUB
-- wo: Metason
-- wann public: 2025
-- SR: Spatial Reasoning (Libs)
-  - SRswift
-  - SRpy
-  - SRunity
-  - SRjs
-  - SRdocu: Generic definitions of concepts
-    - Dynamic Vicinity and Adjacency Checking
-    - Sectors
-    - Predicates
-- Wording
-  - check: https://www.merriam-webster.com/thesaurus/top
-  - check: https://wikidiff.com
-  
-  
-## BUG FIXES
-- contact graph
-- select
-- README for M. Loth
-- meeting: inverse not working!
-- FIXME: touching vs meeting at edge, check overlap < max.gap
-- 
-
-## TODO
-
-Spatial Reasoning Language: text
-- validate succeeded
-- is fitting into, exceeding
-- Is facing towards
-- Is closest to, nearest to,
-- furthest away from, farthest, remotest, outermost
-- Nr3D dataset: sample sentences https://referit3d.github.io/benchmarks.html
-- Perspective vs projective relations, view depedent
-- topological, directional, and distance relations
-- multi-Stage spatial reasoning, multi-stage relations
-- Spatial reasoning, involves understanding and navigating the relationships among objects in space
-- limitations in representing the complexity found in real-world spatial reasoning
-- Objects are described and distinguished using a combination of label, look/color, size, and shape
-    - plus the spatial characteristics: global world-oriented, local  object-related, intra relation-related
-
+- geography
+  - geomagnetic: north, ...
+  - altitude: ?
+  - lat/long?
 - Confidence
 - world depedent/referential: south, north, ...
 - object depedent/referential
@@ -137,7 +141,7 @@ Check:
   - pick(ahead AND smaller)
   - pick(leftside(gap < 0.1 AND yaw < 5.0))
   - sort(width)
-  - sort(height ASC)
+  - sort(height <)
 - Input: [SpatialObject]
 - Output: [SpatialObject]
 - Pipe: |
@@ -151,7 +155,7 @@ filter(visible AND lifespan < 2.5)
 filter(id == '1234')
 | pick(near AND (left OR right))
 | filter(volume > 0.5)
-| sort(volume DESC)
+| sort(volume >)
 | log()
 
 ## Object Inference

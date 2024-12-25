@@ -106,6 +106,7 @@ struct SpatialReasoningTests {
         let pipeline = """
             deduce(topology)
             | select(ahead ? volume > 0.3) 
+            | sort(footprint <)
             | log(base 3D near infront)
         """
         let done = sp.run(pipeline)

@@ -44,7 +44,7 @@ struct BBoxSector : OptionSet, Hashable {
     
     // amount of divergency from inner zone in all 3 directions
     func divergencies() -> Int {
-        if self == .i {
+        if self.contains(.i) {
             return 0
         }
         return self.rawValue.nonzeroBitCount
@@ -87,7 +87,7 @@ extension BBoxSector: CustomStringConvertible {
 
     public var description: String {
         let description = BBoxSector.debugDescriptions[self]
-        return description ?? "???"
+        return description ?? "undefined sector"
     }
     
 }

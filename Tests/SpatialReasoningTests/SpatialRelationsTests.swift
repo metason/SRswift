@@ -33,16 +33,16 @@ struct SpatialTest {
     
     func printRelations(_ relations: [SpatialRelation]) {
         for relation in relations {
-            print("\(relation.subject.id) \(relation.predicate) \(relation.object.id) | " + String(format: "𝛥:%.2f  ", relation.gap) + String(format: "𝜶:%.1f°", relation.yaw))
+            print("\(relation.subject.id) \(relation.predicate) \(relation.object.id) | " + String(format: "𝛥:%.2f  ", relation.delta) + String(format: "𝜶:%.1f°", relation.yaw))
         }
     }
 
     @Test("subj is near to obj")
     func near() async throws {
-        let subject = SpatialObject(id: "subj", position: .init(x: 1.75, y: 0.0, z: 0.01), width: 1.2, height: 1.2, depth: 1.2)
+        let subject = SpatialObject(id: "subj", position: .init(x: 1.75, y: 0.0, z: 0.01), width: 1.4, height: 1.4, depth: 1.4)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
         let relations = object.relate(subject: subject, topology: true)
-        //print(subject.asDict())
+        defaultAdjustment.nearbyFactor = 0.6
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), subject.nearbySphere(), object.nearbySphere()])
         #expect(relations.contains(where: { $0.predicate == .near }))
@@ -141,7 +141,7 @@ struct SpatialTest {
     
     @Test("subj is crossing obj vertically")
     func crossingVert() async throws {
-        let subject = SpatialObject(id: "subj", position: .init(x: 0, y: -0.5, z: 0), width: 0.4, height: 1.8, depth: 0.5)
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.2, y: -0.5, z: -0.1), width: 0.4, height: 1.8, depth: 0.5)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
         let relations = object.relate(subject: subject, topology: true)
         printRelations(relations)
@@ -183,7 +183,7 @@ struct SpatialTest {
         #expect(relations.contains(where: { $0.predicate == .seenleft }))
         let sp = SpatialReasoner()
         sp.load([subject, object, observer])
-        let done = sp.run("log(seenleft seenright left right infront behind)")
+        _ = sp.run("log(seenleft seenright left right infront behind)")
     }
     
     @Test("subj in front of obj")

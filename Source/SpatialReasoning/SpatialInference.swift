@@ -54,7 +54,6 @@ class SpatialInference {
     }
     
     func filter(_ condition: String) {
-        print(condition)
         let predicate = SpatialInference.attributePredicate(condition)
         let baseObjects = fact.base["objects"] as! [Any]
         for i in input {
@@ -133,7 +132,67 @@ class SpatialInference {
     }
     
     func sort(_ attribute: String) {
-        print(attribute)
+        var ascending = false
+        var inputObjects: [SpatialObject] = []
+        var sortedObjects: [SpatialObject]
+        for i in input {
+            inputObjects.append(fact.objects[i])
+        }
+        let list = attribute.split(separator: " ").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
+        if list.count > 1 {
+            if list[1] == "<" {
+                ascending = true
+            }
+        }
+        if ascending {
+            switch list[0] {
+            case "width": sortedObjects = inputObjects.sorted { $0.width < $1.width }
+            case "height": sortedObjects = inputObjects.sorted { $0.height < $1.height }
+            case "depth": sortedObjects = inputObjects.sorted { $0.depth < $1.depth }
+            case "length": sortedObjects = inputObjects.sorted { $0.length < $1.length }
+            case "angle": sortedObjects = inputObjects.sorted { $0.angle < $1.angle }
+            case "yaw": sortedObjects = inputObjects.sorted { $0.yaw < $1.yaw }
+            case "footprint": sortedObjects = inputObjects.sorted { $0.footprint < $1.footprint }
+            case "frontface": sortedObjects = inputObjects.sorted { $0.frontface < $1.frontface }
+            case "sideface": sortedObjects = inputObjects.sorted { $0.sideface < $1.sideface }
+            case "surface": sortedObjects = inputObjects.sorted { $0.surface < $1.surface }
+            case "volume": sortedObjects = inputObjects.sorted { $0.volume < $1.volume }
+            case "perimeter": sortedObjects = inputObjects.sorted { $0.perimeter < $1.perimeter }
+            case "groundradius": sortedObjects = inputObjects.sorted { $0.groundradius < $1.groundradius }
+            case "radius": sortedObjects = inputObjects.sorted { $0.radius < $1.radius }
+            case "speed": sortedObjects = inputObjects.sorted { $0.speed < $1.speed }
+            case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.value < $1.confidence.value }
+            case "lifespan": sortedObjects = inputObjects.sorted { $0.lifespan < $1.lifespan }
+            default: sortedObjects = inputObjects
+            }
+        } else {
+            switch list[0] {
+            case "width": sortedObjects = inputObjects.sorted { $0.width > $1.width }
+            case "height": sortedObjects = inputObjects.sorted { $0.height > $1.height }
+            case "depth": sortedObjects = inputObjects.sorted { $0.depth > $1.depth }
+            case "length": sortedObjects = inputObjects.sorted { $0.length > $1.length }
+            case "angle": sortedObjects = inputObjects.sorted { $0.angle > $1.angle }
+            case "yaw": sortedObjects = inputObjects.sorted { $0.yaw > $1.yaw }
+            case "footprint": sortedObjects = inputObjects.sorted { $0.footprint > $1.footprint }
+            case "frontface": sortedObjects = inputObjects.sorted { $0.frontface > $1.frontface }
+            case "sideface": sortedObjects = inputObjects.sorted { $0.sideface > $1.sideface }
+            case "surface": sortedObjects = inputObjects.sorted { $0.surface > $1.surface }
+            case "volume": sortedObjects = inputObjects.sorted { $0.volume > $1.volume }
+            case "perimeter": sortedObjects = inputObjects.sorted { $0.perimeter > $1.perimeter }
+            case "groundradius": sortedObjects = inputObjects.sorted { $0.groundradius > $1.groundradius }
+            case "radius": sortedObjects = inputObjects.sorted { $0.radius > $1.radius }
+            case "speed": sortedObjects = inputObjects.sorted { $0.speed > $1.speed }
+            case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.value > $1.confidence.value }
+            case "lifespan": sortedObjects = inputObjects.sorted { $0.lifespan > $1.lifespan }
+            default: sortedObjects = inputObjects
+            }
+        }
+        for object in sortedObjects {
+            if let idx = fact.objects.firstIndex(where: {$0 === object}) {
+                add(index: idx)
+            }
+        }
+        succeeded = !output.isEmpty
     }
     
     func validate(_ condition: String) {
@@ -173,15 +232,6 @@ class SpatialInference {
             }
         }
         return NSPredicate(format: cond)
-    }
-    
-    static func sort(subjects: [SpatialObject], sortby: SpatialAtribute) -> [SpatialObject] {
-        if subjects.count == 1 {
-            return subjects
-        }
-        var result: [SpatialObject] = []
-        
-        return result
     }
 
 }

@@ -23,6 +23,7 @@ class SpatialReasoner {
     var deduce = SpatialPredicateCategories()
     
     // logging
+    var pipeline:String = "" // used as title for log
     var name:String = "" // used as title for log
     var description:String = "" // used in log output
     var logCnt:Int = 0
@@ -61,6 +62,7 @@ class SpatialReasoner {
     }
 
     func run(_ pipeline: String) -> Bool {
+        self.pipeline = pipeline
         logCnt = 0
         chain = []
         base["chain"] = [Any]()
@@ -186,12 +188,12 @@ class SpatialReasoner {
         md = md + str + "\n"
         str = description.count > 0 ? description : ""
         md = md + str + "\n## Inference Pipeline\n\n```\n"
-        
+        md = md + pipeline + "\n```\n\n## Inference Chain\n\n```\n"
         for i in (0..<chain.count) {
             if i > 0 {
                 md = md + "| "
             }
-            md = md + chain[i].operation + "\n"
+            md = md + chain[i].operation + "  ->  \(chain[i].output)\n"
         }
         
         md = md + "```\n\n## Spatial Objects\n\n### Fact Base\n\n"

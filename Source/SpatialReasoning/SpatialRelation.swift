@@ -13,8 +13,8 @@ class SpatialRelation {
     var subject:SpatialObject // target subject
     var predicate:SpatialPredicate // proposition matching spatial condition and max deviation
     var object:SpatialObject // reference object
-    var gap:Float = 0.0 // distance gap: absolute minimimal distance between subject and object
-    var angle:Float = 0.0 // deviation of front direction in radiants
+    var delta:Float = 0.0 // difference of predicate value between subject and object, e.g. distance
+    var angle:Float = 0.0 // angle deviation of object direction in radiants
     var yaw:Float { // deviation in degrees
         return angle * 180.0 / .pi
     }
@@ -25,11 +25,11 @@ class SpatialRelation {
         return object.id
     }
     
-    init(subject:SpatialObject, predicate:SpatialPredicate, object:SpatialObject, gap:Float = 0.0, angle:Float = 0.0) {
+    init(subject:SpatialObject, predicate:SpatialPredicate, object:SpatialObject, delta:Float = 0.0, angle:Float = 0.0) {
         self.subject = subject
         self.predicate = predicate
         self.object = object
-        self.gap = gap
+        self.delta = delta
         self.angle = angle
     }
 
@@ -48,7 +48,7 @@ class SpatialRelation {
         } else {
             str = str +  object.id
         }
-        str = str + String(format: " (\(predicate.rawValue) 𝛥:%.2f  𝜶:%.1f°)", gap, yaw)
+        str = str + String(format: " (\(predicate.rawValue) 𝛥:%.2f  𝜶:%.1f°)", delta, yaw)
         return str
     }
 }
