@@ -15,7 +15,7 @@ struct SectorVis {
     let enable3Dexport = true
     let objectOpaque = CGColor(red: 1, green: 0, blue: 0, alpha: 0.0)
     let subjectOpaque = CGColor(red: 0, green: 0, blue: 1, alpha: 0.0)
-    let objectTransparent = CGColor(red: 1, green: 0, blue: 0, alpha: 0.3)
+    let objectTransparent = CGColor(red: 1, green: 0, blue: 0, alpha: 0.5)
     let subjectTransparent = CGColor(red: 0, green: 0, blue: 1, alpha: 0.3)
 
     
@@ -29,6 +29,61 @@ struct SectorVis {
                 SpatialObject.export3D(to: fileURL, nodes: nodes)
             }
         }
+    }
+    
+    @Test("i")
+    func i() async throws {
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 0.5, height: 0.5, depth: 0.5)
+        export([object.bboxCube(color: objectTransparent), object.sectorCube(.i, true)])
+        #expect(true)
+    }
+    
+    @Test("o_u")
+    func ou() async throws {
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 0.5, height: 0.7, depth: 0.5)
+        export([object.bboxCube(color: objectOpaque), object.sectorCube(.o, true), object.sectorCube(.u, true)])
+        #expect(true)
+    }
+    
+    @Test("l_r_a_b")
+    func lrab() async throws {
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 0.7, height: 0.5, depth: 0.7)
+        export([object.bboxCube(color: objectOpaque), object.sectorCube(.l, true), object.sectorCube(.r, true), object.sectorCube(.a, true), object.sectorCube(.b, true)])
+        #expect(true)
+    }
+    
+    @Test("al_ar_bl_br")
+    func al_ar_bl_br() async throws {
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 0.7, height: 0.5, depth: 0.7)
+        export([object.bboxCube(color: objectOpaque), object.sectorCube(.al, true), object.sectorCube(.ar, true), object.sectorCube(.bl, true), object.sectorCube(.br, true)])
+        #expect(true)
+    }
+    
+    @Test("ao_au_bo_bu")
+    func ao_au_bo_bu() async throws {
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 0.7, height: 0.5, depth: 0.7)
+        export([object.bboxCube(color: objectOpaque), object.sectorCube(.ao, true), object.sectorCube(.au, true), object.sectorCube(.bo, true), object.sectorCube(.bu, true)])
+        #expect(true)
+    }
+    
+    @Test("lo_lu_ro_ru")
+    func lo_lu_ro_ru() async throws {
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 0.7, height: 0.5, depth: 0.7)
+        export([object.bboxCube(color: objectOpaque), object.sectorCube(.lo, true), object.sectorCube(.lu, true), object.sectorCube(.ro, true), object.sectorCube(.ru, true)])
+        #expect(true)
+    }
+    
+    @Test("alo_aro_blo_bro")
+    func alo_aro_blo_bro() async throws {
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 0.7, height: 0.5, depth: 0.7)
+        export([object.bboxCube(color: objectOpaque), object.sectorCube(.alo, true), object.sectorCube(.aro, true), object.sectorCube(.blo, true), object.sectorCube(.bro, true)])
+        #expect(true)
+    }
+    @Test("alu_aru_blu_bru")
+    func alu_aru_blu_bru() async throws {
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 0.7, height: 0.5, depth: 0.7)
+        export([object.bboxCube(color: objectTransparent), object.sectorCube(.alu, true), object.sectorCube(.aru, true), object.sectorCube(.blu, true), object.sectorCube(.bru, true)])
+        #expect(true)
     }
     
     @Test("subj in sector o of obj")

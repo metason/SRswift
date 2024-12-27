@@ -1166,7 +1166,7 @@ class SpatialObject {
         return node
     }
     
-    func sectorCube(_ sector:BBoxSector = .i) -> SCNNode {
+    func sectorCube(_ sector:BBoxSector = .i, _ withLabel:Bool = false) -> SCNNode {
         let dims = sectorLenghts(sector)
         let box = SCNBox(width: dims.x, height: dims.y, length: dims.z, chamferRadius: 0.0)
         box.firstMaterial?.diffuse.contents = CGColor(gray: 0.1, alpha: 0.5)
@@ -1190,6 +1190,21 @@ class SpatialObject {
             shift.z = (UFloat(-depth) - dims.z)/2.0
         }
         node.position = center + shift
+        if withLabel {
+            let text = SCNText(string: sector.description, extrusionDepth:0.0)
+            text.firstMaterial?.diffuse.contents = CGColor(red: 1.0, green: 1.0, blue: 0.0, alpha: 0.0)
+            text.firstMaterial?.lightingModel = .constant
+            let textNode = SCNNode(geometry: text)
+            let fontSize = Float(0.01)
+            let (min, max) =  textNode.boundingBox
+            textNode.position.x =  -((max.x - min.x)/2.0 * UFloat(fontSize))
+            textNode.position.y = -UFloat(20*fontSize)
+            textNode.position.z = UFloat(0.0)
+            textNode.renderingOrder = 1
+            //textNode.eulerAngles.x = -.pi/2.0
+            textNode.scale = SCNVector3(fontSize, fontSize, fontSize)
+            node.addChildNode(textNode)
+        }
         return node
     }
     

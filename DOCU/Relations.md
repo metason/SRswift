@@ -1,5 +1,11 @@
 # Spatial Relations
 
+Spatial relations are described by spatial predicates - keywords that indicate the type of relationship each spatial object has with another. Spatial relations are expressed as semantic triples:
+
+> _subject_ - __predicate__ - _object_
+
+The spatial objects in the visual samples are represented as boxes (bounding box of the object) and their label indicates their front side. 
+
 ## Topology
 
 ### Adjacency

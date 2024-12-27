@@ -174,7 +174,10 @@ Different BBox sectors size depending on calculation schema and adjustment setti
 Example of different spatial adjustments and calculation scheme:
 
 ![adjustable sector size](DOCU/images/sectors.png)
-left: `.fized`, middle: `.dimension`, right: `.nearby`
+left image: `.fized`, middle image: `.dimension`, right image: `.nearby`
+
+See detailed description of all [bbox sectors](DOCU/Sectors.md).
+
 
 ## Spatial Object
 
