@@ -22,7 +22,7 @@ public enum SectorSchema {
 class SpatialAdjustment {
     // Max deviations
     var maxgap:Float = 0.02 /// max distance of deviation in all directions in meters
-    var angle:Float = 0.05 * .pi /// angle is max delta of yaw orientation in radiants in both directions
+    var maxangle:Float = 0.05 * .pi /// angle is max delta of yaw orientation in radiants in both directions
     // Sector size
     var sectorSchema:SectorSchema = .nearby
     var sectorFactor:Float = 1.0 /// sectorFactor is multiplying the result of claculation schema
@@ -38,15 +38,15 @@ class SpatialAdjustment {
     
     /// get/set max delta of orientation in degrees
     var yaw:Float {
-        return angle * 180.0 / .pi
+        return maxangle * 180.0 / .pi
     }
     func setYaw(_ degrees:Float) {
-        angle = degrees * .pi / 180.0
+        maxangle = degrees * .pi / 180.0
     }
     
     init(gap:Float = 0.02, angle:Float = 0.05 * .pi, sectorSchema:SectorSchema = .nearby, sectorFactor:Float = 1.0, sectorLimit:Float = 2.5, fixSectorLenght:Float = 0.5, wideSectorLenght:Float = 10.0, nearbyFactor:Float = 1.0, nearbyLimit:Float = 2.0) {
         self.maxgap = gap
-        self.angle = angle
+        self.maxangle = angle
         self.sectorSchema = sectorSchema
         self.sectorFactor = sectorFactor
         self.sectorLimit = sectorLimit

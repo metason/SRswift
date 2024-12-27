@@ -11,6 +11,7 @@
   - check: https://wikidiff.com
   
 ## BUG FIXES
+- contact graph: at, by
 - match under over to below above
 - match to synonyms??
 - .aligned: front aligned, only same angle?, frontaligned, backaligned, sidealigned?
@@ -18,7 +19,6 @@
 - sectorOf nearby? check calls
 - gap calculation? Euclidean Signed Distance Function (ESDF)?
 - SpatialTerms: seenleft, ...
-- contact graph: at, by
 - meeting: inverse not working!
 - FIXME: touching vs meeting at edge, check overlap < maxgap
 - 

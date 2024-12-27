@@ -115,33 +115,44 @@ Spatial predicate categories of relations:
 - visibility
 - geography
 
+## Spatial Reference Systems
+
+The interpretation of some predicates of spatial relations are depending on the frame of reference. E.g., predicates such as left, right, in front, and at back have different meaning in different reference systems. Additionally, in English language the semantic of spatial predicates is sometimes vague and it is hardly possible to distinquish between terms and their synonyms (e.g., over, above, ontop). Therefore, the meaning of all spatial predicates used in the Spatial Reasoning library are clearly specified. Although the ordinary meaning of the terms has been taken into consideration, the specification in the Spatial Reasoning library might not corrspond with its daily use in spoken English language.
+
+
+The interpretation of spatial predicates and their corresponding relations are only valid in specifc reference systems:
+- __World Coordinate System (WCS)__: spatial relations are encoded relative to a global reference point and its orientation.
+- __Object Coordinate System (OCS)__: spatial relations are encoded relative to the local position and orientation of an object
+- __Egocentric Coordinate System (ECS)__: spatial relations are encoded relative to the position and view direction of an observer
+- __Geodetic Coordinate System (GCS)__: spatial relations are encoded relative to earth's projected latitude (north/south) and longitude (east/west)
+
 ## Spatial Adjustment
 
 The spatial reasoner can be adjusted to fit the actual context, environment and dominant object size.
-Set adjustment parameters before executing pipeline or calling relate() method.
+Set adjustment parameters before executing a inference pipeline or before calling the relate() method.
 SpatialReasoner has its own local adjustment that should be set upfront.
 
 ```swift
 class SpatialAdjustment {
     // Max deviations
-    var gap:Float = 0.05 /// gap ist max distance of deviation in all directions in meters
-    var angle:Float = 0.05 * .pi /// angle is max delta of yaw orientation in radiants in both directions
+    var maxgap:Float = 0.05 // max distance of deviation in all directions in meters
+    var angle:Float = 0.05 * .pi // angle is max delta of yaw orientation in radiants in both directions
     // Sector size
     var sectorSchema:SectorSchema = .wide
-    var sectorFactor:Float = 1.0 /// sectorFactor is multiplying the result of claculation schema
-    var sectorLimit:Float = 2.5 /// sectorLimit is maximal length
+    var sectorFactor:Float = 1.0 // sectorFactor is multiplying the result of claculation schema
+    var sectorLimit:Float = 2.5 // sectorLimit is maximal length
     var fixSectorLenght:Float = 0.25
     var wideSectorLenght:Float = 10.0
     // Vicinity
-    var nearbyFactor:Float = 1.0 /// nearbyFactor is multiplying radius sum of object and subject (relative to size) as max distance
-    var nearbyLimit:Float = 2.0 /// nearbyLimit is maximal absolute distance
+    var nearbyFactor:Float = 1.0 // nearbyFactor is multiplying radius sum of object and subject (relative to size) as max distance
+    var nearbyLimit:Float = 2.0 // nearbyLimit is maximal absolute distance
     // Proportions
-    var longRatio:Float = 4.0 /// one dimension is factor larger than both others
-    var thinRatio:Float = 10.0 /// one dimension is 1/factor smaller than both others
+    var longRatio:Float = 4.0 // one dimension is factor larger than both others
+    var thinRatio:Float = 10.0 // one dimension is 1/factor smaller than both others
 }
 ```
 
-Calculation schema to determine sector size for extruding area
+Calculation schema to determine sector size for extruding area to partition space along objects's bounding box (see next chapter).
 
 ```swift
 public enum SectorSchema {
@@ -155,6 +166,8 @@ public enum SectorSchema {
 ```
 
 ## BBox Sectors
+
+Object-centric partitioning of space
 
 Different BBox sectors size depending on calculation schema and adjustment settings.
 
@@ -171,4 +184,4 @@ left: `.fized`, middle: `.dimension`, right: `.nearby`
 - Spatial relation: subject - predicate - object
 - Spatial predicates
 
-See detailed description of all [spatial relatioms](DOCU/Relations.md).
+See detailed description of all [spatial relations](DOCU/Relations.md).

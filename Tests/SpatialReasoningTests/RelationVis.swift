@@ -182,6 +182,48 @@ struct RelationVis {
         #expect(relations.contains(where: { $0.predicate == .beneath }))
     }
     
+    @Test("aligned")
+    func aligned() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: 1.1, y: 0, z: -0.15), width: 1.0, height: 1.0, depth: 0.15)
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.3)
+        let relations = object.relate(subject: subject, topology: true)
+        printRelations(relations)
+        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
+        #expect(relations.contains(where: { $0.predicate == .aligned }))
+    }
+    
+    @Test("frontaligned")
+    func frontaligned() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: 1.1, y: 0, z: 0.07), width: 1.0, height: 1.0, depth: 0.12)
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.3)
+        let relations = object.relate(subject: subject, topology: true)
+        printRelations(relations)
+        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
+        #expect(relations.contains(where: { $0.predicate == .frontaligned }))
+    }
+    
+    @Test("orthogonal")
+    func orthogonal() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.3, y: 0, z: 0.72), width: 1.0, height: 1.0, depth: 0.12)
+        subject.angle = .pi / 2
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.3)
+        let relations = object.relate(subject: subject, topology: true)
+        printRelations(relations)
+        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
+        #expect(relations.contains(where: { $0.predicate == .orthogonal }))
+    }
+    
+    @Test("opposite")
+    func opposite() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: 0.0, y: 0, z: 1.52), width: 1.0, height: 1.0, depth: 0.12)
+        subject.angle = .pi
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.3)
+        let relations = object.relate(subject: subject, topology: true)
+        printRelations(relations)
+        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
+        #expect(relations.contains(where: { $0.predicate == .opposite }))
+    }
+    
     @Test("on")
     func ison() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 1.01, z: -0.15), width: 0.6, height: 0.3, depth: 0.25)
@@ -198,7 +240,7 @@ struct RelationVis {
         let relations = object.relate(subject: subject, topology: true)
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
-        #expect(relations.contains(where: { $0.predicate == .meeting }))
+        #expect(relations.contains(where: { $0.predicate == .at }))
     }
     
     @Test("by")

@@ -44,10 +44,10 @@ Derived values
 Adjacency : Nachbarschaft
 - left, right, ...
 Connectivity : Verbindung
-- overlapping
-- crossing
-- touching
-- meeting
+- in : overlapping?
+- ? : crossing
+- by : touching
+- at : meeting
 Orientation
 - parallel, orthogonal
 Directional
@@ -55,10 +55,10 @@ Directional
 Visibility
 - seenleft, seenright
 Proximity
-- near, close, far, 
+- near, close, far, leftside, ...
 Topology
 - inside, contains, disjoint
-Comparativity
+Comparativity --> better with sort?
 - larger, longer
 
 
