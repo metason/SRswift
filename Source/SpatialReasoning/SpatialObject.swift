@@ -22,7 +22,7 @@ class SpatialObject {
     var created:Date // creation time
     var updated:Date // last update time
     /// spatial characteristics
-    private var position:SCNVector3 = SCNVector3() // bottom center point, use setPosition()
+    private var position:SCNVector3 = SCNVector3() // base center point at bottom, use setPosition() or setCenter()
     var width:Float = 0.0
     var height:Float = 0.0
     var depth:Float = 0.0
@@ -85,8 +85,8 @@ class SpatialObject {
     var radius:Float {
         return SCNVector3(x:UFloat(width)/2.0, y:UFloat(depth)/2.0, z:UFloat(height)/2.0).length()
     }
-    // circle radius on 2D floorground, radius from position encircling base area
-    var groundradius:Float {
+    // circle radius on 2D base / floorground, radius from position encircling base area
+    var baseradius:Float {
         return Float(CGPoint(x:Double(width)/2.0, y:Double(depth)/2.0).length())
     }
     var motion:MotionState {
@@ -244,7 +244,7 @@ class SpatialObject {
             "frontface": frontface,
             "sideface": sideface,
             "surface": surface,
-            "groundradius": groundradius,
+            "groundradius": baseradius,
             "volume": volume,
             "radius": radius,
             "angle": angle,
@@ -757,7 +757,7 @@ class SpatialObject {
                 }
             } else { /// not beside
                 // FIXME: .touching / .by
-                let groundRadi = groundradius + subject.groundradius
+                let groundRadi = baseradius + subject.baseradius
                 var pt = center
                 pt.y = 0.0
                 let groundDistance = pt.length()
@@ -853,7 +853,8 @@ class SpatialObject {
             relation = SpatialRelation(subject: subject, predicate: .aligned, object: self, delta: gap, angle: theta)
             result.append(relation)
             let frontGap = Float(center.z) + subject.depth/2.0 - depth/2.0
-            if abs(frontGap) < adjustment.maxgap/2.0 {
+            print(frontGap)
+            if abs(frontGap) < adjustment.maxgap {
                 relation = SpatialRelation(subject: subject, predicate: .frontaligned, object: self, delta: frontGap, angle: theta)
                 result.append(relation)
             }

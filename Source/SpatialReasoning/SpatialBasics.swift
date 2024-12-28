@@ -9,12 +9,12 @@ import Foundation
 
 // Calculation schema to determine sector size for extruding area
 public enum SectorSchema {
-    case fixed // use specified fix lenght for extruding area
+    case fixed // use specified fix sector lenght for extruding area
     case dimension // use same dimension as object multiplied with factor
-    case perimeter // use area perimeter multiplied with factor
+    case perimeter // use perimeter multiplied with factor
     case area // use area multiplied with factor
-    case nearby // use nearby settings for extruding
-    case wide // use fix wide
+    case nearby // use nearby settings of spatial adjustment for extruding
+    case wide // use fix wide sector length
 }
 
 // Set adjustment parameters before executing pipeline or calling relate() method.
@@ -22,7 +22,7 @@ public enum SectorSchema {
 class SpatialAdjustment {
     // Max deviations
     var maxgap:Float = 0.02 /// max distance of deviation in all directions in meters
-    var maxangle:Float = 0.05 * .pi /// angle is max delta of yaw orientation in radiants in both directions
+    var maxangle:Float = 0.05 * .pi /// max delta of yaw orientation in radiants in both directions
     // Sector size
     var sectorSchema:SectorSchema = .nearby
     var sectorFactor:Float = 1.0 /// sectorFactor is multiplying the result of claculation schema
@@ -65,7 +65,7 @@ class SpatialPredicateCategories {
     var topology = true
     var connectivity = true
     var comparability = false
-    var directionality = false
+    var sectoriality = false
     var visibility = true
     var geography = false
 }

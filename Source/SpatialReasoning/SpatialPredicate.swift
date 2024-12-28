@@ -9,33 +9,36 @@ import Foundation
 
 // Spatial predicate categories
 
+nonisolated(unsafe) let proximity:[SpatialPredicate] = [.near, .far]
+nonisolated(unsafe) let directionality:[SpatialPredicate] = [.left, .right, .above, .below, .ahead, .behind]
+nonisolated(unsafe) let adjacency:[SpatialPredicate] = [.leftside, .rightside, .ontop, .beneath, .upperside, .lowerside, .frontside, .backside]
+nonisolated(unsafe) let orientations:[SpatialPredicate] = [.orthogonal, .opposite, .aligned, .frontaligned, .backaligned, .rightaligned, .leftaligned]
+nonisolated(unsafe) let arrangements:[SpatialPredicate] = [.disjoint, .inside, .containing, .overlapping, .crossing, .touching, .meeting, .beside, .fitting, .exceeding]
+nonisolated(unsafe) let topology = proximity + directionality + adjacency + orientations + arrangements
 nonisolated(unsafe) let contacts:[SpatialPredicate] = [.on, .at, .by, .in]
 nonisolated(unsafe) let connectivity = contacts
-nonisolated(unsafe) let adjacency:[SpatialPredicate] = [.left, .right, .above, .below, .ahead, .behind]
-nonisolated(unsafe) let proximity:[SpatialPredicate] = [.near, .leftside, .rightside, .ontop, .beneath, .upperside, .lowerside, .frontside, .backside]
-nonisolated(unsafe) let orientations:[SpatialPredicate] = [.aligned, .frontaligned, .orthogonal, .opposite]
-nonisolated(unsafe) let arrangements:[SpatialPredicate] = [.disjoint, .inside, .containing, .overlapping, .crossing, .touching, .meeting, .beside, .fitting, .exceeding]
-nonisolated(unsafe) let topology = adjacency + proximity + orientations + arrangements
 nonisolated(unsafe) let comparisons:[SpatialPredicate] = [.smaller, .bigger, .shorter, .longer, .taller, .thinner, .wider]
 nonisolated(unsafe) let similarities:[SpatialPredicate] = [.sameside, .sameheight, .samewidth, .samefront, .sameside, .samefootprint, .samelength, .samevolume, .samecenter, .samecuboid, .congruent, .sameshape]
 nonisolated(unsafe) let comparability = comparisons + similarities
 nonisolated(unsafe) let visibility:[SpatialPredicate] = [.seenleft, .seenright, .infront, .atrear, .tangible, .eightoclock, .nineoclock, .tenoclock, .elevenoclock, .twelveoclock, .oneoclock, .twooclock, .threeoclock, .fouroclock]
 nonisolated(unsafe) let geography:[SpatialPredicate] = [.north, .south, .east, .west, .northwest, .northeast, .southwest, .southeast]
 nonisolated(unsafe) let sectors:[SpatialPredicate] = [ .i, .a, .b, .o, .u, .l, .r, .al, .ar, .bl, .br, .ao, .au, .bo, .bu, .lo, .lu, .ro, .ru, .alo, .aro, .blo, .bro, .alu, .aru, .blu, .bru]
-nonisolated(unsafe) let directionality = sectors
 
 // Spatial predicates used for: Subject - predicate - Object
 public enum SpatialPredicate : String {
     case undefined // try to resolve by synonym or inverse
     // TOPOLOGY
-    /// adjacency: in relation to position and orientation of object comparing center
+    /// proximity: near by
+    case near // A is near to B, is close
+    case far // not near
+    /// directionality: in relation to position and orientation of object comparing center
     case left
     case right
     case above
     case below
     case ahead
     case behind
-    /// proximity: near by and at one side
+    /// adjacency: near by and at one side
     case ontop // A is on top of B, very close contact
     case beneath // A is beneath of B, very close contact
     case upperside // A is at upper side of B
@@ -45,9 +48,13 @@ public enum SpatialPredicate : String {
     case frontside // A is at front side of B, ahead
     case backside
     /// orientations
-    case aligned // equally aligned orientation, parallel with
     case orthogonal // A is orthogonal to B, perpendicular to
     case opposite // opposite alignement
+    case aligned // equally aligned orientation, parallel with
+    case frontaligned // same orientation and in same front plane
+    case backaligned
+    case leftaligned
+    case rightaligned
     /// arrangements
     case disjoint // no space in common
     case inside // A is inside B
@@ -55,10 +62,8 @@ public enum SpatialPredicate : String {
     case overlapping // (partially) overlapping, intersecting
     case crossing // intersecting by going through object
     //case dividing // crossing and dividing into parts
-    case touching // touching edge-to-edge or edge-to-side
-    case frontaligned // same orientation and in same front plane
+    case touching // touching edge-to-edge or edge-to-side = atedge
     case meeting // meeting side-by-side
-    case near // A is near to B, is close
     case beside // near but not above or below
     case fitting // is fitting into
     case exceeding // not fitting into
@@ -112,8 +117,8 @@ public enum SpatialPredicate : String {
     case at // attached and aligned with, unilateral
     case by // connected, bilateral
     case `in` // within, unilateral
-    // DIRECTIONALITY
-    /// directions: center within bbox sector
+    // SECTORIALITY
+    /// center within bbox sector
     case i
     case a
     case b

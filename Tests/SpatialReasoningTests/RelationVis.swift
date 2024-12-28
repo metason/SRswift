@@ -113,7 +113,7 @@ struct RelationVis {
     
     @Test("rightside")
     func rightside() async throws {
-        let subject = SpatialObject(id: "subj", position: .init(x: -1.4, y: 0.3, z: 0.1), width: 0.7, height: 0.7, depth: 0.7)
+        let subject = SpatialObject(id: "subj", position: .init(x: -1.2, y: 0.3, z: 0.1), width: 0.7, height: 0.7, depth: 0.7)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
         printRelations(relations)
@@ -123,7 +123,7 @@ struct RelationVis {
     
     @Test("frontside")
     func frontside() async throws {
-        let subject = SpatialObject(id: "subj", position: .init(x: -0.2, y: 0.4, z: 1.5), width: 0.4, height: 0.4, depth: 0.4)
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.2, y: 0.4, z: 1.3), width: 0.4, height: 0.4, depth: 0.4)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
         printRelations(relations)
@@ -144,7 +144,7 @@ struct RelationVis {
     
     @Test("upperside")
     func upperside() async throws {
-        let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 1.61, z: 0.1), width: 1.0, height: 0.7, depth: 1.0)
+        let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 1.41, z: 0.1), width: 1.0, height: 0.7, depth: 1.0)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
         printRelations(relations)
@@ -194,7 +194,7 @@ struct RelationVis {
     
     @Test("frontaligned")
     func frontaligned() async throws {
-        let subject = SpatialObject(id: "subj", position: .init(x: 1.1, y: 0, z: 0.07), width: 1.0, height: 1.0, depth: 0.12)
+        let subject = SpatialObject(id: "subj", position: .init(x: 1.1, y: 0, z: 0.07), width: 1.0, height: 1.0, depth: 0.125)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.3)
         let relations = object.relate(subject: subject, topology: true)
         printRelations(relations)

@@ -36,7 +36,7 @@ struct SpatialAttributeTests {
     @Test("groundradius < radius")
     func radi() async throws {
         let object = SpatialObject(id: "2", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 0.2, depth: 1.1)
-        #expect(object.radius > object.groundradius)
+        #expect(object.radius > object.baseradius)
     }
     
     @Test("is detected")

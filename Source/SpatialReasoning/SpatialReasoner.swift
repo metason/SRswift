@@ -146,7 +146,7 @@ class SpatialReasoner {
         deduce.topology = categories.contains("topo")
         deduce.connectivity = categories.contains("connect")
         deduce.comparability = categories.contains("compar")
-        deduce.directionality = categories.contains("direct")
+        deduce.sectoriality = categories.contains("sector")
         deduce.visibility = categories.contains("visib")
         deduce.geography = categories.contains("geo")
     }

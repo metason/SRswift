@@ -110,7 +110,7 @@ Log files are used for debug purposes and are saved per default in the Downloads
 Spatial predicate categories of relations:
 - topology
 - connectivity (= contacts)
-- directionality (= sectors)
+- sectoriality (= sectors)
 - comparability
 - visibility
 - geography
@@ -136,7 +136,7 @@ SpatialReasoner has its own local adjustment that should be set upfront.
 class SpatialAdjustment {
     // Max deviations
     var maxgap:Float = 0.05 // max distance of deviation in all directions in meters
-    var angle:Float = 0.05 * .pi // angle is max delta of yaw orientation in radiants in both directions
+    var maxangle:Float = 0.05 * .pi // max delta of yaw orientation in radiants in both directions
     // Sector size
     var sectorSchema:SectorSchema = .wide
     var sectorFactor:Float = 1.0 // sectorFactor is multiplying the result of claculation schema

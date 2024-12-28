@@ -8,7 +8,14 @@ The spatial objects in the visual samples are represented as boxes (bounding box
 
 ## Topology
 
-### Adjacency
+### Proximity
+
+| Predicate | Relation  | Specification | Visual Sample |
+| --- | ---- | ---- | -------- | 
+| `near` | subj is __near__ by obj | <ul><li>center of subject is not inside / not in `.i` sector</li><li>center distance < nearby condition of adjustment</li><li>delta = center distance</li></ul> |  ![near](images/near.png) |
+| `far` | subj is __far__ from obj | <ul><li>center distance > nearby condition of adjustment</li><li>delta = center distance</li></ul> |  |
+
+### Directionality
 
 | Predicate | Relation  | Specification | Visual Sample |
 | --- | ---- | ---- | -------- | 
@@ -19,12 +26,11 @@ The spatial objects in the visual samples are represented as boxes (bounding box
 | `above`<br>`over` | subj is __above__ obj<br>subj is __over__ obj |<ul><li>center of subject is in `.o` sector</li><li>may overlap</li><li>no distance condition</li><li>valid in WCS, OCS, ECS</li><li>delta = center distance</li></ul> |  ![above](images/above.png) |
 | `below`<br>`under` | subj is __below__ obj<br>subj is __under__ obj | <ul><li>center of subject is in `.u` sector</li><li>may overlap</li><li>no distance condition</li><li>valid in WCS, OCS, ECS</li><li>delta = center distance</li></ul> | ![below](images/below.png) |
 
-### Proximity
+### Adjacency
 
 
 | Predicate | Relation  | Specification | Visual Sample |
 | --- | ---- | ---- | -------- | 
-| `near` | subj is __near__ by obj | <ul><li>center of subject is not inside / not in `.i` sector</li><li>center distance < nearby condition of adjustment</li><li>valid in OCS</li><li>delta = center distance</li></ul> |  ![near](images/near.png) |
 | `leftside` | subj is at __leftside__ of obj | <ul><li>center of subject is in `.l` sector</li><li>is near</li><li>is not overlapping</li><li>valid in OCS</li><li>delta = min distance</li></ul> |  ![leftside](images/leftside.png) |
 | `rightside` | subj is at __rightside__ of obj | <ul><li>center of subject is in `.r` sector</li><li>is near</li><li>is not overlapping</li><li>valid in OCS</li><li>delta = min distance</li></ul> | ![rightside](images/rightside.png) |
 | `frontside` | subj is at __frontside__ of obj | <ul><li>center of subject is in `.a` sector</li><li>is near</li><li>is not overlapping</li><li>valid in OCS</li><li>delta = min distance</li></ul>  | ![frontside](images/frontside.png) |
@@ -57,4 +63,4 @@ The spatial objects in the visual samples are represented as boxes (bounding box
 | `by` | subj is __by__ obj | <ul><li>is touching</li><li>min distance < max gap</li><li>valid in WCS, OCS, ECS</li><li>delta = min distance</li></ul> |  ![by](images/by.png) |
 | `in` | subj is __in__ obj | <ul><li>is inside</li><li>valid in WCS, OCS, ECS</li></ul> | ![in](images/in.png) |
 
-## Directionality
+## Sectoriality

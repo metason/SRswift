@@ -41,23 +41,30 @@ Derived values
 
 ### Topology
 
-Adjacency : Nachbarschaft
+Adjacency (Nachbarschaft): 
 - left, right, ...
+
 Connectivity : Verbindung
 - in : overlapping?
 - ? : crossing
 - by : touching
 - at : meeting
+
 Orientation
 - parallel, orthogonal
+
 Directional
 - sector? of center?
+
 Visibility
 - seenleft, seenright
+
 Proximity
 - near, close, far, leftside, ...
+
 Topology
 - inside, contains, disjoint
+
 Comparativity --> better with sort?
 - larger, longer
 

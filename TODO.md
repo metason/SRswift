@@ -11,12 +11,18 @@
   - check: https://wikidiff.com
   
 ## BUG FIXES
+- frontaligned, backaligned, leftaligned, rightaligned
+- leftmost, 
+- top, topleft?, top left-hand corner/sector?
+- bottom, base
 - contact graph: at, by
-- match under over to below above
+- sort 
+- match: under over to below above
 - match to synonyms??
 - .aligned: front aligned, only same angle?, frontaligned, backaligned, sidealigned?
 - inside gap? center or ?
 - sectorOf nearby? check calls
+- check for missing terms in SpatialTerms
 - gap calculation? Euclidean Signed Distance Function (ESDF)?
 - SpatialTerms: seenleft, ...
 - meeting: inverse not working!
@@ -26,7 +32,7 @@
 ## TODO
 
 GITHUB
-- SR: Spatial Reasoning (Libs)
+- SR: Spatial Reasoning (Libs) OR Spatial Reasoner
   - SRswift
   - SRpy
   - SRunity
@@ -49,7 +55,7 @@ GITHUB
 - Objects are described and distinguished using a combination of label, look/color, size, and shape
     - plus the spatial characteristics: global world-oriented, local  object-related, intra-object-related
 
-- Vicinity  (Nähe)
+- Vicinity (Nähe)
   - center - position - perimeter
   - bbox - sectors - edges - corners?
   - sectors
@@ -57,12 +63,12 @@ GITHUB
 - adjacency  (Nachbarschaft)
   - voronoi graph??
 - Dynamic Vicinity and Adjacency Checking
-  - change SpatialAdjustment dynamiclly --> use in spatial rule engine demo
+  - change SpatialAdjustment dynamically --> use in spatial rule engine demo
   - step-wise relaxing of border conditions when pipeline not successful
 - Euclidean Signed Distance Function (ESDF) 
 - room segmentation: walls
 - geography
-  - geomagnetic: north, ...
+  - geodetic: north, ...
   - altitude: ?
   - lat/long?
 - Confidence
@@ -118,7 +124,6 @@ User-related
 - visible
 - focused
 - tangible // can be grabbed (by hand)
-  
 
 ## Relation Inference (Query)
 

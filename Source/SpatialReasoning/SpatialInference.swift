@@ -158,7 +158,7 @@ class SpatialInference {
             case "surface": sortedObjects = inputObjects.sorted { $0.surface < $1.surface }
             case "volume": sortedObjects = inputObjects.sorted { $0.volume < $1.volume }
             case "perimeter": sortedObjects = inputObjects.sorted { $0.perimeter < $1.perimeter }
-            case "groundradius": sortedObjects = inputObjects.sorted { $0.groundradius < $1.groundradius }
+            case "groundradius": sortedObjects = inputObjects.sorted { $0.baseradius < $1.baseradius }
             case "radius": sortedObjects = inputObjects.sorted { $0.radius < $1.radius }
             case "speed": sortedObjects = inputObjects.sorted { $0.speed < $1.speed }
             case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.value < $1.confidence.value }
@@ -179,7 +179,7 @@ class SpatialInference {
             case "surface": sortedObjects = inputObjects.sorted { $0.surface > $1.surface }
             case "volume": sortedObjects = inputObjects.sorted { $0.volume > $1.volume }
             case "perimeter": sortedObjects = inputObjects.sorted { $0.perimeter > $1.perimeter }
-            case "groundradius": sortedObjects = inputObjects.sorted { $0.groundradius > $1.groundradius }
+            case "groundradius": sortedObjects = inputObjects.sorted { $0.baseradius > $1.baseradius }
             case "radius": sortedObjects = inputObjects.sorted { $0.radius > $1.radius }
             case "speed": sortedObjects = inputObjects.sorted { $0.speed > $1.speed }
             case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.value > $1.confidence.value }
