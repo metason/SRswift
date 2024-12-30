@@ -201,8 +201,8 @@ struct SpatialTest {
     @Test("subj at rear of obj")
     func rear() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: -0.2, y: 0, z: 0.95), width: 0.8, height: 0.8, depth: 0.8)
-        let object = SpatialObject(id: "obj", position: .init(x: 0.1, y: 0, z: 0.0), width: 1.0, height: 1.0, depth: 1.0)
-        let observer = SpatialObject.createPerson(id: "ego", position: .init(x: 0.3, y: 0, z: -3.8))
+        let object = SpatialObject(id: "obj", position: .init(x: 0.1, y: 0, z: -0.15), width: 1.0, height: 1.0, depth: 1.0)
+        let observer = SpatialObject.createPerson(id: "ego", position: .init(x: 0.3, y: 0, z: -2.7))
         let relations = object.asseen(subject: subject, observer: observer)
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), observer.bboxCube(color: CGColor(red: 0, green: 1, blue: 0, alpha: 0))])
@@ -219,14 +219,14 @@ struct SpatialTest {
         #expect(relations.contains(where: { $0.predicate == .elevenoclock }))
     }
     
-    @Test("subj is at 3 o'clock")
-    func at3clock() async throws {
-        let subject = SpatialObject(id: "subj", position: .init(x: -0.95, y: 0, z: 0.1), width: 0.4, height: 0.6, depth: 0.5)
+    @Test("subj is at 2 o'clock")
+    func at2clock() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.95, y: 0, z: 0.45), width: 0.4, height: 0.6, depth: 0.5)
         let observer = SpatialObject.createPerson(id: "ego", position: .init(x: 0, y: 0, z: 0), name: "user")
         let relations = observer.relate(subject: subject, topology: true)
         printRelations(relations)
         export([subject.bboxCube(color: subjectTransparent), observer.bboxCube(color: objectTransparent)])
-        #expect(relations.contains(where: { $0.predicate == .threeoclock }))
+        #expect(relations.contains(where: { $0.predicate == .twooclock }))
     }
     
 }

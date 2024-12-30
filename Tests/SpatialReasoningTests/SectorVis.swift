@@ -88,19 +88,19 @@ struct SectorVis {
     
     @Test("subj in sector o of obj")
     func sectorO() async throws {
-        let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 1.61, z: 0.1), width: 0.5, height: 0.5, depth: 0.5)
+        let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 1.61, z: -0.2), width: 0.4, height: 0.4, depth: 0.4)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
-        let relation = object.direction(subject: subject)
-        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), object.sectorCube(.o)])
+        let relation = object.sector(subject: subject)
+        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), object.sectorCube(.o, true)])
         //print(relation.predicate)
         #expect(relation.predicate == .o)
     }
     
     @Test("subj in sector al of obj")
     func sectorAL() async throws {
-        let subject = SpatialObject(id: "subj", position: .init(x: 1.2, y: 0.21, z: 1.4), width: 0.5, height: 0.5, depth: 0.5)
+        let subject = SpatialObject(id: "subj", position: .init(x: 1.2, y: 0.21, z: 1.4), width: 0.4, height: 0.4, depth: 0.4)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
-        let relation = object.direction(subject: subject)
+        let relation = object.sector(subject: subject)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), object.sectorCube(.al)])
         #expect(relation.predicate == .al)
     }
@@ -109,7 +109,7 @@ struct SectorVis {
     func sectorBRU() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: -1.2, y: -1.21, z: -1.4), width:0.5, height: 0.5, depth: 0.5)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
-        let relation = object.direction(subject: subject)
+        let relation = object.sector(subject: subject)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), object.sectorCube(.bru)])
         #expect(relation.predicate == .bru)
     }

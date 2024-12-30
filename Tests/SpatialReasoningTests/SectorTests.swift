@@ -16,7 +16,7 @@ struct SectorTests {
     func sectorO() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 1.61, z: 0.1), width: 0.5, height: 0.5, depth: 0.5)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
-        let relation = object.direction(subject: subject)
+        let relation = object.sector(subject: subject)
         #expect(relation.predicate == .o)
     }
     
@@ -24,7 +24,7 @@ struct SectorTests {
     func sectorAL() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: 1.2, y: 0.21, z: 1.4), width: 0.5, height: 0.5, depth: 0.5)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
-        let relation = object.direction(subject: subject)
+        let relation = object.sector(subject: subject)
         #expect(relation.predicate == .al)
     }
     
@@ -32,7 +32,7 @@ struct SectorTests {
     func sectorBRU() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: -1.2, y: -1.21, z: -1.4), width:0.5, height: 0.5, depth: 0.5)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
-        let relation = object.direction(subject: subject)
+        let relation = object.sector(subject: subject)
         #expect(relation.predicate == .bru)
     }
     
@@ -40,7 +40,7 @@ struct SectorTests {
     func sectorI() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 0, z: 0.1), width: 1.0, height: 1.0, depth: 1.0)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
-        let relation = object.direction(subject: subject, nearby: true)
+        let relation = object.sector(subject: subject, nearby: true)
         #expect(relation.predicate == .i)
     }
     
@@ -48,7 +48,7 @@ struct SectorTests {
     func nosector() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: 8, y: 0, z: 0.1), width: 1.0, height: 1.0, depth: 1.0)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
-        let relation = object.direction(subject: subject, nearby: true)
+        let relation = object.sector(subject: subject, nearby: true)
         #expect(relation.predicate == .undefined)
     }
 

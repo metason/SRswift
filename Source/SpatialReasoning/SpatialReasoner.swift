@@ -19,11 +19,12 @@ class SpatialReasoner {
     var relMap: [Int: [SpatialRelation]] = [:] // index:[SpatialRelation]
     var chain: [SpatialInference] = []
     var base:Dictionary<String, Any> = [:] // fact base, objects will be added
+    var snapTime:Date = Date() // load time or update time of fact base
     var adjustment = SpatialAdjustment()
     var deduce = SpatialPredicateCategories()
     
     // logging
-    var pipeline:String = "" // used as title for log
+    var pipeline:String = "" // last used inference pipeline
     var name:String = "" // used as title for log
     var description:String = "" // used in log output
     var logCnt:Int = 0
@@ -46,14 +47,40 @@ class SpatialReasoner {
             }
             base["objects"] = objList
         }
+        snapTime = Date()
+        base["snaptime"] = snapTime.description
+    }
+    
+    // TODO: recreateObjects
+    func recreateObjects() {
+        
     }
                        
     func load(_ objs: [Dictionary<String, Any>]) {
-       
+        base["objects"] = objs
+        recreateObjects()
+        base["snaptime"] = snapTime.description
+        snapTime = Date()
     }
     
     func load(_ json: String) {
-       
+        let data = json.data(using: String.Encoding.utf8, allowLossyConversion: false)
+        if data != nil {
+            let decoder = JSONDecoder()
+            let jsonObj = try? JSONSerialization.jsonObject(with: data!, options: .mutableContainers)
+            if let jsonObj = jsonObj as? [Dictionary<String, Any>] {
+                load(jsonObj)
+            }
+        }
+    }
+    
+    func takeSnapshot() -> Dictionary<String, Any> {
+       return base
+    }
+    
+    func loadSnapshot(_ snapshot: Dictionary<String, Any>) {
+        base = snapshot
+        recreateObjects()
     }
     
     func record(_ inference: SpatialInference) {

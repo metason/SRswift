@@ -217,6 +217,10 @@ class SpatialObject {
         return person
     }
     
+    // Object Serialization
+    // Hint: Codable extension not used to have more control
+    
+    // full-fledged representation for fact base
     public func asDict() -> Dictionary<String, Any>? {
         let output = [
             "id": id,
@@ -256,10 +260,80 @@ class SpatialObject {
             "velocity": [velocity.x, velocity.y, velocity.z],
             "motion": motion.rawValue,
             "shape": shape.rawValue,
+            "look": look,
             "visible": visible,
             "focused": focused
         ] as [String : Any]
         return output
+    }
+    
+    // for export
+    public func toAny() -> Dictionary<String, Any>? {
+        let output = [
+            "id": id,
+            "existence": existence.rawValue,
+            "cause": cause.rawValue,
+            "label": label,
+            "type": type,
+            "supertype": supertype,
+            "position": [position.x, position.y, position.z],
+            "width": width,
+            "height": height,
+            "depth": depth,
+            "angle": angle,
+            "immobile": immobile,
+            "velocity": [velocity.x, velocity.y, velocity.z],
+            "confidence": confidence.value,
+            "shape": shape.rawValue,
+            "visible": visible,
+            "focused": focused
+        ] as [String : Any]
+        return output
+    }
+    
+    // import from JSON data
+    public func fromAny(_ input: Dictionary<String, Any>) -> SpatialObject? {
+        let id = input["id"] as? String ?? ""
+        if !id.isEmpty {
+            var pos = SCNVector3()
+            let position = input["position"] as? [Float] ?? []
+            if position.count == 3 {
+                pos.x = CGFloat(position[0])
+                pos.y = CGFloat(position[1])
+                pos.z = CGFloat(position[2])
+            } else {
+                let x = input["x"] as? Float ?? 0
+                let y = input["y"] as? Float ?? 0
+                let z = input["z"] as? Float ?? 0
+                pos.x = CGFloat(x)
+                pos.y = CGFloat(y)
+                pos.z = CGFloat(z)
+            }
+            let width = input["width"] as? Float ?? input["w"] as? Float ?? 0
+            let height = input["height"] as? Float ?? input["h"] as? Float ?? 0
+            let depth = input["depth"] as? Float ?? input["d"] as? Float ?? 0
+            if width <= 0 || height <= 0 || depth <= 0 {
+                return nil
+            }
+            let object = SpatialObject(id: id, position: pos, width: width, height: height, depth: depth)
+            let label = input["label"] as? String ?? ""
+            object.label = label.lowercased()
+            let type = input["type"] as? String ?? label.lowercased()
+            object.type = type
+            let supertype = input["supertype"] as? String ?? ""
+            object.supertype = supertype
+            let confidence = input["confidence"] as? Float ?? 0.5
+            object.confidence.setValue(confidence)
+            let cause = input["cause"] as? String ?? ""
+            object.cause = ObjectCause.named(cause)
+            let existence = input["existence"] as? String ?? ""
+            object.existence = SpatialExistence.named(existence)
+            object.immobile = false
+            let shape = input["shape"] as? String ?? ""
+            object.shape = ObjectShape.named(shape)
+            return object
+        }
+        return nil
     }
     
     func desc() -> String {
@@ -853,9 +927,23 @@ class SpatialObject {
             relation = SpatialRelation(subject: subject, predicate: .aligned, object: self, delta: gap, angle: theta)
             result.append(relation)
             let frontGap = Float(center.z) + subject.depth/2.0 - depth/2.0
-            print(frontGap)
             if abs(frontGap) < adjustment.maxgap {
                 relation = SpatialRelation(subject: subject, predicate: .frontaligned, object: self, delta: frontGap, angle: theta)
+                result.append(relation)
+            }
+            let backGap = Float(center.z) - subject.depth/2.0 + depth/2.0
+            if abs(backGap) < adjustment.maxgap {
+                relation = SpatialRelation(subject: subject, predicate: .backaligned, object: self, delta: frontGap, angle: theta)
+                result.append(relation)
+            }
+            let rightGap = Float(center.x) - subject.width/2.0 + width/2.0
+            if abs(rightGap) < adjustment.maxgap {
+                relation = SpatialRelation(subject: subject, predicate: .rightaligned, object: self, delta: frontGap, angle: theta)
+                result.append(relation)
+            }
+            let leftGap = Float(center.x) + subject.width/2.0 - width/2.0
+            if abs(leftGap) < adjustment.maxgap {
+                relation = SpatialRelation(subject: subject, predicate: .leftaligned, object: self, delta: frontGap, angle: theta)
                 result.append(relation)
             }
         } else {
@@ -1064,7 +1152,7 @@ class SpatialObject {
     }
     
     // sector
-    func direction(subject:SpatialObject, nearby:Bool = false) -> SpatialRelation {
+    func sector(subject:SpatialObject, nearby:Bool = false) -> SpatialRelation {
         let centerVector = subject.center - center
         let centerDistance = centerVector.length()
         let center = intoLocal(pt: subject.center)
