@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "SpatialReasoning",
+    name: "SRswift",
     platforms: [
         .macOS(.v12), .iOS(.v13)
     ],

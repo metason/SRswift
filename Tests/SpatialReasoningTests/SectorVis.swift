@@ -146,6 +146,7 @@ struct SectorVis {
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.0, height: 0.8, depth: 0.6)
         export([object.bboxCube(color: objectOpaque), object.sectorCube(.o), object.sectorCube(.u), object.sectorCube(.l), object.sectorCube(.r), object.sectorCube(.a), object.sectorCube(.b)])
         #expect(true)
+        defaultAdjustment.sectorSchema = .nearby
     }
     
     @Test("fixed sectors of thin obj")
@@ -154,6 +155,7 @@ struct SectorVis {
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.0, height: 0.05, depth: 0.6)
         export([object.bboxCube(color: objectOpaque), object.sectorCube(.o), object.sectorCube(.u), object.sectorCube(.l), object.sectorCube(.r), object.sectorCube(.a), object.sectorCube(.b), object.nearbySphere()])
         #expect(true)
+        defaultAdjustment.sectorSchema = .nearby
     }
     
     @Test("fixed sectors of long obj")
@@ -162,6 +164,7 @@ struct SectorVis {
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 0.08, height: 1.05, depth: 0.06)
         export([object.bboxCube(color: objectOpaque), object.sectorCube(.o), object.sectorCube(.u), object.sectorCube(.l), object.sectorCube(.r), object.sectorCube(.a), object.sectorCube(.b)])
         #expect(true)
+        defaultAdjustment.sectorSchema = .nearby
     }
     
     @Test("dimension sectors of obj")
@@ -170,6 +173,7 @@ struct SectorVis {
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.0, height: 0.8, depth: 0.6)
         export([object.bboxCube(color: objectOpaque), object.sectorCube(.o), object.sectorCube(.u), object.sectorCube(.l), object.sectorCube(.r), object.sectorCube(.a), object.sectorCube(.b)])
         #expect(true)
+        defaultAdjustment.sectorSchema = .nearby
     }
     
     @Test("dimension sectors of thin obj")
@@ -178,6 +182,7 @@ struct SectorVis {
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.0, height: 0.05, depth: 0.6)
         export([object.bboxCube(color: objectOpaque), object.sectorCube(.o), object.sectorCube(.u), object.sectorCube(.l), object.sectorCube(.r), object.sectorCube(.a), object.sectorCube(.b), object.nearbySphere()])
         #expect(true)
+        defaultAdjustment.sectorSchema = .nearby
     }
     
     @Test("dimension sectors of long obj")
@@ -186,5 +191,6 @@ struct SectorVis {
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 0.08, height: 1.05, depth: 0.06)
         export([object.bboxCube(color: objectOpaque), object.sectorCube(.o), object.sectorCube(.u), object.sectorCube(.l), object.sectorCube(.r), object.sectorCube(.a), object.sectorCube(.b)])
         #expect(true)
+        defaultAdjustment.sectorSchema = .nearby
     }
 }

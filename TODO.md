@@ -11,37 +11,28 @@
   - check: https://wikidiff.com
   
 ## BUG FIXES
-- frontaligned, backaligned, leftaligned, rightaligned
-- leftmost, 
+- FIX contact graph: fix at, by
+- by bidirectional
+- FIXME: touching vs meeting at edge, check overlap < maxgap
+- FIXME: infront behind not correct!!!!
+- check FIXME
 - top, topleft?, top left-hand corner/sector?
 - bottom, base
-- contact graph: at, by
-- sort 
+- sort relations
 - match: under over to below above
 - match to synonyms??
 - .aligned: front aligned, only same angle?, frontaligned, backaligned, sidealigned?
 - inside gap? center or ?
-- sectorOf nearby? check calls
 - check for missing terms in SpatialTerms
 - gap calculation? Euclidean Signed Distance Function (ESDF)?
-- SpatialTerms: seenleft, ...
-- meeting: inverse not working!
-- FIXME: touching vs meeting at edge, check overlap < maxgap
+- meeting: inverse not working?
 - 
 
 ## TODO
-
-GITHUB
-- SR: Spatial Reasoning (Libs) OR Spatial Reasoner
-  - SRswift
-  - SRpy
-  - SRunity
-  - SRjs
-  - SRdocu: Generic definitions of concepts
-    - Dynamic Vicinity and Adjacency Checking
-    - Sectors
-    - Predicates
     
+- leftmost, 
+- Dynamic Vicinity and Adjacency
+- confidence on relations?
 - validate succeeded
 - is fitting into, exceeding
 - is facing towards

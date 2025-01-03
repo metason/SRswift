@@ -29,19 +29,13 @@ struct RelationVis {
         }
     }
     
-    func printRelations(_ relations: [SpatialRelation]) {
-        for relation in relations {
-            print("\(relation.subject.id) \(relation.predicate) \(relation.object.id) | " + String(format: "𝛥:%.2f  ", relation.delta) + String(format: "𝜶:%.1f°", relation.yaw))
-        }
-    }
-    
     @Test("left")
     func left() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: 0.8, y: 0.4, z: -0.1), width: 0.7, height: 0.4, depth: 0.7)
         subject.angle = 0.45
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .left }))
     }
@@ -52,7 +46,7 @@ struct RelationVis {
         subject.angle = .pi / 2.0
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .right }))
     }
@@ -63,7 +57,7 @@ struct RelationVis {
         subject.angle = .pi / 2.0
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .ahead }))
     }
@@ -74,7 +68,7 @@ struct RelationVis {
         subject.angle = 0.45
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .behind }))
     }
@@ -85,7 +79,7 @@ struct RelationVis {
         subject.angle = 0.2
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .above }))
     }
@@ -95,7 +89,7 @@ struct RelationVis {
         let subject = SpatialObject(id: "subj", position: .init(x: 0, y: -1.10, z: 0.05), width: 1.6, height: 0.2, depth: 1.6)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .below }))
     }
@@ -106,7 +100,7 @@ struct RelationVis {
         subject.angle = .pi / 2.0
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .leftside }))
     }
@@ -116,7 +110,7 @@ struct RelationVis {
         let subject = SpatialObject(id: "subj", position: .init(x: -1.2, y: 0.3, z: 0.1), width: 0.7, height: 0.7, depth: 0.7)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .rightside }))
     }
@@ -126,7 +120,7 @@ struct RelationVis {
         let subject = SpatialObject(id: "subj", position: .init(x: -0.2, y: 0.4, z: 1.3), width: 0.4, height: 0.4, depth: 0.4)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .frontside }))
     }
@@ -137,7 +131,7 @@ struct RelationVis {
         subject.angle = .pi / 2.0
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .backside }))
     }
@@ -147,7 +141,7 @@ struct RelationVis {
         let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 1.41, z: 0.1), width: 1.0, height: 0.7, depth: 1.0)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .upperside }))
     }
@@ -157,7 +151,7 @@ struct RelationVis {
         let subject = SpatialObject(id: "subj", position: .init(x: 0, y: -0.80, z: 0.05), width: 1.0, height: 0.5, depth: 1.0)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .lowerside }))
     }
@@ -167,7 +161,7 @@ struct RelationVis {
         let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 1.01, z: 0), width: 0.8, height: 0.6, depth: 0.25)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .ontop }))
     }
@@ -177,17 +171,29 @@ struct RelationVis {
         let subject = SpatialObject(id: "subj", position: .init(x: 0, y: -0.31, z: 0.05), width: 1.9, height: 0.3, depth: 1.9)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .beneath }))
     }
+    
+    @Test("beside")
+    func beside() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: 1.06, y: 0, z: -0.1), width: 0.4, height: 0.8, depth: 0.5)
+        subject.setYaw(45.0)
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
+        let relations = object.relate(subject: subject, topology: true)
+        SpatialReasoner.printRelations(relations)
+        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
+        #expect(relations.contains(where: { $0.predicate == .beside }))
+    }
+    
     
     @Test("aligned")
     func aligned() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: 1.1, y: 0, z: -0.15), width: 1.0, height: 1.0, depth: 0.15)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.3)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .aligned }))
     }
@@ -197,7 +203,7 @@ struct RelationVis {
         let subject = SpatialObject(id: "subj", position: .init(x: 1.1, y: 0, z: 0.07), width: 1.0, height: 1.0, depth: 0.125)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.3)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .frontaligned }))
     }
@@ -207,7 +213,7 @@ struct RelationVis {
         let subject = SpatialObject(id: "subj", position: .init(x: 1.3, y: 0, z: -0.1), width: 1.0, height: 1.0, depth: 0.4)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.6)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .backaligned }))
     }
@@ -217,7 +223,7 @@ struct RelationVis {
         let subject = SpatialObject(id: "subj", position: .init(x: -0.2, y: 0, z: -1.2), width: 0.6, height: 0.6, depth: 0.4)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.6)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .rightaligned }))
     }
@@ -227,7 +233,7 @@ struct RelationVis {
         let subject = SpatialObject(id: "subj", position: .init(x: 0.2, y: 0, z: -1.2), width: 0.6, height: 0.6, depth: 0.4)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.6)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .leftaligned }))
     }
@@ -238,7 +244,7 @@ struct RelationVis {
         subject.angle = .pi / 2
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.3)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .orthogonal }))
     }
@@ -249,7 +255,7 @@ struct RelationVis {
         subject.angle = .pi
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.3)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .opposite }))
     }
@@ -268,7 +274,7 @@ struct RelationVis {
         let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 0.43, z: 0.335), width: 0.5, height: 0.33, depth: 0.15)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.5)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .at }))
     }
@@ -279,7 +285,7 @@ struct RelationVis {
         subject.angle = -.pi / 2
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.3)
         let relations = object.relate(subject: subject, topology: true)
-        printRelations(relations)
+        SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .by }))
     }

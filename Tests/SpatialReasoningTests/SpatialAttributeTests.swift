@@ -33,10 +33,10 @@ struct SpatialAttributeTests {
         #expect(object.mainDirection() == 2)
     }
     
-    @Test("groundradius < radius")
+    @Test("baseradius < radius")
     func radi() async throws {
         let object = SpatialObject(id: "2", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 0.2, depth: 1.1)
-        #expect(object.radius > object.baseradius)
+        #expect(object.baseradius < object.radius)
     }
     
     @Test("is detected")
@@ -77,4 +77,28 @@ struct SpatialAttributeTests {
         #expect(object.motion == .moving)
     }
     
+    @Test("filter(virtual AND NOT moving)")
+    func filterAttr() async throws {
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
+        object.existence = .virtual
+        object.confidence.setValue(0.6)
+        let sp = SpatialReasoner()
+        sp.load([object])
+        let done = sp.run("filter(virtual AND NOT moving) | log(base)")
+        #expect(done)
+        #expect(sp.result().count == 1)
+    }
+    
+    @Test("filter(label == 'Wall')")
+    func filterLabel() async throws {
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
+        object.existence = .virtual
+        object.label = "Wall"
+        object.confidence.setValue(0.8)
+        let sp = SpatialReasoner()
+        sp.load([object])
+        let done = sp.run("filter(label == 'Wall' AND confidence.label > 0.7) | log(base)")
+        #expect(done)
+        #expect(sp.result().count == 1)
+    }
 }

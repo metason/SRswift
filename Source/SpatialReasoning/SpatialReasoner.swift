@@ -66,7 +66,6 @@ class SpatialReasoner {
     func load(_ json: String) {
         let data = json.data(using: String.Encoding.utf8, allowLossyConversion: false)
         if data != nil {
-            let decoder = JSONDecoder()
             let jsonObj = try? JSONSerialization.jsonObject(with: data!, options: .mutableContainers)
             if let jsonObj = jsonObj as? [Dictionary<String, Any>] {
                 load(jsonObj)
@@ -86,6 +85,15 @@ class SpatialReasoner {
     func record(_ inference: SpatialInference) {
         chain.append(inference)
         base["chain"] = base["chain"] as? [String:Any] ?? [] + [inference.asDict()]
+    }
+    
+    func backtrace() -> [Int] {
+        for idx in (0..<chain.count).reversed() {
+            if chain[idx].isManipulating()  {
+                return chain[idx].input
+            }
+        }
+        return []
     }
 
     func run(_ pipeline: String) -> Bool {
@@ -135,6 +143,12 @@ class SpatialReasoner {
         print(chain.last?.error as Any)
     }
     
+    static func printRelations(_ relations: [SpatialRelation]) {
+        for relation in relations {
+            print("\(relation.subject.id) \(relation.predicate) \(relation.object.id) | " + String(format: "𝛥:%.2f  ", relation.delta) + String(format: "𝜶:%.1f°", relation.yaw))
+        }
+    }
+    
     func relationsOf(_ idx:Int) -> [SpatialRelation] {
         if relMap.keys.contains(idx) {
             return relMap[idx]!
@@ -145,23 +159,26 @@ class SpatialReasoner {
                 relations.append(contentsOf: objects[idx].relate(subject: subject))
             }
         }
+        //SpatialReasoner.printRelations(relations)
         relMap[idx] = relations
         return relations
     }
     
-    // find for existence of predicate in spatial relations
-    static func find(_ predicate:String, in relations:[SpatialRelation]) -> SpatialRelation? {
-        for relation in relations {
-            if relation.predicate.rawValue == predicate {
-                return relation
+    func relationsWith(_ objIdx:Int, predicate:String) -> [SpatialRelation] {
+        var rels = [SpatialRelation]()
+        if objIdx >= 0 {
+            for relation in relationsOf(objIdx) {
+                if relation.predicate.rawValue == predicate {
+                    rels.append(relation)
+                }
             }
         }
-        return nil
+        return rels
     }
     
     // does subject has relation of predicate with object
     func does(subject:SpatialObject, have predicate:String, with objIdx:Int) -> Bool {
-        for relation in  relationsOf(objIdx){
+        for relation in relationsOf(objIdx) {
             if relation.subject === subject && relation.predicate.rawValue == predicate {
                 return true
             }
@@ -173,6 +190,7 @@ class SpatialReasoner {
         deduce.topology = categories.contains("topo")
         deduce.connectivity = categories.contains("connect")
         deduce.comparability = categories.contains("compar")
+        deduce.similarity = categories.contains("simil")
         deduce.sectoriality = categories.contains("sector")
         deduce.visibility = categories.contains("visib")
         deduce.geography = categories.contains("geo")

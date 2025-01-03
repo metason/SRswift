@@ -21,8 +21,8 @@ public enum SectorSchema {
 // SpatialReasoner has its own local adjustment that should be set upfront.
 class SpatialAdjustment {
     // Max deviations
-    var maxgap:Float = 0.02 /// max distance of deviation in all directions in meters
-    var maxangle:Float = 0.05 * .pi /// max angle delta in radiants in both directions
+    var maxGap:Float = 0.02 /// max distance of deviation in all directions in meters
+    var maxAngleDelta:Float = 0.05 * .pi /// max angle delta in both directions in radiants
     // Sector size
     var sectorSchema:SectorSchema = .nearby
     var sectorFactor:Float = 1.0 /// multiplying result of claculation schema
@@ -38,15 +38,15 @@ class SpatialAdjustment {
     
     /// get/set max delta of orientation in degrees
     var yaw:Float {
-        return maxangle * 180.0 / .pi
+        return maxAngleDelta * 180.0 / .pi
     }
     func setYaw(_ degrees:Float) {
-        maxangle = degrees * .pi / 180.0
+        maxAngleDelta = degrees * .pi / 180.0
     }
     
     init(gap:Float = 0.02, angle:Float = 0.05 * .pi, sectorSchema:SectorSchema = .nearby, sectorFactor:Float = 1.0, sectorLimit:Float = 2.5, fixSectorLenght:Float = 0.5, wideSectorLenght:Float = 10.0, nearbyFactor:Float = 1.0, nearbyLimit:Float = 2.0) {
-        self.maxgap = gap
-        self.maxangle = angle
+        self.maxGap = gap
+        self.maxAngleDelta = angle
         self.sectorSchema = sectorSchema
         self.sectorFactor = sectorFactor
         self.sectorLimit = sectorLimit
@@ -65,8 +65,9 @@ class SpatialPredicateCategories {
     var topology = true
     var connectivity = true
     var comparability = false
+    var similarity = false
     var sectoriality = false
-    var visibility = true
+    var visibility = false
     var geography = false
 }
 
@@ -110,7 +111,7 @@ public enum SpatialAtribute: String {
     case surface
     case volume
     case perimeter
-    case groundradius // radius of 2D floorground circle
+    case baseradius // radius of 2D floorground circle
     case radius // radius of sphere including 3D bbox around center
     case speed
     case confidence

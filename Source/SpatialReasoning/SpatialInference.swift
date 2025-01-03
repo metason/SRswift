@@ -7,8 +7,6 @@
 
 import Foundation
 
-// infer, query, parse, transform, execute spatial query, process
-
 class SpatialInference {
         
     var input:[Int] = [] // index to fact.base.objects
@@ -32,15 +30,18 @@ class SpatialInference {
         } else if operation.starts(with: "select(") {
             let startIdx = operation.index(operation.startIndex, offsetBy: 7)
             select(String(operation[startIdx..<endIdx]))
-        }else if operation.starts(with: "sort(") {
+        } else if operation.starts(with: "sort(") {
             let startIdx = operation.index(operation.startIndex, offsetBy: 5)
             sort(String(operation[startIdx..<endIdx]))
-        } else if operation.starts(with: "analyse(") {
+        } else if operation.starts(with: "slice(") {
+            let startIdx = operation.index(operation.startIndex, offsetBy: 6)
+            slice(String(operation[startIdx..<endIdx]))
+        } else if operation.starts(with: "produce(") {
             let startIdx = operation.index(operation.startIndex, offsetBy: 8)
-            analyse(String(operation[startIdx..<endIdx]))
-        } else if operation.starts(with: "validate(") {
-            let startIdx = operation.index(operation.startIndex, offsetBy: 9)
-            validate(String(operation[startIdx..<endIdx]))
+            produce(String(operation[startIdx..<endIdx]))
+        } else if operation.starts(with: "calc(") {
+            let startIdx = operation.index(operation.startIndex, offsetBy: 5)
+            calc(String(operation[startIdx..<endIdx]))
         } else if operation.starts(with: "map(") {
             let startIdx = operation.index(operation.startIndex, offsetBy: 4)
             map(String(operation[startIdx..<endIdx]))
@@ -123,15 +124,65 @@ class SpatialInference {
         succeeded = !output.isEmpty
     }
     
-    func analyse(_ assignments: String) {
-        print(assignments)
+    func produce(_ terms: String) {
+        print(terms)
     }
     
     func map(_ assignments: String) {
         print(assignments)
     }
     
+    
+    func calc(_ assignments: String) {
+        print(assignments)
+    }
+    
+    func slice(_ range: String) {
+        print("slice \(range)")
+        let str = range.replacingOccurrences(of: "..", with: ".")
+        let list = str.split(separator: ".").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
+        var lower = 0
+        var upper = 0
+        if list.count > 0 {
+            lower = Int(list[0]) ?? 1
+            if lower >= input.count {
+                lower = input.count
+            }
+            if lower < 0 {
+                lower = input.count + lower
+            } else {
+                lower = lower - 1
+            }
+        }
+        if list.count > 1 {
+            upper = Int(list[1]) ?? 1
+            if upper >= input.count {
+                upper = input.count
+            }
+            if upper < 0 {
+                upper = input.count + upper
+            } else {
+                upper = upper - 1
+            }
+        } else {
+            upper = lower
+        }
+        if lower > upper {
+            let temp = lower
+            lower = upper
+            upper = temp
+        }
+        let idxRange = ClosedRange<Int>(uncheckedBounds: (lower: lower, upper: upper))
+        print(idxRange)
+        output = Array(input[idxRange])
+        succeeded = !output.isEmpty
+    }
+    
     func sort(_ attribute: String) {
+        if attribute.contains(".") {
+            sortByRelation(attribute)
+            return
+        }
         var ascending = false
         var inputObjects: [SpatialObject] = []
         var sortedObjects: [SpatialObject]
@@ -158,7 +209,7 @@ class SpatialInference {
             case "surface": sortedObjects = inputObjects.sorted { $0.surface < $1.surface }
             case "volume": sortedObjects = inputObjects.sorted { $0.volume < $1.volume }
             case "perimeter": sortedObjects = inputObjects.sorted { $0.perimeter < $1.perimeter }
-            case "groundradius": sortedObjects = inputObjects.sorted { $0.baseradius < $1.baseradius }
+            case "baseradius": sortedObjects = inputObjects.sorted { $0.baseradius < $1.baseradius }
             case "radius": sortedObjects = inputObjects.sorted { $0.radius < $1.radius }
             case "speed": sortedObjects = inputObjects.sorted { $0.speed < $1.speed }
             case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.value < $1.confidence.value }
@@ -179,7 +230,7 @@ class SpatialInference {
             case "surface": sortedObjects = inputObjects.sorted { $0.surface > $1.surface }
             case "volume": sortedObjects = inputObjects.sorted { $0.volume > $1.volume }
             case "perimeter": sortedObjects = inputObjects.sorted { $0.perimeter > $1.perimeter }
-            case "groundradius": sortedObjects = inputObjects.sorted { $0.baseradius > $1.baseradius }
+            case "baseradius": sortedObjects = inputObjects.sorted { $0.baseradius > $1.baseradius }
             case "radius": sortedObjects = inputObjects.sorted { $0.radius > $1.radius }
             case "speed": sortedObjects = inputObjects.sorted { $0.speed > $1.speed }
             case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.value > $1.confidence.value }
@@ -195,12 +246,54 @@ class SpatialInference {
         succeeded = !output.isEmpty
     }
     
-    func validate(_ condition: String) {
-        print(condition)
+    func sortByRelation(_ attribute: String) {
+        var ascending = false
+        var inputObjects: [SpatialObject] = []
+        let preIndices = fact.backtrace()
+        var sortedObjects: [SpatialObject]
+        for i in input {
+            inputObjects.append(fact.objects[i])
+        }
+        let list = attribute.split(separator: " ").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
+        if list.count > 1 {
+            if list[1] == "<" {
+                ascending = true
+            }
+        }
+        if ascending {
+            sortedObjects = inputObjects.sorted { $0.relationValue(attribute, pre: preIndices) < $1.relationValue(attribute, pre: preIndices) }
+        } else {
+            sortedObjects = inputObjects.sorted { $0.relationValue(attribute, pre: preIndices) > $1.relationValue(attribute, pre: preIndices) }
+        }
+        for object in sortedObjects {
+            if let idx = fact.objects.firstIndex(where: {$0 === object}) {
+                add(index: idx)
+            }
+        }
+        succeeded = !output.isEmpty
     }
     
     func hasFailed() -> Bool {
         return !error.isEmpty
+    }
+    
+    func isManipulating() -> Bool {
+        if operation.starts(with: "filter") {
+            return true
+        }
+        if operation.starts(with: "pick") {
+            return true
+        }
+        if operation.starts(with: "select") {
+            return true
+        }
+        if operation.starts(with: "produce") {
+            return true
+        }
+        if operation.starts(with: "slice") {
+            return true
+        }
+        return false
     }
     
     public func asDict() -> Dictionary<String, Any>? {
@@ -215,7 +308,7 @@ class SpatialInference {
     }
     
     static func attributePredicate(_ condition: String) -> NSPredicate? {
-        var cond = condition
+        var cond = condition.trimmingCharacters(in: CharacterSet.whitespaces)
         /// for boolean attributes: add comparison (e.g., == TRUE) if missing
         for word in SpatialObject.booleanAttributes {
             var searchRange = cond.startIndex..<cond.endIndex

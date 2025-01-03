@@ -46,26 +46,43 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), subject.nearbySphere(), object.nearbySphere()])
         #expect(relations.contains(where: { $0.predicate == .near }))
+        #expect(relations.contains(where: { $0.predicate == .disjoint }))
+        defaultAdjustment.nearbyFactor = 1.0
     }
     
-    @Test("subj is far from obj (not near)")
+    @Test("subj is far from obj")
     func notnear() async throws {
-        let subject = SpatialObject(id: "subj", position: .init(x: 3.5, y: 0.0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
+        let subject = SpatialObject(id: "subj", position: .init(x: 4.2, y: 0.0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
         let relations = object.relate(subject: subject, topology: true)
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), subject.nearbySphere(), object.nearbySphere()])
+        #expect(relations.contains(where: { $0.predicate == .far }))
         #expect(relations.contains(where: { $0.predicate == .near }) == false)
     }
     
     @Test("subj is inside obj")
     func inside() async throws {
-        let subject = SpatialObject(id: "subj", position: .init(x: 0.0, y: 0.0, z: 0), width: 0.5, height: 0.5, depth: 0.5)
+        let subject = SpatialObject(id: "subj", position: .init(x: 0.0, y: 0.2, z: 0), width: 0.5, height: 0.5, depth: 0.5)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
         let relations = object.relate(subject: subject, topology: true)
         printRelations(relations)
-        export([subject.bboxCube(color: subjectTransparent), object.bboxCube(color: objectTransparent)])
+        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectTransparent)])
         #expect(relations.contains(where: { $0.predicate == .inside }))
+        #expect(relations.contains(where: { $0.predicate == .disjoint }) == false)
+
+    }
+    
+    @Test("subj is containing obj")
+    func containing() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 0.0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.0, y: 0.2, z: 0), width: 0.5, height: 0.5, depth: 0.5)
+        let relations = object.relate(subject: subject, topology: true)
+        printRelations(relations)
+        export([subject.bboxCube(color: subjectTransparent), object.bboxCube(color: objectTransparent)])
+        #expect(relations.contains(where: { $0.predicate == .containing }))
+        #expect(relations.contains(where: { $0.predicate == .disjoint }) == false)
+
     }
     
     @Test("door is inside wall")
@@ -149,6 +166,30 @@ struct SpatialTest {
         #expect(relations.contains(where: { $0.predicate == .crossing }))
     }
     
+    @Test("subj is touching obj")
+    func touching() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: 0.83, y: 0, z: -0.2), width: 0.4, height: 0.8, depth: 0.5)
+        subject.setYaw(45.0)
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
+        let relations = object.relate(subject: subject, topology: true)
+        printRelations(relations)
+        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
+        #expect(relations.contains(where: { $0.predicate == .touching }))
+        #expect(relations.contains(where: { $0.predicate == .beside }))
+    }
+    
+    @Test("subj is meeting obj")
+    func meeting() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: 0.76, y: 0, z: -0.5), width: 0.8, height: 0.8, depth: 0.5)
+        subject.setYaw(90.0)
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
+        let relations = object.relate(subject: subject, topology: true)
+        printRelations(relations)
+        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
+        #expect(relations.contains(where: { $0.predicate == .meeting }))
+        #expect(relations.contains(where: { $0.predicate == .beside }))
+    }
+    
     @Test("subj is congruent with obj")
     func congruent() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: 0.3, y: 0, z: 0.8), width: 1.01, height: 1.005, depth: 1.002, angle: .pi/4.0 - 0.05)
@@ -163,7 +204,7 @@ struct SpatialTest {
     func seenRight() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: -0.5, y: 0, z: 0.8), width: 1.01, height: 1.03, depth: 1.02)
         let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
-        let observer = SpatialObject.createPerson(id: "ego", position: .init(x: 0.3, y: 0, z: -2.0), name: "user")
+        let observer = SpatialObject.createPerson(id: "ego", position: .init(x: 0.3, y: 0, z: -2.0), name: "ego")
         let relations = object.asseen(subject: subject, observer: observer)
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), observer.bboxCube(color: CGColor(red: 0, green: 1, blue: 0, alpha: 0))])
@@ -174,7 +215,7 @@ struct SpatialTest {
     func seenLeft() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: -0.55, y: 0, z: 0.8), width: 1.01, height: 1.03, depth: 1.02)
         let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
-        let observer = SpatialObject.createPerson(id: "ego", position: .init(x: 0.3, y: 0, z: 3.8), name: "user")
+        let observer = SpatialObject.createPerson(id: "ego", position: .init(x: 0.3, y: 0, z: 3.8), name: "ego")
         observer.angle = .pi/2.0 + 1.1
         export([subject.bboxCube(color: subjectTransparent), object.bboxCube(color: objectTransparent), observer.bboxCube(color: CGColor(red: 0, green: 1, blue: 0, alpha: 0))])
         let relations = object.asseen(subject: subject, observer: observer)
@@ -183,7 +224,7 @@ struct SpatialTest {
         #expect(relations.contains(where: { $0.predicate == .seenleft }))
         let sp = SpatialReasoner()
         sp.load([subject, object, observer])
-        _ = sp.run("log(seenleft seenright left right infront behind)")
+        _ = sp.run("deduce(topology visibility) | log(seenleft seenright left right infront behind)")
     }
     
     @Test("subj in front of obj")
@@ -215,7 +256,7 @@ struct SpatialTest {
         let observer = SpatialObject.createPerson(id: "ego", position: .init(x: 0, y: 0, z: 0), name: "user")
         let relations = observer.relate(subject: subject, topology: true)
         printRelations(relations)
-        export([subject.bboxCube(color: subjectTransparent), observer.bboxCube(color: objectTransparent)])
+        export([subject.bboxCube(color: subjectTransparent), observer.bboxCube(color: CGColor(red: 0, green: 1, blue: 0, alpha: 0))])
         #expect(relations.contains(where: { $0.predicate == .elevenoclock }))
     }
     
@@ -225,8 +266,18 @@ struct SpatialTest {
         let observer = SpatialObject.createPerson(id: "ego", position: .init(x: 0, y: 0, z: 0), name: "user")
         let relations = observer.relate(subject: subject, topology: true)
         printRelations(relations)
-        export([subject.bboxCube(color: subjectTransparent), observer.bboxCube(color: objectTransparent)])
+        export([subject.bboxCube(color: subjectTransparent), observer.bboxCube(color: CGColor(red: 0, green: 1, blue: 0, alpha: 0))])
         #expect(relations.contains(where: { $0.predicate == .twooclock }))
+    }
+    
+    @Test("subj is thinner than obj")
+    func thinner() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.2, y: 0, z: 0.8), width: 0.2, height: 0.9, depth: 0.2)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.6, y: 0, z: 0.8), width: 0.25, height: 1.0, depth: 0.25)
+        let relations = object.relate(subject: subject, comparison: true)
+        printRelations(relations)
+        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
+        #expect(relations.contains(where: { $0.predicate == .thinner }))
     }
     
 }

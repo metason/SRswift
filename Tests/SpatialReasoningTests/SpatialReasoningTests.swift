@@ -88,7 +88,7 @@ struct SpatialReasoningTests {
         let pipeline = """
             deduce(topology connectivity)
             | filter(supertype BEGINSWITH 'Building') 
-            | log(base 3D above inside)
+            | log(base 3D ontop inside)
         """
         let done = sp.run(pipeline)
         #expect(done)
@@ -108,6 +108,29 @@ struct SpatialReasoningTests {
             | select(ahead ? volume > 0.3) 
             | sort(footprint <)
             | log(base 3D near infront)
+        """
+        let done = sp.run(pipeline)
+        #expect(done)
+    }
+    
+    @Test("sort()")
+    func sort() async throws {
+        let subject1 = SpatialObject(id: "subj1", position: .init(x: -0.55, y: 0, z: -2.1), width: 1.01, height: 1.03, depth: 1.02)
+        let subject2 = SpatialObject(id: "subj2", position: .init(x: -0.95, y: 0, z: 1.5), width: 0.4, height: 0.5, depth: 0.3)
+        let subject3 = SpatialObject(id: "subj3", position: .init(x: 2.2, y: 0.3, z: 1.2), width: 0.4, height: 0.2, depth: 0.3)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: -0.8), width: 1.0, height: 1.0, depth: 1.0)
+        object.angle = .pi/2.0
+        let observer = SpatialObject.createPerson(id: "ego", position: .init(x: 0.3, y: 0, z: 2.3))
+        observer.angle = .pi + 0.24
+        let sp = SpatialReasoner()
+        sp.load([object, subject1, subject2, subject3, observer])
+        let pipeline = """
+            deduce(topology)
+            | filter(id == 'ego') 
+            | pick(disjoint) 
+            | sort(disjoint.delta <)
+            | slice(1)
+            | log(base 3D disjoint)
         """
         let done = sp.run(pipeline)
         #expect(done)

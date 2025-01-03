@@ -4,9 +4,11 @@
 
 ## Getting Started
 
-## Documentation
+### Documentation
 
-## Building and Integrating
+See [__Docu on SpatialReasoner__](https://github.com/metason/SpatialReasoner) in separate repository.
+
+### Building and Integrating
 
 Package manager
 
@@ -15,3 +17,5 @@ Package manager
 Tests and Visualizations
 
 ## License
+
+See [LICENSE](LICENSE) file.

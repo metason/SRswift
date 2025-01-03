@@ -13,13 +13,12 @@ nonisolated(unsafe) let proximity:[SpatialPredicate] = [.near, .far]
 nonisolated(unsafe) let directionality:[SpatialPredicate] = [.left, .right, .above, .below, .ahead, .behind]
 nonisolated(unsafe) let adjacency:[SpatialPredicate] = [.leftside, .rightside, .ontop, .beneath, .upperside, .lowerside, .frontside, .backside]
 nonisolated(unsafe) let orientations:[SpatialPredicate] = [.orthogonal, .opposite, .aligned, .frontaligned, .backaligned, .rightaligned, .leftaligned]
-nonisolated(unsafe) let arrangements:[SpatialPredicate] = [.disjoint, .inside, .containing, .overlapping, .crossing, .touching, .meeting, .beside, .fitting, .exceeding]
+nonisolated(unsafe) let arrangements:[SpatialPredicate] = [.disjoint, .inside, .containing, .overlapping, .crossing, .touching, .meeting, .beside]
 nonisolated(unsafe) let topology = proximity + directionality + adjacency + orientations + arrangements
 nonisolated(unsafe) let contacts:[SpatialPredicate] = [.on, .at, .by, .in]
 nonisolated(unsafe) let connectivity = contacts
-nonisolated(unsafe) let comparisons:[SpatialPredicate] = [.smaller, .bigger, .shorter, .longer, .taller, .thinner, .wider]
-nonisolated(unsafe) let similarities:[SpatialPredicate] = [.sameside, .sameheight, .samewidth, .samefront, .sameside, .samefootprint, .samelength, .samevolume, .samecenter, .samecuboid, .congruent, .sameshape]
-nonisolated(unsafe) let comparability = comparisons + similarities
+nonisolated(unsafe) let comparability:[SpatialPredicate] = [.smaller, .bigger, .shorter, .longer, .taller, .thinner, .wider, .fitting, .exceeding]
+nonisolated(unsafe) let similarity:[SpatialPredicate] = [.sameheight, .samewidth, .samedepth, .samelength, .samefront, .sameside, .samefootprint, .samevolume, .samecenter, .samecuboid, .congruent, .sameshape]
 nonisolated(unsafe) let visibility:[SpatialPredicate] = [.seenleft, .seenright, .infront, .atrear, .tangible, .eightoclock, .nineoclock, .tenoclock, .elevenoclock, .twelveoclock, .oneoclock, .twooclock, .threeoclock, .fouroclock]
 nonisolated(unsafe) let geography:[SpatialPredicate] = [.north, .south, .east, .west, .northwest, .northeast, .southwest, .southeast]
 nonisolated(unsafe) let sectors:[SpatialPredicate] = [ .i, .a, .b, .o, .u, .l, .r, .al, .ar, .bl, .br, .ao, .au, .bo, .bu, .lo, .lu, .ro, .ru, .alo, .aro, .blo, .bro, .alu, .aru, .blu, .bru]
@@ -76,16 +75,20 @@ public enum SpatialPredicate : String {
     case taller // height
     case thinner //  width,depth --> footprint, syn:narrower,
     case wider // syn:thicker
-    /// similarities, fuzzy comparision considering max deviation
+    // SIMILARITIES
+    /// fuzzy comparision considering max deviation
     case samewidth
     case sameheight
     case samedepth
+    case sameperimeter
     case samefront
     case sameside
     case samefootprint
     case samelength // same length of main direction
+    case samesurface
     case samevolume
     case samecenter
+    case sameposition // on base
     case samecuboid
     case congruent // A is congruent to B, similar w,h,d, center and orientation, identical
     case sameshape

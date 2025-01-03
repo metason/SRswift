@@ -94,7 +94,7 @@ class SpatialObject {
             return .stationary
         }
         if confidence.spatial > 0.5 {
-            if velocity.length() > adjustment.maxgap {
+            if velocity.length() > adjustment.maxGap {
                 return .moving
             }
             return .idle
@@ -130,7 +130,7 @@ class SpatialObject {
     var adjustment:SpatialAdjustment {
         return context?.adjustment ?? defaultAdjustment
     }
-    nonisolated(unsafe) static var north = SCNVector3(0.0, 0.0, -1.0) // north direction
+    nonisolated(unsafe) static var north = CGVector(dx: 0.0, dy: -1.0) // north direction
     static let booleanAttributes: [String] = ["immobile", "moving", "focused", "visible", "equilateral", "thin", "long", "real", "virtual", "conceptual"]
     
     init(id: String, position: SCNVector3, width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0, angle: Float = 0.0, label: String = "", confidence: Float = 0.0) {
@@ -144,6 +144,13 @@ class SpatialObject {
         self.confidence.setSpatial(confidence)
         self.created = Date()
         self.updated = Date()
+    }
+
+    func index() -> Int {
+        if context != nil {
+            return context!.objects.firstIndex{$0 === self} ?? -1
+        }
+        return -1
     }
     
     static func isBoolean(attribute: String) -> Bool {
@@ -248,7 +255,7 @@ class SpatialObject {
             "frontface": frontface,
             "sideface": sideface,
             "surface": surface,
-            "groundradius": baseradius,
+            "baseradius": baseradius,
             "volume": volume,
             "radius": radius,
             "angle": angle,
@@ -590,7 +597,7 @@ class SpatialObject {
     
     // point must be transformed upfront into local object coordinate system
     func sectorOf(point: SCNVector3, nearby:Bool = false) -> BBoxSector {
-        let epsilon = UFloat(context?.adjustment.maxgap ?? defaultAdjustment.maxgap)/2.0
+        let epsilon = UFloat(context?.adjustment.maxGap ?? defaultAdjustment.maxGap)/2.0
         var zone = BBoxSector()
         if point.x < UFloat(width)/2.0 + epsilon && -point.x < UFloat(width)/2.0 + epsilon &&
             point.z < UFloat(depth)/2.0 + epsilon && -point.z < UFloat(depth)/2.0 + epsilon &&
@@ -693,6 +700,7 @@ class SpatialObject {
         let theta = subject.angle - angle
         var isNear = false
         var isDisjoint = true
+        var isConnected = false
         
         /// calculations in local object space
         let localPts = intoLocal(pts: subject.points())
@@ -709,6 +717,9 @@ class SpatialObject {
             gap = centerDistance
             minDistance = gap
             relation = SpatialRelation(subject: subject, predicate: .near, object: self, delta: gap, angle: theta)
+            result.append(relation)
+        } else {
+            relation = SpatialRelation(subject: subject, predicate: .far, object: self, delta: centerDistance, angle: theta)
             result.append(relation)
         }
         /// basic adjacancy in relation to object bbox
@@ -750,7 +761,7 @@ class SpatialObject {
         centerZone = sectorOf(point: center, nearby: true)
         if isNear && centerZone != .i {
             var aligned = false
-            if abs(theta.truncatingRemainder(dividingBy: .pi/2.0)) < adjustment.maxangle {
+            if abs(theta.truncatingRemainder(dividingBy: .pi/2.0)) < adjustment.maxAngleDelta {
                 aligned = true
             }
             var min:Float = Float.greatestFiniteMagnitude
@@ -781,12 +792,13 @@ class SpatialObject {
                 if min >= 0.0 {
                     canNotOverlap = true
                     minDistance = min
-                    if min <= adjustment.maxgap {
+                    if min <= adjustment.maxGap {
                         relation = SpatialRelation(subject: subject, predicate: .ontop, object: self, delta: min, angle: theta)
                         result.append(relation)
                         if context?.deduce.connectivity ?? true {
                             relation = SpatialRelation(subject: subject, predicate: .on, object: self, delta: min, angle: theta)
                             result.append(relation)
+                            isConnected = true
                         }
                     } else {
                         relation = SpatialRelation(subject: subject, predicate: .upperside, object: self, delta: min, angle: theta)
@@ -802,7 +814,7 @@ class SpatialObject {
                 if min > 0.0 {
                     canNotOverlap = true
                     minDistance = min
-                    if min <= adjustment.maxgap {
+                    if min <= adjustment.maxGap {
                         relation = SpatialRelation(subject: subject, predicate: .beneath, object: self, delta: min, angle: theta)
                     } else {
                         relation = SpatialRelation(subject: subject, predicate: .lowerside, object: self, delta: min, angle: theta)
@@ -829,31 +841,33 @@ class SpatialObject {
                     relation = SpatialRelation(subject: subject, predicate: .backside, object: self, delta: min, angle: theta)
                     result.append(relation)
                 }
-            } else { /// not beside
-                // FIXME: .touching / .by
-                let groundRadi = baseradius + subject.baseradius
-                var pt = center
-                pt.y = 0.0
-                let groundDistance = pt.length()
-                min = groundDistance - groundRadi
-                if min < adjustment.maxgap {
-                    canNotOverlap = true
-                    minDistance = min
-                    relation = SpatialRelation(subject: subject, predicate: .touching, object: self, delta: min, angle: theta)
-                    result.append(relation)
-                    if context?.deduce.connectivity ?? true {
-                        relation = SpatialRelation(subject: subject, predicate: .by, object: self, delta: min, angle: theta)
-                        result.append(relation)
-                    }
-                }
             }
-            if min >= -adjustment.maxgap && min <= adjustment.maxgap {
+            // FIXME: .touching / .by
+            let groundRadi = baseradius + subject.baseradius
+            var pt = center
+            pt.y = 0.0
+            let groundDistance = pt.length()
+            min = groundDistance - groundRadi
+//                if min < adjustment.maxgap {
+//                    canNotOverlap = true
+//                    minDistance = min
+//                    relation = SpatialRelation(subject: subject, predicate: .touching, object: self, delta: min, angle: theta)
+//                    result.append(relation)
+//                    if !isConnected && context?.deduce.connectivity ?? true {
+//                        relation = SpatialRelation(subject: subject, predicate: .by, object: self, delta: min, angle: theta)
+//                        result.append(relation)
+//                        isConnected = true
+//                    }
+//                }
+            if min >= -adjustment.maxGap && min <= adjustment.maxGap {
+                print("oha: \(min)")
                 relation = SpatialRelation(subject: subject, predicate: aligned ? .meeting : .touching, object: self, delta: min, angle: theta)
                 result.append(relation)
                 if aligned {
-                    if context?.deduce.connectivity ?? true {
+                    if !isConnected && context?.deduce.connectivity ?? true {
                         relation = SpatialRelation(subject: subject, predicate: .at, object: self, delta: min, angle: theta)
                         result.append(relation)
+                        isConnected = true
                     }
                 }
             }
@@ -893,13 +907,13 @@ class SpatialObject {
                             minZ = Float.minimum(minZ, Float(pt.z))
                             maxZ = Float.maximum(maxZ, Float(pt.z))
                         }
-                        if minX < -width/2.0 && maxX > width/2.0 {
+                        if minX < -width/2.0 && maxX > width/2.0 && minZ < depth/2.0 && maxZ > -depth/2.0 && minY < height && maxY > 0 {
                             crossings += 1
                         }
-                        if minZ < -depth/2.0 && maxZ > depth/2.0 {
+                        if minZ < -depth/2.0 && maxZ > depth/2.0 && minX < width/2.0 && maxX > -width/2.0 && minY < height && maxY > 0 {
                             crossings += 1
                         }
-                        if minY < 0.0 && maxY > height {
+                        if minY < 0.0 && maxY > height && minX < width/2.0 && maxX > -width/2.0 && minZ < depth/2.0 && maxZ > -depth/2.0 {
                             crossings += 1
                         }
                         if crossings  > 0 {
@@ -922,36 +936,36 @@ class SpatialObject {
             result.append(relation)
         }
         /// orientation
-        if abs(theta) < adjustment.maxangle {
+        if abs(theta) < adjustment.maxAngleDelta {
             gap = Float(center.z)
             relation = SpatialRelation(subject: subject, predicate: .aligned, object: self, delta: gap, angle: theta)
             result.append(relation)
             let frontGap = Float(center.z) + subject.depth/2.0 - depth/2.0
-            if abs(frontGap) < adjustment.maxgap {
+            if abs(frontGap) < adjustment.maxGap {
                 relation = SpatialRelation(subject: subject, predicate: .frontaligned, object: self, delta: frontGap, angle: theta)
                 result.append(relation)
             }
             let backGap = Float(center.z) - subject.depth/2.0 + depth/2.0
-            if abs(backGap) < adjustment.maxgap {
+            if abs(backGap) < adjustment.maxGap {
                 relation = SpatialRelation(subject: subject, predicate: .backaligned, object: self, delta: frontGap, angle: theta)
                 result.append(relation)
             }
             let rightGap = Float(center.x) - subject.width/2.0 + width/2.0
-            if abs(rightGap) < adjustment.maxgap {
+            if abs(rightGap) < adjustment.maxGap {
                 relation = SpatialRelation(subject: subject, predicate: .rightaligned, object: self, delta: frontGap, angle: theta)
                 result.append(relation)
             }
             let leftGap = Float(center.x) + subject.width/2.0 - width/2.0
-            if abs(leftGap) < adjustment.maxgap {
+            if abs(leftGap) < adjustment.maxGap {
                 relation = SpatialRelation(subject: subject, predicate: .leftaligned, object: self, delta: frontGap, angle: theta)
                 result.append(relation)
             }
         } else {
-            if abs(theta.truncatingRemainder(dividingBy: .pi)) < adjustment.maxangle {
+            if abs(theta.truncatingRemainder(dividingBy: .pi)) < adjustment.maxAngleDelta {
                 gap = centerDistance - radiusSum
                 relation = SpatialRelation(subject: subject, predicate: .opposite, object: self, delta: gap, angle: theta)
                 result.append(relation)
-            } else if abs(theta.truncatingRemainder(dividingBy: .pi/2.0)) < adjustment.maxangle {
+            } else if abs(theta.truncatingRemainder(dividingBy: .pi/2.0)) < adjustment.maxAngleDelta {
                 relation = SpatialRelation(subject: subject, predicate: .orthogonal, object: self, delta: 0.0, angle: theta)
                 result.append(relation)
             }
@@ -1016,27 +1030,40 @@ class SpatialObject {
         var sameDepth:Bool = false
         var sameHeight:Bool = false
 
-        val = (position - subject.position).length()
-        if val < adjustment.maxgap {
+        val = (center - subject.center).length()
+        if val < adjustment.maxGap {
             relation = SpatialRelation(subject: subject, predicate: .samecenter, object: self, delta: val, angle: theta)
             result.append(relation)
         }
+        val = (position - subject.position).length()
+        if val < adjustment.maxGap {
+            relation = SpatialRelation(subject: subject, predicate: .sameposition, object: self, delta: val, angle: theta)
+            result.append(relation)
+        }
         val = abs(width - subject.width)
-        if val < adjustment.maxgap {
+        if val < adjustment.maxGap {
             sameWidth = true
             relation = SpatialRelation(subject: subject, predicate: .samewidth, object: self, delta: val, angle: theta)
             result.append(relation)
         }
         val = abs(depth - subject.depth)
-        if val < adjustment.maxgap {
+        if val < adjustment.maxGap {
             sameDepth = true
             relation = SpatialRelation(subject: subject, predicate: .samedepth, object: self, delta: val, angle: theta)
             result.append(relation)
         }
         val = abs(height - subject.height)
-        if val < adjustment.maxgap {
+        if val < adjustment.maxGap {
             sameHeight = true
             relation = SpatialRelation(subject: subject, predicate: .sameheight, object: self, delta: val, angle: theta)
+            result.append(relation)
+        }
+        val = subject.depth * subject.width
+        minVal = (depth-adjustment.maxGap) + (width-adjustment.maxGap)
+        maxVal = (depth+adjustment.maxGap) + (width+adjustment.maxGap)
+        if val > minVal && val < maxVal {
+            let gap = depth*width - val
+            relation = SpatialRelation(subject: subject, predicate: .sameperimeter, object: self, delta: 2.0*gap, angle: theta)
             result.append(relation)
         }
         if sameWidth && sameDepth && sameHeight {
@@ -1045,51 +1072,59 @@ class SpatialObject {
             result.append(relation)
         }
         val = abs(length - subject.length)
-        if val < adjustment.maxgap {
+        if val < adjustment.maxGap {
             relation = SpatialRelation(subject: subject, predicate: .samelength, object: self, delta: val, angle: theta)
             result.append(relation)
         }
         val = subject.height * subject.width
-        minVal = (height-adjustment.maxgap) * (width-adjustment.maxgap)
-        maxVal = (height+adjustment.maxgap) * (width+adjustment.maxgap)
+        minVal = (height-adjustment.maxGap) * (width-adjustment.maxGap)
+        maxVal = (height+adjustment.maxGap) * (width+adjustment.maxGap)
         if val > minVal && val < maxVal {
             let gap = height*width - val
             relation = SpatialRelation(subject: subject, predicate: .samefront, object: self, delta: gap, angle: theta)
             result.append(relation)
         }
         val = subject.height * subject.depth
-        minVal = (height-adjustment.maxgap) * (depth-adjustment.maxgap)
-        maxVal = (height+adjustment.maxgap) * (depth+adjustment.maxgap)
+        minVal = (height-adjustment.maxGap) * (depth-adjustment.maxGap)
+        maxVal = (height+adjustment.maxGap) * (depth+adjustment.maxGap)
         if val > minVal && val < maxVal {
             let gap = height*depth - val
             relation = SpatialRelation(subject: subject, predicate: .sameside, object: self, delta: gap, angle: theta)
             result.append(relation)
         }
         val = subject.width * subject.depth
-        minVal = (width-adjustment.maxgap) * (depth-adjustment.maxgap)
-        maxVal = (width+adjustment.maxgap) * (depth+adjustment.maxgap)
+        minVal = (width-adjustment.maxGap) * (depth-adjustment.maxGap)
+        maxVal = (width+adjustment.maxGap) * (depth+adjustment.maxGap)
         if val > minVal && val < maxVal {
             let gap = width*depth - val
             relation = SpatialRelation(subject: subject, predicate: .samefootprint, object: self, delta: gap, angle: theta)
             result.append(relation)
         }
+        val = (subject.width * subject.width) + (subject.depth * subject.depth) + (subject.height * subject.height)
+        minVal = ((width-adjustment.maxGap) * (width-adjustment.maxGap)) + ((depth-adjustment.maxGap) * (depth-adjustment.maxGap)) + ((height-adjustment.maxGap) * (height-adjustment.maxGap))
+        maxVal = ((width+adjustment.maxGap) * (width+adjustment.maxGap)) + ((depth+adjustment.maxGap) * (depth+adjustment.maxGap)) + ((height+adjustment.maxGap) * (height+adjustment.maxGap))
+        if val > minVal && val < maxVal {
+            let gap = ((width*width) + (depth*depth) + (height*height)) - val
+            relation = SpatialRelation(subject: subject, predicate: .samesurface, object: self, delta: 2.0*gap, angle: theta)
+            result.append(relation)
+        }
         val = subject.width * subject.depth * subject.height
-        minVal = (width-adjustment.maxgap) * (depth-adjustment.maxgap) * (height-adjustment.maxgap)
-        maxVal = (width+adjustment.maxgap) * (depth+adjustment.maxgap) * (height+adjustment.maxgap)
+        minVal = (width-adjustment.maxGap) * (depth-adjustment.maxGap) * (height-adjustment.maxGap)
+        maxVal = (width+adjustment.maxGap) * (depth+adjustment.maxGap) * (height+adjustment.maxGap)
         if val > minVal && val < maxVal {
             let gap = width*depth*height - val
             relation = SpatialRelation(subject: subject, predicate: .samevolume, object: self, delta: gap, angle: theta)
             result.append(relation)
             val = (position - subject.position).length()
             let angleDiff = abs(angle - subject.angle)
-            if sameWidth && sameDepth && sameHeight && val < adjustment.maxgap && angleDiff < adjustment.maxangle {
+            if sameWidth && sameDepth && sameHeight && val < adjustment.maxGap && angleDiff < adjustment.maxAngleDelta {
                 relation = SpatialRelation(subject: subject, predicate: .congruent, object: self, delta: gap, angle: theta)
                 result.append(relation)
             }
         }
         if shape == subject.shape && shape != .unknown && subject.shape != .unknown {
-            val = (position - subject.position).length()
-            relation = SpatialRelation(subject: subject, predicate: .sameshape, object: self, delta: val, angle: theta)
+            let gap = width*depth*height - val
+            relation = SpatialRelation(subject: subject, predicate: .sameshape, object: self, delta: gap, angle: theta)
             result.append(relation)
         }
         return result
@@ -1103,24 +1138,14 @@ class SpatialObject {
         var subjVal:Float = 0.0
         var diff:Float = 0.0
 
-        objVal = volume
-        subjVal = subject.volume
-        diff = subjVal - objVal
-        if diff > adjustment.maxgap {
-            relation = SpatialRelation(subject: subject, predicate: .bigger, object: self, delta: diff, angle: theta)
-            result.append(relation)
-        } else if -diff > adjustment.maxgap {
-            relation = SpatialRelation(subject: subject, predicate: .smaller, object: self, delta: diff, angle: theta)
-            result.append(relation)
-        }
         objVal = length
         subjVal = subject.length
         diff = subjVal - objVal
         var shorterAdded = false
-        if diff > adjustment.maxgap {
+        if diff > adjustment.maxGap*adjustment.maxGap*adjustment.maxGap {
             relation = SpatialRelation(subject: subject, predicate: .longer, object: self, delta: diff, angle: theta)
             result.append(relation)
-        } else if -diff > adjustment.maxgap {
+        } else if -diff > adjustment.maxGap*adjustment.maxGap*adjustment.maxGap {
             relation = SpatialRelation(subject: subject, predicate: .shorter, object: self, delta: diff, angle: theta)
             result.append(relation)
             shorterAdded = true
@@ -1128,25 +1153,40 @@ class SpatialObject {
         objVal = height
         subjVal = subject.height
         diff = subjVal - objVal
-        if diff > adjustment.maxgap {
+        if diff > adjustment.maxGap {
             relation = SpatialRelation(subject: subject, predicate: .taller, object: self, delta: diff, angle: theta)
             result.append(relation)
-        } else if -diff > adjustment.maxgap && !shorterAdded {
+        } else if -diff > adjustment.maxGap && !shorterAdded {
             relation = SpatialRelation(subject: subject, predicate: .shorter, object: self, delta: diff, angle: theta)
             result.append(relation)
         }
-        if mainDirection() == 1 {
+        if subject.mainDirection() == 2 {
             objVal = footprint
             subjVal = subject.footprint
             diff = subjVal - objVal
-            if diff > adjustment.maxgap {
+            if diff > adjustment.maxGap*adjustment.maxGap {
                 relation = SpatialRelation(subject: subject, predicate: .wider, object: self, delta: diff, angle: theta)
                 result.append(relation)
-            } else if -diff > adjustment.maxgap {
+            } else if -diff > adjustment.maxGap*adjustment.maxGap {
                 relation = SpatialRelation(subject: subject, predicate: .thinner, object: self, delta: diff, angle: theta)
                 result.append(relation)
             }
-            
+        }
+        objVal = volume
+        subjVal = subject.volume
+        diff = subjVal - objVal
+        if diff > adjustment.maxGap*adjustment.maxGap*adjustment.maxGap {
+            relation = SpatialRelation(subject: subject, predicate: .bigger, object: self, delta: diff, angle: theta)
+            result.append(relation)
+            relation = SpatialRelation(subject: subject, predicate: .exceeding, object: self, delta: diff, angle: theta)
+            result.append(relation)
+        } else if -diff > adjustment.maxGap*adjustment.maxGap*adjustment.maxGap {
+            relation = SpatialRelation(subject: subject, predicate: .smaller, object: self, delta: diff, angle: theta)
+            result.append(relation)
+        }
+        if height > subject.height && footprint > subject.footprint {
+            relation = SpatialRelation(subject: subject, predicate: .fitting, object: self, delta: diff, angle: theta)
+            result.append(relation)
         }
         return result
     }
@@ -1162,23 +1202,6 @@ class SpatialObject {
         return SpatialRelation(subject:subject, predicate: pred, object:self, delta: centerDistance, angle:theta)
     }
     
-    func relate(subject:SpatialObject, topology:Bool = false, similarity:Bool = false, comparison:Bool = false) -> [SpatialRelation] {
-        var result = [SpatialRelation]()
-        if topology || context?.deduce.topology ?? false || context?.deduce.connectivity ?? false {
-            result.append(contentsOf: topologies(subject:subject))
-        }
-        if similarity || context?.deduce.comparability ?? false{
-            result.append(contentsOf: similarities(subject:subject))
-        }
-        if comparison || context?.deduce.comparability ?? false{
-            result.append(contentsOf: comparisons(subject:subject))
-        }
-        if context?.observer != nil && context?.deduce.visibility ?? false {
-            result.append(contentsOf: asseen(subject:subject, observer:context!.observer!))
-        }
-        return result
-    }
-    
     func asseen(subject:SpatialObject, observer:SpatialObject) -> [SpatialRelation] {
         var result = [SpatialRelation]()
         let centerVector = subject.center - center
@@ -1189,9 +1212,10 @@ class SpatialObject {
             let centerObject = observer.intoLocal(pt: self.center)
             let centerSubject = observer.intoLocal(pt: subject.center)
             if centerSubject.z > 0.0 && centerObject.z > 0.0 { // both are ahead of observer
+                // FIXME: checking center is not enough!
                 let xgap = Float(centerSubject.x - centerObject.x)
                 let zgap = Float(centerSubject.z - centerObject.z)
-                if abs(xgap) > adjustment.maxgap {
+                if abs(xgap) > adjustment.maxGap {
                     if xgap > 0.0 {
                         let relation = SpatialRelation(subject: subject, predicate: .seenleft, object: self, delta: abs(xgap), angle: 0.0)
                         result.append(relation)
@@ -1200,13 +1224,55 @@ class SpatialObject {
                         result.append(relation)
                     }
                 }
-                if abs(zgap) > adjustment.maxgap {
+                // FIXME: turn by view angle
+                if abs(zgap) > adjustment.maxGap {
                     if zgap > 0.0 {
                         let relation = SpatialRelation(subject: subject, predicate: .atrear, object: self, delta: abs(zgap), angle: 0.0)
                         result.append(relation)
                     } else {
                         let relation = SpatialRelation(subject: subject, predicate: .infront, object: self, delta: abs(zgap), angle: 0.0)
                         result.append(relation)
+                    }
+                }
+            }
+        }
+        return result
+    }
+    
+    func relate(subject:SpatialObject, topology:Bool = false, similarity:Bool = false, comparison:Bool = false) -> [SpatialRelation] {
+        var result = [SpatialRelation]()
+        if topology || context?.deduce.topology ?? false || context?.deduce.connectivity ?? false {
+            result.append(contentsOf: topologies(subject:subject))
+        }
+        if similarity || context?.deduce.similarity ?? false {
+            result.append(contentsOf: similarities(subject:subject))
+        }
+        if comparison || context?.deduce.comparability ?? false {
+            result.append(contentsOf: comparisons(subject:subject))
+        }
+        if context?.observer != nil && context?.deduce.visibility ?? false {
+            result.append(contentsOf: asseen(subject:subject, observer:context!.observer!))
+        }
+        return result
+    }
+    
+    func relationValue(_ relval: String, pre: [Int]) -> Float {
+        let list = relval.split(separator: ".").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
+        if list.count != 2 && context == nil {
+            return 0.0
+        }
+        let predicate = list[0]
+        let attribute = list[1]
+        var result: Float = 0.0
+        // FIXME: take min instead of last?
+        for i in pre {
+            let rels = context!.relationsWith(i, predicate: predicate)
+            for rel in rels {
+                if rel.subject === self {
+                    if attribute == "angle" {
+                        result = rel.angle
+                    } else {
+                        result = rel.delta
                     }
                 }
             }
