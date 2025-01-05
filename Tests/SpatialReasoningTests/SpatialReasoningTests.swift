@@ -135,4 +135,34 @@ struct SpatialReasoningTests {
         let done = sp.run(pipeline)
         #expect(done)
     }
+    
+    @Test("calc()")
+    func calc() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.55, y: 0, z: 0.8), width: 1.01, height: 0.5, depth: 1.02)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
+        let sp = SpatialReasoner()
+        sp.load([subject, object])
+        let pipeline = """
+            calc(vol = objects[0].volume; avgh = average(objects.height))
+            | log(base)
+        """
+        let done = sp.run(pipeline)
+        #expect(done)
+    }
+    
+    @Test("map()")
+    func map() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.55, y: 0, z: 0.8), width: 1.01, height: 1.03, depth: 1.02)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
+        let sp = SpatialReasoner()
+        sp.load([subject, object])
+        let pipeline = """
+            map(weight = volume * 140.0; type = 'bed')
+            | sort(weight >)
+            | log(base)
+        """
+        let done = sp.run(pipeline)
+        #expect(done)
+        #expect(subject.type == "bed")
+    }
 }

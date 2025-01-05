@@ -11,7 +11,7 @@ import Foundation
 public enum SectorSchema {
     case fixed // use specified fix sector lenght for extruding area
     case dimension // use same dimension as object multiplied with factor
-    case perimeter // use perimeter multiplied with factor
+    case perimeter // use base perimeter multiplied with factor
     case area // use area multiplied with factor
     case nearby // use nearby settings of spatial adjustment for extruding
     case wide // use fix wide sector length
@@ -105,6 +105,7 @@ public enum SpatialAtribute: String {
     case length
     case angle
     case yaw
+    case azimuth
     case footprint // base surface
     case frontface // front surface
     case sideface // side surface

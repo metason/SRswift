@@ -14,14 +14,18 @@ import SceneKit
 
 class SpatialReasoner {
 
+    // settings
+    var adjustment = SpatialAdjustment()
+    var deduce = SpatialPredicateCategories()
+    var north = CGVector(dx: 0.0, dy: -1.0) // north direction, e.g., defined by ARKit
+
+    // data
     var objects: [SpatialObject] = []
     var observer:SpatialObject? = nil
     var relMap: [Int: [SpatialRelation]] = [:] // index:[SpatialRelation]
     var chain: [SpatialInference] = []
     var base:Dictionary<String, Any> = [:] // fact base, objects will be added
     var snapTime:Date = Date() // load time or update time of fact base
-    var adjustment = SpatialAdjustment()
-    var deduce = SpatialPredicateCategories()
     
     // logging
     var pipeline:String = "" // last used inference pipeline
@@ -30,19 +34,21 @@ class SpatialReasoner {
     var logCnt:Int = 0
     var logFolder:URL? = nil // if nil then Downloads folder will be used
 
-    func load(_ objs: [SpatialObject]) {
-        objects = objs
+    func load(_ objs: [SpatialObject]? = nil) {
+        if objs != nil {
+            objects = objs!
+        }
         observer = nil
         relMap = [:]
         base["objects"] = []
-        if !objs.isEmpty {
-            let indices: [Int] = (0..<objs.count).indices.map { $0 }
+        if !objects.isEmpty {
+            let indices: [Int] = (0..<objects.count).indices.map { $0 }
             var objList = [Any]()
             for idx in indices {
-                objs[idx].context = self
-                objList.append(objs[idx].asDict() as Any)
-                if objs[idx].observing {
-                    observer = objs[idx]
+                objects[idx].context = self
+                objList.append(objects[idx].asDict() as Any)
+                if objects[idx].observing {
+                    observer = objects[idx]
                 }
             }
             base["objects"] = objList
@@ -51,7 +57,18 @@ class SpatialReasoner {
         base["snaptime"] = snapTime.description
     }
     
-    // TODO: recreateObjects
+    
+    func setData(key:String, value:Any) {
+        var dict = base["data"] as? Dictionary<String, Any>
+        if dict != nil {
+            dict![key] = value
+        } else {
+            dict = [key: value]
+        }
+        base["data"] = dict
+    }
+    
+    // TODO: recreateObjects from dictionaries
     func recreateObjects() {
         
     }
@@ -84,7 +101,8 @@ class SpatialReasoner {
     
     func record(_ inference: SpatialInference) {
         chain.append(inference)
-        base["chain"] = base["chain"] as? [String:Any] ?? [] + [inference.asDict()]
+        base["chain"] = (base["chain"] as! [Dictionary<String, Any>]) + [inference.asDict()]
+        
     }
     
     func backtrace() -> [Int] {

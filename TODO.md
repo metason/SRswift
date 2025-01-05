@@ -15,10 +15,9 @@
 - by bidirectional
 - FIXME: touching vs meeting at edge, check overlap < maxgap
 - FIXME: infront behind not correct!!!!
-- check FIXME
+- check FIXME: and TODO:
 - top, topleft?, top left-hand corner/sector?
 - bottom, base
-- sort relations
 - match: under over to below above
 - match to synonyms??
 - .aligned: front aligned, only same angle?, frontaligned, backaligned, sidealigned?

@@ -129,12 +129,49 @@ class SpatialInference {
     }
     
     func map(_ assignments: String) {
-        print(assignments)
+        let list = assignments.split(separator: ";").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
+        let baseObjects = fact.base["objects"] as! [Any]
+        for i in input {
+            var dict = Dictionary<String, Any>()
+            if fact.base["data"] != nil {
+                dict.merge(fact.base["data"] as! Dictionary<String, Any> ) { (_, new) in new } // replacing current
+            }
+            for assignment in list {
+                let kv = assignment.components(separatedBy: "=")
+                if kv.count == 2 {
+                    let key = kv[0].trimmingCharacters(in: [" "])
+                    let expr = kv[1].trimmingCharacters(in: [" "])
+                    let expression = NSExpression(format: expr)
+                    let value = expression.expressionValue(with: baseObjects[i], context: nil)
+                    if value != nil {
+                        dict[key] = value
+                    }
+                }
+            }
+            fact.objects[i].fromAny(dict)
+        }
+        fact.load()
+        output = input
+        succeeded = !output.isEmpty
     }
     
     
     func calc(_ assignments: String) {
-        print(assignments)
+        let list = assignments.split(separator: ";").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
+        for assignment in list {
+            let kv = assignment.components(separatedBy: "=")
+            if kv.count == 2 {
+                let key = kv[0].trimmingCharacters(in: [" "])
+                let expr = kv[1].trimmingCharacters(in: [" "])
+                let expression = NSExpression(format: expr)
+                let value = expression.expressionValue(with: fact.base, context: nil)
+                if value != nil {
+                    fact.setData(key: key, value: value!)
+                }
+            }
+        }
+        output = input
+        succeeded = !output.isEmpty
     }
     
     func slice(_ range: String) {
@@ -203,6 +240,7 @@ class SpatialInference {
             case "length": sortedObjects = inputObjects.sorted { $0.length < $1.length }
             case "angle": sortedObjects = inputObjects.sorted { $0.angle < $1.angle }
             case "yaw": sortedObjects = inputObjects.sorted { $0.yaw < $1.yaw }
+            case "azimuth": sortedObjects = inputObjects.sorted { $0.azimuth < $1.azimuth }
             case "footprint": sortedObjects = inputObjects.sorted { $0.footprint < $1.footprint }
             case "frontface": sortedObjects = inputObjects.sorted { $0.frontface < $1.frontface }
             case "sideface": sortedObjects = inputObjects.sorted { $0.sideface < $1.sideface }
@@ -214,7 +252,7 @@ class SpatialInference {
             case "speed": sortedObjects = inputObjects.sorted { $0.speed < $1.speed }
             case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.value < $1.confidence.value }
             case "lifespan": sortedObjects = inputObjects.sorted { $0.lifespan < $1.lifespan }
-            default: sortedObjects = inputObjects
+            default: sortedObjects = inputObjects.sorted { $0.dataValue(list[0]) < $1.dataValue(list[0]) }
             }
         } else {
             switch list[0] {
@@ -224,6 +262,7 @@ class SpatialInference {
             case "length": sortedObjects = inputObjects.sorted { $0.length > $1.length }
             case "angle": sortedObjects = inputObjects.sorted { $0.angle > $1.angle }
             case "yaw": sortedObjects = inputObjects.sorted { $0.yaw > $1.yaw }
+            case "azimuth": sortedObjects = inputObjects.sorted { $0.azimuth > $1.azimuth }
             case "footprint": sortedObjects = inputObjects.sorted { $0.footprint > $1.footprint }
             case "frontface": sortedObjects = inputObjects.sorted { $0.frontface > $1.frontface }
             case "sideface": sortedObjects = inputObjects.sorted { $0.sideface > $1.sideface }
@@ -235,7 +274,7 @@ class SpatialInference {
             case "speed": sortedObjects = inputObjects.sorted { $0.speed > $1.speed }
             case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.value > $1.confidence.value }
             case "lifespan": sortedObjects = inputObjects.sorted { $0.lifespan > $1.lifespan }
-            default: sortedObjects = inputObjects
+            default: sortedObjects = inputObjects.sorted { $0.dataValue(list[0]) > $1.dataValue(list[0]) }
             }
         }
         for object in sortedObjects {
@@ -296,7 +335,7 @@ class SpatialInference {
         return false
     }
     
-    public func asDict() -> Dictionary<String, Any>? {
+    public func asDict() -> Dictionary<String, Any> {
         let output = [
             "operation": operation,
             "input": input,

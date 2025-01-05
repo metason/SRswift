@@ -77,6 +77,16 @@ struct SpatialAttributeTests {
         #expect(object.motion == .moving)
     }
     
+    @Test("has azimuth 210°")
+    func azimuth() async throws {
+        let object = SpatialObject(id: "2", position: .init(x: 0, y: 0, z: 0), width: 0.1, height: 1.0, depth: 0.1)
+        object.setYaw(-30.0)
+        let sp = SpatialReasoner() // set context
+        sp.load([object])
+        print(object.azimuth)
+        #expect(object.azimuth == 210.0)
+    }
+    
     @Test("filter(virtual AND NOT moving)")
     func filterAttr() async throws {
         let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)

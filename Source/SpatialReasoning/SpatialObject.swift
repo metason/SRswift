@@ -19,6 +19,7 @@ class SpatialObject {
     var type:String = "" // class
     var supertype:String = "" // superclass
     var look:String = "" // textual description of appearance: color, bright/dark, dull/shiny, metallic, transparent, ...
+    var data:Dictionary<String,Any>? = nil // auxiliary data
     var created:Date // creation time
     var updated:Date // last update time
     /// spatial characteristics
@@ -26,9 +27,9 @@ class SpatialObject {
     var width:Float = 0.0
     var height:Float = 0.0
     var depth:Float = 0.0
-    var angle:Float = 0.0 // rotation around y axis in radiants
+    var angle:Float = 0.0 // rotation around y axis in radiants, counter-clockwise
     var immobile:Bool = false
-    var velocity:SCNVector3 = SCNVector3() // velocity vector, is calculated via setPosition()
+    var velocity:SCNVector3 = SCNVector3() // velocity vector, is calculated via setPosition() over time
     var confidence = ObjectConfidence()
     var shape:ObjectShape = .unknown
     var visible:Bool = false // in screen
@@ -39,8 +40,14 @@ class SpatialObject {
     var center:SCNVector3 {
         return position + SCNVector3(0.0, height/2.0, 0.0)
     }
-    var yaw:Float { // in degrees
+    var yaw:Float { // in degrees counter-clockwise of WCS
         return angle * 180.0 / .pi
+    }
+    var azimuth:Float { // in degrees clockwise of GCS as ±360°
+        if context != nil {
+            return -(yaw + Float(atan2(context!.north.dy, context!.north.dx) * 180.0 / .pi) - 90.0).truncatingRemainder(dividingBy: 360.0)
+        }
+        return 0.0
     }
     var thin:Bool {
         return thin() > 0
@@ -130,9 +137,11 @@ class SpatialObject {
     var adjustment:SpatialAdjustment {
         return context?.adjustment ?? defaultAdjustment
     }
-    nonisolated(unsafe) static var north = CGVector(dx: 0.0, dy: -1.0) // north direction
-    static let booleanAttributes: [String] = ["immobile", "moving", "focused", "visible", "equilateral", "thin", "long", "real", "virtual", "conceptual"]
     
+    static let booleanAttributes: [String] = ["immobile", "moving", "focused", "visible", "equilateral", "thin", "long", "real", "virtual", "conceptual"]
+    static let numericAttributes: [String] = ["width", "height", "depth", "w", "h", "d", "position", "x", "y", "z", "angle", "confidence"]
+    static let stringAttributes: [String] = ["id", "label", "type", "supertype", "existence", "cause", "shape", "look"]
+
     init(id: String, position: SCNVector3, width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0, angle: Float = 0.0, label: String = "", confidence: Float = 0.0) {
         self.id = id
         self.label = label
@@ -224,12 +233,33 @@ class SpatialObject {
         return person
     }
     
+    // set auxiliary data
+    func setData(key:String, value:Any) {
+        if data != nil {
+            data![key] = value
+        } else {
+            data = [key: value]
+        }
+    }
+    
+    func dataValue(_ key:String) -> Float {
+        if data != nil {
+            let value =  data![key]
+            if value != nil {
+                if let val = value as? Float {
+                    return val
+                }
+            }
+        }
+        return 0
+    }
+    
     // Object Serialization
     // Hint: Codable extension not used to have more control
     
     // full-fledged representation for fact base
     public func asDict() -> Dictionary<String, Any>? {
-        let output = [
+        var output = [
             "id": id,
             "existence": existence.rawValue,
             "cause": cause.rawValue,
@@ -260,6 +290,7 @@ class SpatialObject {
             "radius": radius,
             "angle": angle,
             "yaw": yaw,
+            "azimuth": azimuth,
             "lifespan": lifespan,
             "updateInterval": updateInterval,
             "confidence": confidence.asDict(),
@@ -271,12 +302,15 @@ class SpatialObject {
             "visible": visible,
             "focused": focused
         ] as [String : Any]
+        if data != nil {
+            output.merge(data!) { (current, _) in current } // keeping current
+        }
         return output
     }
     
     // for export
     public func toAny() -> Dictionary<String, Any>? {
-        let output = [
+        var output = [
             "id": id,
             "existence": existence.rawValue,
             "cause": cause.rawValue,
@@ -292,55 +326,64 @@ class SpatialObject {
             "velocity": [velocity.x, velocity.y, velocity.z],
             "confidence": confidence.value,
             "shape": shape.rawValue,
+            "look": look,
             "visible": visible,
             "focused": focused
         ] as [String : Any]
+        if data != nil {
+            output.merge(data!) { (current, _) in current } // keeping current
+        }
         return output
     }
     
-    // import from JSON data
-    public func fromAny(_ input: Dictionary<String, Any>) -> SpatialObject? {
+    // import/update from JSON data
+    public func fromAny(_ input: Dictionary<String, Any>) {
         let id = input["id"] as? String ?? ""
         if !id.isEmpty {
-            var pos = SCNVector3()
-            let position = input["position"] as? [Float] ?? []
-            if position.count == 3 {
-                pos.x = CGFloat(position[0])
-                pos.y = CGFloat(position[1])
-                pos.z = CGFloat(position[2])
-            } else {
-                let x = input["x"] as? Float ?? 0
-                let y = input["y"] as? Float ?? 0
-                let z = input["z"] as? Float ?? 0
-                pos.x = CGFloat(x)
-                pos.y = CGFloat(y)
-                pos.z = CGFloat(z)
+            if self.id != id {
+                print("import/update from another id!")
             }
-            let width = input["width"] as? Float ?? input["w"] as? Float ?? 0
-            let height = input["height"] as? Float ?? input["h"] as? Float ?? 0
-            let depth = input["depth"] as? Float ?? input["d"] as? Float ?? 0
-            if width <= 0 || height <= 0 || depth <= 0 {
-                return nil
-            }
-            let object = SpatialObject(id: id, position: pos, width: width, height: height, depth: depth)
-            let label = input["label"] as? String ?? ""
-            object.label = label.lowercased()
-            let type = input["type"] as? String ?? label.lowercased()
-            object.type = type
-            let supertype = input["supertype"] as? String ?? ""
-            object.supertype = supertype
-            let confidence = input["confidence"] as? Float ?? 0.5
-            object.confidence.setValue(confidence)
-            let cause = input["cause"] as? String ?? ""
-            object.cause = ObjectCause.named(cause)
-            let existence = input["existence"] as? String ?? ""
-            object.existence = SpatialExistence.named(existence)
-            object.immobile = false
-            let shape = input["shape"] as? String ?? ""
-            object.shape = ObjectShape.named(shape)
-            return object
+            self.id = id
         }
-        return nil
+        var pos = SCNVector3()
+        let position = input["position"] as? [Float] ?? []
+        if position.count == 3 {
+            pos.x = CGFloat(position[0])
+            pos.y = CGFloat(position[1])
+            pos.z = CGFloat(position[2])
+        } else {
+            let x = input["x"] as? Float ?? Float(self.position.x)
+            let y = input["y"] as? Float ?? Float(self.position.y)
+            let z = input["z"] as? Float ?? Float(self.position.z)
+            pos.x = CGFloat(x)
+            pos.y = CGFloat(y)
+            pos.z = CGFloat(z)
+        }
+        setPosition(pos)
+        self.width = input["width"] as? Float ?? input["w"] as? Float ?? self.width
+        self.height = input["height"] as? Float ?? input["h"] as? Float ?? self.height
+        self.depth = input["depth"] as? Float ?? input["d"] as? Float ?? self.depth
+        self.angle = input["angle"] as? Float ?? self.angle
+        self.label = input["label"] as? String ?? self.label
+        self.type = input["type"] as? String ?? self.type
+        self.supertype = input["supertype"] as? String ?? self.supertype
+        let confidence = input["confidence"] as? Float ?? self.confidence.value
+        self.confidence.setValue(confidence)
+        let cause = input["cause"] as? String ?? self.cause.rawValue
+        self.cause = ObjectCause.named(cause)
+        let existence = input["existence"] as? String ?? self.existence.rawValue
+        self.existence = SpatialExistence.named(existence)
+        self.immobile = input["existence"] as? Bool ?? self.immobile
+        let shape = input["shape"] as? String ?? self.shape.rawValue
+        self.shape = ObjectShape.named(shape)
+        self.look = input["look"] as? String ?? self.look
+        for dict in input {
+            let key = dict.key
+            if !SpatialObject.stringAttributes.contains(key) && !SpatialObject.numericAttributes.contains(key) && !SpatialObject.booleanAttributes.contains(key) {
+                setData(key: key, value: dict.value)
+            }
+        }
+        self.updated = Date()
     }
     
     func desc() -> String {
