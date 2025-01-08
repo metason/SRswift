@@ -20,10 +20,10 @@ class SpatialReasoner {
     var north = CGVector(dx: 0.0, dy: -1.0) // north direction, e.g., defined by ARKit
 
     // data
-    var objects: [SpatialObject] = []
+    var objects:[SpatialObject] = []
     var observer:SpatialObject? = nil
-    var relMap: [Int: [SpatialRelation]] = [:] // index:[SpatialRelation]
-    var chain: [SpatialInference] = []
+    var relMap:[Int: [SpatialRelation]] = [:] // index:[SpatialRelation]
+    var chain:[SpatialInference] = []
     var base:Dictionary<String, Any> = [:] // fact base, objects will be added
     var snapTime:Date = Date() // load time or update time of fact base
     
@@ -42,7 +42,7 @@ class SpatialReasoner {
         relMap = [:]
         base["objects"] = []
         if !objects.isEmpty {
-            let indices: [Int] = (0..<objects.count).indices.map { $0 }
+            let indices:[Int] = (0..<objects.count).indices.map { $0 }
             var objList = [Any]()
             for idx in indices {
                 objects[idx].context = self
@@ -68,14 +68,25 @@ class SpatialReasoner {
         base["data"] = dict
     }
     
-    // TODO: recreateObjects from dictionaries
-    func recreateObjects() {
-        
+    // sync to spatial objects from dictionaries
+    func syncToObjects() {
+        objects = []
+        observer = nil
+        relMap = [:]
+        // base["objects"] as! [Dictionary<String, Any>]
+        for idx in  0..<(base["objects"] as! [Dictionary<String, Any>]).count {
+            let obj = SpatialObject(id: (base["objects"] as! [Dictionary<String, Any>])[idx]["id"] as! String)
+            obj.fromAny((base["objects"] as! [Dictionary<String, Any>])[idx])
+            objects.append(obj)
+            if obj.observing {
+                observer = obj
+            }
+        }
     }
                        
     func load(_ objs: [Dictionary<String, Any>]) {
         base["objects"] = objs
-        recreateObjects()
+        syncToObjects()
         base["snaptime"] = snapTime.description
         snapTime = Date()
     }
@@ -96,7 +107,7 @@ class SpatialReasoner {
     
     func loadSnapshot(_ snapshot: Dictionary<String, Any>) {
         base = snapshot
-        recreateObjects()
+        syncToObjects()
     }
     
     func record(_ inference: SpatialInference) {
@@ -139,6 +150,7 @@ class SpatialReasoner {
                 }
             }
         }
+        syncToObjects()
         if !chain.isEmpty {
             return chain.last!.succeeded
         } else if pipeline.contains("log(") {

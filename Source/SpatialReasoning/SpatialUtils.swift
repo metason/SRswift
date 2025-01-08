@@ -51,15 +51,15 @@ extension SCNVector3 {
     }
 }
 
-func +(left:SCNVector3, right:SCNVector3) -> SCNVector3 {
+func +(left: SCNVector3, right: SCNVector3) -> SCNVector3 {
     return SCNVector3(left.x + right.x, left.y + right.y, left.z + right.z)
 }
 
-func -(left:SCNVector3, right:SCNVector3) -> SCNVector3 {
+func -(left: SCNVector3, right: SCNVector3) -> SCNVector3 {
     return left + (right * -1.0)
 }
 
-func *(vector:SCNVector3, multiplier:SCNFloat) -> SCNVector3 {
+func *(vector: SCNVector3, multiplier:SCNFloat) -> SCNVector3 {
     return SCNVector3(vector.x * multiplier, vector.y * multiplier, vector.z * multiplier)
 }
 
@@ -99,6 +99,6 @@ func / (vector: SCNVector3, scalar: Float) -> SCNVector3 {
 }
 
 /// Divides the x, y and z of a SCNVector3 by the same scalar value.
-func /= ( vector: inout SCNVector3, scalar: Float) {
+func /= (vector: inout SCNVector3, scalar: Float) {
     vector = vector / scalar
 }

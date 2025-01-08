@@ -142,7 +142,7 @@ class SpatialObject {
     static let numericAttributes: [String] = ["width", "height", "depth", "w", "h", "d", "position", "x", "y", "z", "angle", "confidence"]
     static let stringAttributes: [String] = ["id", "label", "type", "supertype", "existence", "cause", "shape", "look"]
 
-    init(id: String, position: SCNVector3, width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0, angle: Float = 0.0, label: String = "", confidence: Float = 0.0) {
+    init(id: String, position: SCNVector3 = SCNVector3(), width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0, angle: Float = 0.0, label: String = "", confidence: Float = 0.0) {
         self.id = id
         self.label = label
         self.position = position
@@ -234,7 +234,7 @@ class SpatialObject {
     }
     
     // set auxiliary data
-    func setData(key:String, value:Any) {
+    func setData(key: String, value: Any) {
         if data != nil {
             data![key] = value
         } else {
@@ -242,7 +242,7 @@ class SpatialObject {
         }
     }
     
-    func dataValue(_ key:String) -> Float {
+    func dataValue(_ key: String) -> Float {
         if data != nil {
             let value =  data![key]
             if value != nil {
@@ -403,7 +403,7 @@ class SpatialObject {
         return str
     }
     
-    func setPosition(_ pos:SCNVector3) {
+    func setPosition(_ pos: SCNVector3) {
         let interval = updateInterval
         if interval > 0.003 && !immobile {
             let prevPos = position
@@ -412,11 +412,11 @@ class SpatialObject {
         position = pos
     }
     
-    func setCenter(_ center:SCNVector3) {
+    func setCenter(_ center: SCNVector3) {
         setPosition(.init(x: center.x, y: center.y - UFloat(height/2.0), z: center.z))
     }
     
-    func setYaw(_ degrees:Float) {
+    func setYaw(_ degrees: Float) {
         angle = degrees * .pi / 180.0
     }
     
@@ -426,7 +426,7 @@ class SpatialObject {
     }
     
     // if not thin returns 0, else thiness direction x-y-z as 1-2-3
-    func thin(ratio:Float = defaultAdjustment.thinRatio) -> Int {
+    func thin(ratio: Float = defaultAdjustment.thinRatio) -> Int {
         let values: Array<Float> = [width, height, depth]
         let max = values.max() ?? 0.0
         let min = values.min() ?? 0.0
@@ -445,7 +445,7 @@ class SpatialObject {
     }
     
     // if not long returns 0, else long axis direction x-y-z as 1-2-3
-    func long(ratio:Float = defaultAdjustment.longRatio) -> Int {
+    func long(ratio: Float = defaultAdjustment.longRatio) -> Int {
         let values: Array<Float> = [width, height, depth]
         let max = values.max() ?? 0.0
         let min = values.min() ?? 0.0
@@ -600,18 +600,18 @@ class SpatialObject {
         ]
     }
     
-    func distance(_ to:SCNVector3) -> Float {
+    func distance(_ to: SCNVector3) -> Float {
         return (to - position).length()
     }
     
-    func baseDistance(_ to:SCNVector3) -> Float {
+    func baseDistance(_ to: SCNVector3) -> Float {
         var point = to
         point.y = position.y
         return (point - position).length()
     }
     
     // transfer point into local coordinate system
-    func intoLocal(pt:SCNVector3) -> SCNVector3 {
+    func intoLocal(pt: SCNVector3) -> SCNVector3 {
         let vx = Float(pt.x - position.x)
         let vy = Float(pt.z - position.z)
         let rotsin = sinf(-angle)
@@ -621,10 +621,8 @@ class SpatialObject {
         return SCNVector3(x: UFloat(x), y: pt.y-position.y, z: UFloat(y))
     }
     
-
-    
     // transfer points into local coordinate system
-    func intoLocal(pts:[SCNVector3]) -> [SCNVector3] {
+    func intoLocal(pts: [SCNVector3]) -> [SCNVector3] {
         var result = [SCNVector3]()
         let rotsin = sinf(-angle)
         let rotcos = cosf(-angle)
@@ -634,6 +632,18 @@ class SpatialObject {
             let x = vx * rotcos - vy * rotsin
             let y = vx * rotsin + vy * rotcos
             result.append(SCNVector3(x: UFloat(x), y: pt.y-position.y, z: UFloat(y)))
+        }
+        return result
+    }
+    
+    func rotate(pts: [SCNVector3], by angle: Float) -> [SCNVector3] {
+        var result = [SCNVector3]()
+        let rotsin = UFloat(sinf(-angle))
+        let rotcos = UFloat(cosf(-angle))
+        for pt in pts {
+            let x = pt.x * rotcos - pt.z * rotsin
+            let y = pt.x * rotsin + pt.z * rotcos
+            result.append(SCNVector3(x: UFloat(x), y: pt.y, z: UFloat(y)))
         }
         return result
     }
@@ -694,7 +704,7 @@ class SpatialObject {
         return zone
     }
     
-    func sectorLenghts(_ sector:BBoxSector = .i) -> SCNVector3 {
+    func sectorLenghts(_ sector: BBoxSector = .i) -> SCNVector3 {
         var result = SCNVector3(x: UFloat(width), y: UFloat(height), z: UFloat(depth))
         if sector.contains(.a) || sector.contains(.b) {
             switch adjustment.sectorSchema {
@@ -729,7 +739,7 @@ class SpatialObject {
         return result
     }
     
-    func topologies(subject:SpatialObject) -> [SpatialRelation] {
+    func topologies(subject: SpatialObject) -> [SpatialRelation] {
         var result = [SpatialRelation]()
         var relation:SpatialRelation
         var gap:Float = 0.0
@@ -765,7 +775,7 @@ class SpatialObject {
             relation = SpatialRelation(subject: subject, predicate: .far, object: self, delta: centerDistance, angle: theta)
             result.append(relation)
         }
-        /// basic adjacancy in relation to object bbox
+        /// basic adjacancy in relation to center of object bbox
         if centerZone.contains(.l) {
             gap = Float(center.x) - width/2.0 - subject.width/2.0
             minDistance = gap
@@ -802,11 +812,12 @@ class SpatialObject {
         
         /// side-related adjacancy in relation to object bbox
         centerZone = sectorOf(point: center, nearby: true)
+        var aligned = false
         if isNear && centerZone != .i {
-            var aligned = false
             if abs(theta.truncatingRemainder(dividingBy: .pi/2.0)) < adjustment.maxAngleDelta {
                 aligned = true
             }
+            print("aligned: \(aligned) theta: \(theta) \(theta.truncatingRemainder(dividingBy: .pi/2.0))")
             var min:Float = Float.greatestFiniteMagnitude
             if centerZone == .l {
                 for pt in localPts {
@@ -885,37 +896,8 @@ class SpatialObject {
                     result.append(relation)
                 }
             }
-            // FIXME: .touching / .by
-            let groundRadi = baseradius + subject.baseradius
-            var pt = center
-            pt.y = 0.0
-            let groundDistance = pt.length()
-            min = groundDistance - groundRadi
-//                if min < adjustment.maxgap {
-//                    canNotOverlap = true
-//                    minDistance = min
-//                    relation = SpatialRelation(subject: subject, predicate: .touching, object: self, delta: min, angle: theta)
-//                    result.append(relation)
-//                    if !isConnected && context?.deduce.connectivity ?? true {
-//                        relation = SpatialRelation(subject: subject, predicate: .by, object: self, delta: min, angle: theta)
-//                        result.append(relation)
-//                        isConnected = true
-//                    }
-//                }
-            if min >= -adjustment.maxGap && min <= adjustment.maxGap {
-                print("oha: \(min)")
-                relation = SpatialRelation(subject: subject, predicate: aligned ? .meeting : .touching, object: self, delta: min, angle: theta)
-                result.append(relation)
-                if aligned {
-                    if !isConnected && context?.deduce.connectivity ?? true {
-                        relation = SpatialRelation(subject: subject, predicate: .at, object: self, delta: min, angle: theta)
-                        result.append(relation)
-                        isConnected = true
-                    }
-                }
-            }
         }
-        /// check for topology
+        /// check for assembly
         if isNear { // centerDistance < radius + subject.radius ?
             if zones.allSatisfy({ $0.contains(.i) }) {
                 isDisjoint = false
@@ -936,20 +918,22 @@ class SpatialObject {
                         isDisjoint = false
                         relation = SpatialRelation(subject: subject, predicate: .overlapping, object: self, delta: centerDistance, angle: theta)
                         result.append(relation)
-                    } else if !canNotOverlap {
-                        var crossings = 0
-                        let minY = Float(localPts.first!.y)
-                        let maxY = Float(localPts.last!.y)
-                        var minX:Float = Float.greatestFiniteMagnitude
-                        var maxX:Float = -Float.greatestFiniteMagnitude
-                        var minZ:Float = Float.greatestFiniteMagnitude
-                        var maxZ:Float = -Float.greatestFiniteMagnitude
-                        for pt in localPts {
-                            minX = Float.minimum(minX, Float(pt.x))
-                            maxX = Float.maximum(maxX, Float(pt.x))
-                            minZ = Float.minimum(minZ, Float(pt.z))
-                            maxZ = Float.maximum(maxZ, Float(pt.z))
-                        }
+                    }
+                    var crossings = 0
+                    let minY = Float(localPts.first!.y)
+                    let maxY = Float(localPts.last!.y)
+                    var minX:Float = Float.greatestFiniteMagnitude
+                    var maxX:Float = -Float.greatestFiniteMagnitude
+                    var minZ:Float = Float.greatestFiniteMagnitude
+                    var maxZ:Float = -Float.greatestFiniteMagnitude
+                    for pt in localPts {
+                        minX = Float.minimum(minX, Float(pt.x))
+                        maxX = Float.maximum(maxX, Float(pt.x))
+                        minZ = Float.minimum(minZ, Float(pt.z))
+                        maxZ = Float.maximum(maxZ, Float(pt.z))
+                    }
+                    //print("min:max: \(minX):\(maxX) \(minY):\(maxY) \(minZ):\(maxZ) ")
+                    if !canNotOverlap {
                         if minX < -width/2.0 && maxX > width/2.0 && minZ < depth/2.0 && maxZ > -depth/2.0 && minY < height && maxY > 0 {
                             crossings += 1
                         }
@@ -963,7 +947,90 @@ class SpatialObject {
                             isDisjoint = false
                             relation = SpatialRelation(subject: subject, predicate: .crossing, object: self, delta: centerDistance, angle: theta)
                             result.append(relation)
-
+                        }
+                    }
+                    var ylap = height // calc overlap in y
+                    if maxY < height && minY > 0 {
+                        ylap = maxY - minY
+                    } else {
+                        if minY > 0 {
+                            ylap = abs(height - minY)
+                        } else {
+                            ylap = abs(maxY)
+                        }
+                    }
+                    var xlap = width // calc overlap in x
+                    if minX < width/2.0 + adjustment.maxGap && maxX > -width/2.0 - adjustment.maxGap {
+                        if maxX < width/2.0 && minX > -width/2.0 {
+                            xlap = maxX - minX
+                        } else {
+                            if minX > -width/2.0 - adjustment.maxGap {
+                                xlap = abs(width/2.0 - minX)
+                            } else {
+                                xlap = abs(maxX + width/2.0)
+                            }
+                        }
+                    } else {
+                        xlap = 0.0
+                    }
+                    var zlap = depth // calc overlap in z
+                    if minZ < depth/2.0 + adjustment.maxGap && maxZ > -depth/2.0 - adjustment.maxGap {
+                        if maxZ < depth/2.0 && minZ > -depth/2.0 {
+                            zlap = maxZ - minZ
+                        } else {
+                            if minZ > -depth/2.0 {
+                                zlap = abs(depth/2.0 - minZ)
+                            } else {
+                                zlap = abs(maxZ + depth/2.0)
+                            }
+                        }
+                    } else {
+                        zlap = 0.0
+                    }
+                    // FIXME: min distance / nearby check???
+                    if !aligned {
+                        if (maxX < -width/2.0 + adjustment.maxGap) || (minX > width/2.0 - adjustment.maxGap) || (maxZ < -depth/2.0 + adjustment.maxGap) || (minZ > depth/2.0 - adjustment.maxGap) {
+                            relation = SpatialRelation(subject: subject, predicate: .touching, object: self, delta: max(xlap, zlap), angle: theta)
+                            result.append(relation)
+                            if !isConnected && context?.deduce.connectivity ?? true {
+                                relation = SpatialRelation(subject: subject, predicate: .by, object: self, delta: max(xlap, zlap), angle: theta)
+                                result.append(relation)
+                                isConnected = true
+                            }
+                        } else {
+                            // TODO: calculating shortest distance between two rotated rectangles, check GJK algorithm,
+                            print("OOPS, rotated bbox might cross: assembly relations by shortest distance not yet implemented!")
+                        }
+                    } else if minY < height + adjustment.maxGap && maxY > -adjustment.maxGap {
+                        //print("alligned assembly: \(xlap) \(ylap) \(zlap)")
+                        if xlap != 0.0 && zlap != 0.0 {
+                            if ylap > adjustment.maxGap { /// beside
+                                if xlap > adjustment.maxGap || zlap > adjustment.maxGap {
+                                    relation = SpatialRelation(subject: subject, predicate: .meeting, object: self, delta: max(xlap, zlap), angle: theta)
+                                    result.append(relation)
+                                    if !isConnected && context?.deduce.connectivity ?? true {
+                                        relation = SpatialRelation(subject: subject, predicate: .at, object: self, delta: max(xlap, zlap), angle: theta)
+                                        result.append(relation)
+                                        isConnected = true
+                                    }
+                                } else {
+                                    relation = SpatialRelation(subject: subject, predicate: .touching, object: self, delta: max(xlap, zlap), angle: theta)
+                                    result.append(relation)
+                                    if !isConnected && context?.deduce.connectivity ?? true {
+                                        relation = SpatialRelation(subject: subject, predicate: .by, object: self, delta: max(xlap, zlap), angle: theta)
+                                        result.append(relation)
+                                        isConnected = true
+                                    }
+                                }
+                            } else { /// ontop or underneath
+                                if xlap > adjustment.maxGap && zlap > adjustment.maxGap {
+                                    relation = SpatialRelation(subject: subject, predicate: .meeting, object: self, delta: max(xlap, zlap), angle: theta)
+                                    result.append(relation)
+                                } else {
+                                    relation = SpatialRelation(subject: subject, predicate: .touching, object: self, delta: max(xlap, zlap), angle: theta)
+                                    result.append(relation)
+                                }
+                            }
                         }
                     }
                 }
@@ -1062,7 +1129,7 @@ class SpatialObject {
         return result
     }
     
-    func similarities(subject:SpatialObject) -> [SpatialRelation] {
+    func similarities(subject: SpatialObject) -> [SpatialRelation] {
         var result = [SpatialRelation]()
         var relation:SpatialRelation
         let theta = subject.angle - angle
@@ -1235,7 +1302,7 @@ class SpatialObject {
     }
     
     // sector
-    func sector(subject:SpatialObject, nearby:Bool = false) -> SpatialRelation {
+    func sector(subject: SpatialObject, nearby:Bool = false) -> SpatialRelation {
         let centerVector = subject.center - center
         let centerDistance = centerVector.length()
         let center = intoLocal(pt: subject.center)
@@ -1245,20 +1312,24 @@ class SpatialObject {
         return SpatialRelation(subject:subject, predicate: pred, object:self, delta: centerDistance, angle:theta)
     }
     
-    func asseen(subject:SpatialObject, observer:SpatialObject) -> [SpatialRelation] {
+    func asseen(subject: SpatialObject, observer: SpatialObject) -> [SpatialRelation] {
         var result = [SpatialRelation]()
-        let centerVector = subject.center - center
-        let centerDistance = centerVector.length()
-        let radiusSum = radius + subject.radius
-        
-        if centerDistance - radiusSum < adjustment.nearbyLimit && centerDistance < ((adjustment.nearbyFactor + 1.0) * radiusSum) {
-            let centerObject = observer.intoLocal(pt: self.center)
-            let centerSubject = observer.intoLocal(pt: subject.center)
+        let posVector = subject.position - position
+        let posDistance = posVector.length()
+        let radiusSum = baseradius + subject.baseradius
+        /// check for nearby
+        if posDistance - radiusSum < adjustment.nearbyLimit && posDistance < ((adjustment.nearbyFactor + 1.0) * radiusSum) {
+            var centerObject = observer.intoLocal(pt: self.center)
+            var centerSubject = observer.intoLocal(pt: subject.center)
             if centerSubject.z > 0.0 && centerObject.z > 0.0 { // both are ahead of observer
-                // FIXME: checking center is not enough!
+                // turn both by view angle to become normal to observer
+                let rad = Float(atan2(centerObject.x, centerObject.z))
+                let list = rotate(pts: [centerObject, centerSubject], by: -rad)
+                centerObject = list[0]
+                centerSubject = list[1]
                 let xgap = Float(centerSubject.x - centerObject.x)
                 let zgap = Float(centerSubject.z - centerObject.z)
-                if abs(xgap) > adjustment.maxGap {
+                if abs(xgap) > min(width/2.0, depth/2.0) && abs(zgap) < radiusSum { 
                     if xgap > 0.0 {
                         let relation = SpatialRelation(subject: subject, predicate: .seenleft, object: self, delta: abs(xgap), angle: 0.0)
                         result.append(relation)
@@ -1267,8 +1338,7 @@ class SpatialObject {
                         result.append(relation)
                     }
                 }
-                // FIXME: turn by view angle
-                if abs(zgap) > adjustment.maxGap {
+                if abs(zgap) > min(width/2.0, depth/2.0) && abs(xgap) < radiusSum {
                     if zgap > 0.0 {
                         let relation = SpatialRelation(subject: subject, predicate: .atrear, object: self, delta: abs(zgap), angle: 0.0)
                         result.append(relation)
@@ -1282,7 +1352,7 @@ class SpatialObject {
         return result
     }
     
-    func relate(subject:SpatialObject, topology:Bool = false, similarity:Bool = false, comparison:Bool = false) -> [SpatialRelation] {
+    func relate(subject: SpatialObject, topology:Bool = false, similarity:Bool = false, comparison:Bool = false) -> [SpatialRelation] {
         var result = [SpatialRelation]()
         if topology || context?.deduce.topology ?? false || context?.deduce.connectivity ?? false {
             result.append(contentsOf: topologies(subject:subject))
@@ -1325,7 +1395,7 @@ class SpatialObject {
     
     // ---- Visualization functions ----------------------------
     
-    func bboxCube(color:CGColor) -> SCNNode {
+    func bboxCube(color: CGColor) -> SCNNode {
         let name = id
         let group = SCNNode()
         group.name = name
@@ -1364,7 +1434,7 @@ class SpatialObject {
         return node
     }
     
-    func sectorCube(_ sector:BBoxSector = .i, _ withLabel:Bool = false) -> SCNNode {
+    func sectorCube(_ sector: BBoxSector = .i, _ withLabel:Bool = false) -> SCNNode {
         let dims = sectorLenghts(sector)
         let box = SCNBox(width: dims.x, height: dims.y, length: dims.z, chamferRadius: 0.0)
         box.firstMaterial?.diffuse.contents = CGColor(gray: 0.1, alpha: 0.5)
@@ -1406,7 +1476,7 @@ class SpatialObject {
         return node
     }
     
-    static func export3D(to url:URL, nodes:[SCNNode]) {
+    static func export3D(to url:URL, nodes: [SCNNode]) {
         let scene = SCNScene()
         for node in nodes {
             scene.rootNode.addChildNode(node)

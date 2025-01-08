@@ -126,7 +126,7 @@ public enum SpatialExistence: String {
     case conceptual // non-visual, conceptual area, e.g., corner, zone, sensing area, region of interest, interaction field
     case aggregational // non-visual part-of group, container
     
-    static func named(_ name:String) -> SpatialExistence {
+    static func named(_ name: String) -> SpatialExistence {
         return SpatialExistence(rawValue: name) ?? .undefined
     }
 }
@@ -141,7 +141,7 @@ public enum ObjectCause : String {
     case logic_induced // instanciated by rule or by program logic
     case remote_produced // produced by remote service
     
-    static func named(_ name:String) -> ObjectCause {
+    static func named(_ name: String) -> ObjectCause {
         return ObjectCause(rawValue: name) ?? .unknown
     }
 }
@@ -163,7 +163,7 @@ public enum ObjectShape : String {
     case irregular // complex shape
     case changing // changing shape, e.g., of creature
     
-    static func named(_ name:String) -> ObjectShape {
+    static func named(_ name: String) -> ObjectShape {
         return ObjectShape(rawValue: name) ?? .unknown
     }
 }

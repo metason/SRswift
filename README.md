@@ -18,4 +18,4 @@ Tests and Visualizations
 
 ## License
 
-See [LICENSE](LICENSE) file.
+Released under the [Creative Commons CC0 License](LICENSE).

@@ -13,8 +13,8 @@ nonisolated(unsafe) let proximity:[SpatialPredicate] = [.near, .far]
 nonisolated(unsafe) let directionality:[SpatialPredicate] = [.left, .right, .above, .below, .ahead, .behind]
 nonisolated(unsafe) let adjacency:[SpatialPredicate] = [.leftside, .rightside, .ontop, .beneath, .upperside, .lowerside, .frontside, .backside]
 nonisolated(unsafe) let orientations:[SpatialPredicate] = [.orthogonal, .opposite, .aligned, .frontaligned, .backaligned, .rightaligned, .leftaligned]
-nonisolated(unsafe) let arrangements:[SpatialPredicate] = [.disjoint, .inside, .containing, .overlapping, .crossing, .touching, .meeting, .beside]
-nonisolated(unsafe) let topology = proximity + directionality + adjacency + orientations + arrangements
+nonisolated(unsafe) let assembly:[SpatialPredicate] = [.disjoint, .inside, .containing, .overlapping, .crossing, .touching, .meeting, .beside]
+nonisolated(unsafe) let topology = proximity + directionality + adjacency + orientations + assembly
 nonisolated(unsafe) let contacts:[SpatialPredicate] = [.on, .at, .by, .in]
 nonisolated(unsafe) let connectivity = contacts
 nonisolated(unsafe) let comparability:[SpatialPredicate] = [.smaller, .bigger, .shorter, .longer, .taller, .thinner, .wider, .fitting, .exceeding]
@@ -54,7 +54,7 @@ public enum SpatialPredicate : String {
     case backaligned
     case leftaligned
     case rightaligned
-    /// arrangements
+    /// assembly
     case disjoint // no space in common
     case inside // A is inside B
     case containing // A is containing/contains B
@@ -75,7 +75,7 @@ public enum SpatialPredicate : String {
     case taller // height
     case thinner //  width,depth --> footprint, syn:narrower,
     case wider // syn:thicker
-    // SIMILARITIES
+    // SIMILARITY
     /// fuzzy comparision considering max deviation
     case samewidth
     case sameheight
@@ -160,7 +160,7 @@ public enum SpatialPredicate : String {
     case southwest
     case southeast
     
-    static func named(_ name:String) -> SpatialPredicate {
+    static func named(_ name: String) -> SpatialPredicate {
         return SpatialPredicate(rawValue: name) ?? .undefined
     }
 }

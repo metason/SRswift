@@ -48,7 +48,7 @@ class SpatialInference {
         }
     }
     
-    private func add(index:Int) {
+    private func add(index: Int) {
         if !output.contains(index) {
             output.append(index)
         }

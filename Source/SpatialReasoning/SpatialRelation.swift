@@ -25,7 +25,7 @@ class SpatialRelation {
         return object.id
     }
     
-    init(subject:SpatialObject, predicate:SpatialPredicate, object:SpatialObject, delta:Float = 0.0, angle:Float = 0.0) {
+    init(subject: SpatialObject, predicate: SpatialPredicate, object: SpatialObject, delta:Float = 0.0, angle:Float = 0.0) {
         self.subject = subject
         self.predicate = predicate
         self.object = object
