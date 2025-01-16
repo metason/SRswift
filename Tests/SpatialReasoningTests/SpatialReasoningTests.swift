@@ -69,6 +69,47 @@ struct SpatialReasoningTests {
         #expect(done)
     }
     
+    @Test("opposite walls")
+    func oppositewalls() async throws {
+        let wall1 = SpatialObject.createBuildingElement(id: "wall1", from: .init(x: -2, y: 0, z: -1), to: .init(x: 2, y: 0, z: -1), height: 2.3, depth: 0.4)
+        let wall2 = SpatialObject.createBuildingElement(id: "wall2", from: .init(x: 2, y: 0, z: 2.5), to: .init(x: -2, y: 0, z: 2.5), height: 2.3, depth: 0.4)
+        //let ref = SpatialObject.createVirtualObject(id: "ref", width: 0.1, height: 0.1, depth: 0.1)
+        let sp = SpatialReasoner()
+        sp.adjustment.sectorSchema = .fixed
+        sp.adjustment.sectorFactor = 1.0
+        sp.adjustment.nearbySchema = .fixed
+        sp.adjustment.nearbyFactor = 1.0
+        sp.load([wall1, wall2])
+        let pipeline = """
+            deduce(topology connectivity)
+            | pick(opposite)
+            | log(base 3D beside)
+        """
+        let done = sp.run(pipeline)
+        #expect(done)
+        #expect(sp.result().count == 2)
+    }
+    
+    @Test("walls by")
+    func walls() async throws {
+        let wall1 = SpatialObject.createBuildingElement(id: "wall1", from: .init(x: -2, y: 0, z: 0), to: .init(x: 2, y: 0, z: 0), height: 2.3)
+        let wall2 = SpatialObject.createBuildingElement(id: "wall2", from: .init(x: 2, y: 0, z: 0), to: .init(x: 2, y: 0, z: 3.5), height: 2.3)
+        let wall3 = SpatialObject.createBuildingElement(id: "wall3", from: .init(x: 2, y: 0, z: 3.5), to: .init(x: -2, y: 0, z: 3.5), height: 2.3)
+        let wall4 = SpatialObject.createBuildingElement(id: "wall4", from: .init(x: -2, y: 0, z: 3.5), to: .init(x: -2, y: 0, z: 0), height: 2.3)
+        let sp = SpatialReasoner()
+        sp.adjustment.sectorSchema = .fixed
+        sp.adjustment.sectorFactor = 1.0
+        sp.adjustment.nearbySchema = .fixed
+        sp.adjustment.nearbyFactor = 1.0
+        sp.load([wall1, wall2, wall3, wall4])
+        let pipeline = """
+            deduce(topology connectivity)
+            | log(base 3D beside)
+        """
+        let done = sp.run(pipeline)
+        #expect(done)
+    }
+    
     @Test("log() room")
     func log2() async throws {
         let wall1 = SpatialObject.createBuildingElement(id: "wall1", from: .init(x: -2, y: 0, z: 0), to: .init(x: 2, y: 0, z: 0), height: 2.3)
@@ -84,10 +125,12 @@ struct SpatialReasoningTests {
         let picture = SpatialObject(id: "picture", position: .init(x: -1.99, y: 1, z: 1.4), width: 0.9, height: 0.6, depth: 0.02)
         picture.angle = .pi / 2.0
         let sp = SpatialReasoner()
+        sp.adjustment.sectorSchema = .fixed
+        sp.adjustment.nearbyFactor = 1.0
         sp.load([wall1, wall2, wall3, wall4, floor, door, window, table, book, picture])
+        // | filter(supertype BEGINSWITH 'Building')
         let pipeline = """
             deduce(topology connectivity)
-            | filter(supertype BEGINSWITH 'Building') 
             | log(base 3D ontop inside)
         """
         let done = sp.run(pipeline)

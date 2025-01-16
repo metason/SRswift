@@ -294,13 +294,31 @@ class SpatialReasoner {
                     doAdd = true
                 }
                 if doAdd {
-                    mmdRels = mmdRels + "    " + relation.subject.id + " -- " + relation.predicate.rawValue + " --> " + relation.object.id + "\n"
-                    if contacts.contains(relation.predicate) {
-                        mmdContacts = mmdContacts + "    " + relation.subject.id + " -- " + relation.predicate.rawValue + " --> " + relation.object.id + "\n"
+                    var leftLink = " -- "
+                    if SpatialTerms.symmetric(relation.predicate) {
+                        leftLink = " <-- "
+                        let searchBy = relation.object.id + leftLink + relation.predicate.rawValue + " --> " + relation.subject.id
+                        if mmdRels.contains(searchBy) {
+                            doAdd = false
+                        }
+                    }
+                    if doAdd {
+                        mmdRels = mmdRels + "    " + relation.subject.id + leftLink + relation.predicate.rawValue + " --> " + relation.object.id + "\n"
                     }
                 }
                 if contacts.contains(relation.predicate) {
-                    mmdContacts = mmdContacts + "    " + relation.subject.id + " -- " + relation.predicate.rawValue + " --> " + relation.object.id + "\n"
+                    var doAddContact = true
+                    var leftLink = " -- "
+                    if relation.predicate == .by {
+                        leftLink = " <-- "
+                        let searchBy = relation.object.id + leftLink + relation.predicate.rawValue + " --> " + relation.subject.id
+                        if mmdContacts.contains(searchBy) {
+                            doAddContact = false
+                        }
+                    }
+                    if doAddContact {
+                        mmdContacts = mmdContacts + "    " + relation.subject.id + leftLink + relation.predicate.rawValue + " --> " + relation.object.id + "\n"
+                    }
                 }
                 rels = rels + "* " + relation.desc() + "\n"
             }
@@ -319,13 +337,14 @@ class SpatialReasoner {
         md = md + "\n## Spatial Relations\n\n"
         md = md + rels + "\n"
         
+        let multipleLogs = pipeline.components(separatedBy:"log(").count > 2
         do {
-            let fileURL = logFolder!.appendingPathComponent("log\(logCnt).md")
+            let counterStr = multipleLogs ? String(logCnt) : ""
+            let fileURL = logFolder!.appendingPathComponent("log\(counterStr).md")
             try md.write(to: fileURL, atomically: true, encoding: .utf16)
         } catch {
             print(error)
         }
-        //print(md)
 #endif
     }
     

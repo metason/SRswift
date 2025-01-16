@@ -10,6 +10,7 @@ import Foundation
 // Directional 3x3x3 BBox Sector Matrix (27 object-related boundary sectors)
 struct BBoxSector : OptionSet, Hashable {
     let rawValue: Int
+    static let none = BBoxSector([]) // none : no sector specified
     static let i = BBoxSector(rawValue: 1 << 0) // i : inside, inner
     static let a = BBoxSector(rawValue: 1 << 1) // a : ahead
     static let b = BBoxSector(rawValue: 1 << 2) // b : behind
@@ -87,7 +88,7 @@ extension BBoxSector: CustomStringConvertible {
 
     public var description: String {
         let description = BBoxSector.debugDescriptions[self]
-        return description ?? "undefined sector"
+        return description ?? "no sector"
     }
     
 }

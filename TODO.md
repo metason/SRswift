@@ -8,31 +8,33 @@
 # TODOs
   
 ## BUG FIXES
-- nearby using baseradius instead of radius?????
+
+- check delta calc
+- delta calculation? Euclidean Signed Distance Function (ESDF)?
 - delta of .by and .at (min distance or overlap?)
-- FIX contact graph: fix at, by
-- handle bidirectional of by
 - check FIXME: and TODO:
 - top, topleft?, top left-hand corner/sector?
-- bottom, base
-- match to synonyms??
-- NOT predicate ?? for antonyms
+- substitute (not found predicates)
+    - match to synonyms
+    - NOT predicate ?? for antonyms
 - aligned: front aligned, only same angle?, frontaligned, backaligned, sidealigned?
-- inside gap? center or ?
 - check for missing terms in SpatialTerms
-- gap calculation? Euclidean Signed Distance Function (ESDF)?
-- meeting: inverse not working?
-- 
+- meeting: inverse?
 
 ## TODO
-    
+
+- adjust(nearby fixed 8) sector limit 2.5; max angle / max gap / thin ratio / 
+- aggregate(); produce(); create()?
+- each() oder all(): reset input to all objects
+- strings in pipeline: handle no quotes as well as ' and "
 - leftmost, 
+- sameposition
 - Dynamic Vicinity and Adjacency
 - confidence on relations?
 - validate succeeded
 - is fitting into, exceeding
 - is facing towards
-- is closest to, nearest to,
+- is closest to, nearest to, --> use sort()
 - furthest away from, farthest, remotest, outermost
 - Nr3D dataset: sample sentences https://referit3d.github.io/benchmarks.html
 - multi-stage spatial reasoning, multi-stage relations
@@ -58,7 +60,7 @@
   - altitude: ?
 - is fitting into
 - try!! catch for Predicate / Expression
-- chained spatial relations
+- chained spatial relations --> use sort()
   - secondleft, thirdleft, forthleft, fifthleft
   - secondleft, secondright, secondabove, secondbelow, secondahead, secondbehind
   - mostleft, ...

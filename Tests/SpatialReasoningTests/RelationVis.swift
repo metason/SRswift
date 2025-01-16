@@ -142,7 +142,7 @@ struct RelationVis {
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.1, height: 1.1, depth: 1.1)
         let relations = object.relate(subject: subject, topology: true)
         SpatialReasoner.printRelations(relations)
-        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
+        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), object.nearbySphere()])
         #expect(relations.contains(where: { $0.predicate == .upperside }))
     }
     

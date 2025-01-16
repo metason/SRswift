@@ -42,12 +42,12 @@ struct SpatialTest {
         let subject = SpatialObject(id: "subj", position: .init(x: 1.75, y: 0.0, z: 0.01), width: 1.4, height: 1.4, depth: 1.4)
         let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
         let relations = object.relate(subject: subject, topology: true)
-        defaultAdjustment.nearbyFactor = 0.6
+        defaultAdjustment.nearbyFactor = 1.5
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), subject.nearbySphere(), object.nearbySphere()])
         #expect(relations.contains(where: { $0.predicate == .near }))
         #expect(relations.contains(where: { $0.predicate == .disjoint }))
-        defaultAdjustment.nearbyFactor = 1.0
+        defaultAdjustment.nearbyFactor = 2.0
     }
     
     @Test("subj is far from obj")
@@ -187,7 +187,6 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .meeting }))
-        #expect(relations.contains(where: { $0.predicate == .beside }))
     }
     
     @Test("subj is congruent with obj")

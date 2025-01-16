@@ -7,14 +7,22 @@
 
 import Foundation
 
-// Calculation schema to determine sector size for extruding area
+// Calculation schema to determine nearby radius
+public enum NearbySchema {
+    case fixed // use nearbyFactor as fix nearby radius
+    case circle // use base circle radius of bbox multiplied with nearbyFactor
+    case sphere // use sphere radius of bbox multiplied with nearbyFactor
+    case perimeter // use base perimeter multiplied with nearbyFactor
+    case area // use area multiplied with nearbyFactor
+}
+
+// Calculation schema to determine sector size for extruding bbox area
 public enum SectorSchema {
-    case fixed // use specified fix sector lenght for extruding area
-    case dimension // use same dimension as object multiplied with factor
-    case perimeter // use base perimeter multiplied with factor
-    case area // use area multiplied with factor
+    case fixed // use sectorFactor as fix sector lenght for extruding area
+    case dimension // use same dimension as object bbox multiplied with sectorFactor
+    case perimeter // use base perimeter multiplied with sectorFactor
+    case area // use area multiplied with sectorFactor
     case nearby // use nearby settings of spatial adjustment for extruding
-    case wide // use fix wide sector length
 }
 
 // Set adjustment parameters before executing pipeline or calling relate() method.
@@ -27,10 +35,9 @@ class SpatialAdjustment {
     var sectorSchema:SectorSchema = .nearby
     var sectorFactor:Float = 1.0 /// multiplying result of claculation schema
     var sectorLimit:Float = 2.5 /// maximal length
-    var fixSectorLenght:Float = 0.5
-    var wideSectorLenght:Float = 10.0
     // Vicinity
-    var nearbyFactor:Float = 1.0 /// multiplying radius sum of object and subject (relative to size) as max distance
+    var nearbySchema:NearbySchema = .circle
+    var nearbyFactor:Float = 2.0 /// multiplying radius sum of object and subject (relative to size) as max distance
     var nearbyLimit:Float = 2.5 /// maximal absolute distance
     // Proportions
     var longRatio:Float = 4.0 /// one dimension is factor larger than both others
@@ -44,14 +51,13 @@ class SpatialAdjustment {
         maxAngleDelta = degrees * .pi / 180.0
     }
     
-    init(gap:Float = 0.02, angle:Float = 0.05 * .pi, sectorSchema:SectorSchema = .nearby, sectorFactor:Float = 1.0, sectorLimit:Float = 2.5, fixSectorLenght:Float = 0.5, wideSectorLenght:Float = 10.0, nearbyFactor:Float = 1.0, nearbyLimit:Float = 2.0) {
+    init(gap:Float = 0.02, angle:Float = 0.05 * .pi, sectorSchema:SectorSchema = .nearby, sectorFactor:Float = 1.0, sectorLimit:Float = 2.5, nearbySchema:NearbySchema = .circle, nearbyFactor:Float = 2.0, nearbyLimit:Float = 2.5) {
         self.maxGap = gap
         self.maxAngleDelta = angle
         self.sectorSchema = sectorSchema
         self.sectorFactor = sectorFactor
         self.sectorLimit = sectorLimit
-        self.fixSectorLenght = fixSectorLenght
-        self.wideSectorLenght = wideSectorLenght
+        self.nearbySchema = nearbySchema
         self.nearbyFactor = nearbyFactor
         self.nearbyLimit = nearbyLimit
     }
@@ -105,11 +111,11 @@ public enum SpatialAtribute: String {
     case length
     case angle
     case yaw
-    case azimuth
+    case azimuth // deviation from north direction
     case footprint // base surface
     case frontface // front surface
     case sideface // side surface
-    case surface
+    case surface // total bbox surface
     case volume
     case perimeter
     case baseradius // radius of 2D floorground circle
