@@ -82,7 +82,7 @@ struct SpatialReasoningTests {
         sp.load([wall1, wall2])
         let pipeline = """
             deduce(topology connectivity)
-            | pick(opposite)
+            | select(opposite)
             | log(base 3D beside)
         """
         let done = sp.run(pipeline)
@@ -97,13 +97,10 @@ struct SpatialReasoningTests {
         let wall3 = SpatialObject.createBuildingElement(id: "wall3", from: .init(x: 2, y: 0, z: 3.5), to: .init(x: -2, y: 0, z: 3.5), height: 2.3)
         let wall4 = SpatialObject.createBuildingElement(id: "wall4", from: .init(x: -2, y: 0, z: 3.5), to: .init(x: -2, y: 0, z: 0), height: 2.3)
         let sp = SpatialReasoner()
-        sp.adjustment.sectorSchema = .fixed
-        sp.adjustment.sectorFactor = 1.0
-        sp.adjustment.nearbySchema = .fixed
-        sp.adjustment.nearbyFactor = 1.0
         sp.load([wall1, wall2, wall3, wall4])
         let pipeline = """
-            deduce(topology connectivity)
+            adjust(sector fixed 1.0; nearby fixed 1.0)
+            | deduce(topology connectivity)
             | log(base 3D beside)
         """
         let done = sp.run(pipeline)
@@ -132,6 +129,23 @@ struct SpatialReasoningTests {
         let pipeline = """
             deduce(topology connectivity)
             | log(base 3D ontop inside)
+        """
+        let done = sp.run(pipeline)
+        #expect(done)
+    }
+    
+    @Test("as seen")
+    func asseen() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.55, y: 0, z: 0.8), width: 1.01, height: 1.03, depth: 1.02)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
+        object.angle = .pi/2.0
+        let observer = SpatialObject.createPerson(id: "ego", position: .init(x: 0.3, y: 0, z: 3.8), name: "ego")
+        observer.angle = .pi + 0.24
+        let sp = SpatialReasoner()
+        sp.load([subject, object, observer])
+        let pipeline = """
+            deduce(topology visibility)
+            | log(base 3D left right seenleft seenright)
         """
         let done = sp.run(pipeline)
         #expect(done)
@@ -207,5 +221,84 @@ struct SpatialReasoningTests {
         let done = sp.run(pipeline)
         #expect(done)
         #expect(subject.type == "bed")
+    }
+    
+    @Test("reload()")
+    func reload() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.55, y: 0, z: 0.8), width: 1.01, height: 1.03, depth: 1.02)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
+        let sp = SpatialReasoner()
+        sp.load([subject, object])
+        let pipeline = """
+            map(weight = volume * 140.0; type = 'bed')
+            | sort(weight >)
+            | reload()
+            | log(base)
+        """
+        let done = sp.run(pipeline)
+        #expect(done)
+        #expect(subject.type == "bed")
+    }
+    
+    @Test("produce(duplicate)")
+    func duplicate() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.55, y: 0, z: 0.8), width: 1.01, height: 1.03, depth: 1.02)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
+        let sp = SpatialReasoner()
+        sp.load([subject, object])
+        let pipeline = """
+            produce(copy : height = 0.02; label = 'copy')
+            | log(base 3D)
+        """
+        let done = sp.run(pipeline)
+        #expect(done)
+    }
+    
+    @Test("produce(agregate)")
+    func aggregate() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.75, y: 0.2, z: 1.2), width: 1.01, height: 1.03, depth: 1.02, angle: 0.3)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0.4, z: 1.4), width: 1.0, height: 1.0, depth: 0.5, angle: -0.4)
+        let ref = SpatialObject(id: "ref", position: .init(x: 0.0, y: 0, z: 0.0), width: 0.2, height: 0.2, depth: 0.2)
+        let sp = SpatialReasoner()
+        sp.load([subject, object, ref])
+        let pipeline = """
+            filter(id != 'ref')
+            | produce(aggregate : label = 'group')
+            | log(base 3D)
+        """
+        let done = sp.run(pipeline)
+        #expect(done)
+    }
+    
+    @Test("produce(by: edge)")
+    func produceby() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: 0.83, y: 0, z: -0.2), width: 0.4, height: 0.8, depth: 0.5)
+        subject.setYaw(45.0)
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
+        let sp = SpatialReasoner()
+        sp.load([subject, object])
+        let pipeline = """
+            filter(id != 'ref')
+            | produce(by : label = 'edge')
+            | log(base 3D)
+        """
+        let done = sp.run(pipeline)
+        #expect(done)
+    }
+    
+    @Test("produce(by : corner)")
+    func produceCorner() async throws {
+        let wall1 = SpatialObject.createBuildingElement(id: "wall1", from: .init(x: -2, y: 0, z: 0), to: .init(x: 2, y: 0, z: 0), height: 2.3)
+        let wall2 = SpatialObject.createBuildingElement(id: "wall2", from: .init(x: 2, y: 0, z: 0), to: .init(x: 2, y: 0, z: 3.5), height: 2.3)
+        let wall3 = SpatialObject.createBuildingElement(id: "wall3", from: .init(x: 2, y: 0, z: 3.5), to: .init(x: -2, y: 0, z: 3.5), height: 2.3)
+        let wall4 = SpatialObject.createBuildingElement(id: "wall4", from: .init(x: -2, y: 0, z: 3.5), to: .init(x: -2, y: 0, z: 0), height: 2.3)
+        let sp = SpatialReasoner()
+        sp.load([wall1, wall2, wall3, wall4])
+        let pipeline = """
+            produce(by : label = 'corner'; h = 0.02)
+            | log(base 3D overlapping)
+        """
+        let done = sp.run(pipeline)
+        #expect(done)
     }
 }

@@ -45,6 +45,10 @@ class SpatialInference {
         } else if operation.starts(with: "map(") {
             let startIdx = operation.index(operation.startIndex, offsetBy: 4)
             map(String(operation[startIdx..<endIdx]))
+        } else if operation.starts(with: "reload(") {
+            reload()
+        } else  {
+            error = "Unknown inference operation: \(operation)"
         }
     }
     
@@ -91,12 +95,17 @@ class SpatialInference {
     
     func select(_ terms: String) {
         let list = terms.split(separator: "?").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
-        if list.count != 2 {
+        let relations:String
+        var conditions:String = ""
+        if list.count == 1 {
+            relations = list[0]
+        } else if list.count == 2 {
+            relations = list[0]
+            conditions = list[1]
+        } else {
             error = "Invalid select query"
             return
         }
-        let conditions = list[1]
-        let relations = list[0]
         let predicates = relations.keywords()
         let baseObjects = fact.base["objects"] as! [Any]
         for i in input {
@@ -112,8 +121,11 @@ class SpatialInference {
                     }
                     let result = NSPredicate(format: cond).evaluate(with: nil)
                     if result {
-                        let attrPredicate = SpatialInference.attributePredicate(conditions)
-                        let result2 = attrPredicate!.evaluate(with: baseObjects[j])
+                        var result2 = true
+                        if conditions != "" {
+                            let attrPredicate = SpatialInference.attributePredicate(conditions)
+                            result2 = attrPredicate!.evaluate(with: baseObjects[j])
+                        }
                         if result2 {
                             add(index: i)
                         }
@@ -124,14 +136,18 @@ class SpatialInference {
         succeeded = !output.isEmpty
     }
     
-    func produce(_ terms: String) {
-        print(terms)
+    func map(_ assignments: String) {
+        assign(assignments, indices: input)
+        fact.load()
+        output = input
+        succeeded = !output.isEmpty
     }
     
-    func map(_ assignments: String) {
+    func assign(_ assignments: String, indices:[Int]) {
+        //print(assignments)
         let list = assignments.split(separator: ";").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
         let baseObjects = fact.base["objects"] as! [Any]
-        for i in input {
+        for i in indices {
             var dict = Dictionary<String, Any>()
             if fact.base["data"] != nil {
                 dict.merge(fact.base["data"] as! Dictionary<String, Any> ) { (_, new) in new } // replacing current
@@ -150,11 +166,7 @@ class SpatialInference {
             }
             fact.objects[i].fromAny(dict)
         }
-        fact.load()
-        output = input
-        succeeded = !output.isEmpty
     }
-    
     
     func calc(_ assignments: String) {
         let list = assignments.split(separator: ";").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
@@ -175,7 +187,7 @@ class SpatialInference {
     }
     
     func slice(_ range: String) {
-        print("slice \(range)")
+        //print("slice \(range)")
         let str = range.replacingOccurrences(of: "..", with: ".")
         let list = str.split(separator: ".").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
         var lower = 0
@@ -210,7 +222,6 @@ class SpatialInference {
             upper = temp
         }
         let idxRange = ClosedRange<Int>(uncheckedBounds: (lower: lower, upper: upper))
-        print(idxRange)
         output = Array(input[idxRange])
         succeeded = !output.isEmpty
     }
@@ -309,6 +320,142 @@ class SpatialInference {
                 add(index: idx)
             }
         }
+        succeeded = !output.isEmpty
+    }
+    
+    func produce(_ terms: String) {
+        print(terms)
+        let list = terms.split(separator: ":").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
+        var assignments = ""
+        let rule = list[0]
+        if list.count > 1 {
+            assignments = list[1]
+        }
+        // TODO: produce
+        var indices:[Int] = [] // new produced object indices
+        var newObjects = [Dictionary<String, Any>]()
+        switch rule {
+        case "aggregate", "group":
+            if input.count > 0 {
+                var inputObjects: [SpatialObject] = []
+                var sortedObjects: [SpatialObject]
+                for i in input {
+                    inputObjects.append(fact.objects[i])
+                }
+                sortedObjects = inputObjects.sorted { $0.volume > $1.volume }
+                let largestObject = sortedObjects.first
+                var minY:Float = 0.0
+                var maxY:Float = largestObject!.height
+                var minX:Float = -largestObject!.width/2.0
+                var maxX:Float = largestObject!.width/2.0
+                var minZ:Float = -largestObject!.depth/2.0
+                var maxZ:Float = largestObject!.depth/2.0
+                var groupId = "group:" + largestObject!.id
+                for j in 1..<sortedObjects.count {
+                    let localPts = largestObject!.intoLocal(pts: sortedObjects[j].points(local: false))
+                    for pt in localPts {
+                        minX = Float.minimum(minX, Float(pt.x))
+                        maxX = Float.maximum(maxX, Float(pt.x))
+                        minY = Float.minimum(minY, Float(pt.y))
+                        maxY = Float.maximum(maxY, Float(pt.y))
+                        minZ = Float.minimum(minZ, Float(pt.z))
+                        maxZ = Float.maximum(maxZ, Float(pt.z))
+                    }
+                    groupId = groupId + "+" + sortedObjects[j].id
+                }
+                let w = maxX - minX
+                let h = maxY - minY
+                let d = maxZ - minZ
+                let dx = minX + w/2.0
+                let dy = minY/2.0
+                let dz = minZ + d/2.0
+                let group = SpatialObject(id: groupId)
+                group.setPosition(largestObject!.pos)
+                group.rotShift(-largestObject!.angle, dx:dx, dy:dy, dz:dz)
+                group.angle = largestObject!.angle
+                group.width = w
+                group.height = h
+                group.depth = d
+                group.cause = .rule_produced
+                newObjects.append(group.asDict())
+                indices.append(fact.objects.count)
+                fact.objects.append(group)
+            }
+
+        case "duplicate", "copy":
+            for i in input {
+                let copyId = "copy:" + fact.objects[i].id
+                var idx = fact.indexOf(id: copyId)
+                if idx == nil {
+                    idx = fact.objects.count
+                    let copy = SpatialObject(id: fact.objects[i].id)
+                    copy.fromAny(fact.objects[i].toAny())
+                    copy.id = copyId
+                    copy.cause = .rule_produced
+                    copy.setPosition(fact.objects[i].pos)
+                    copy.angle = fact.objects[i].angle
+                    newObjects.append(copy.asDict())
+                    fact.objects.append(copy)
+                    indices.append(idx!)
+                } else {
+                    indices.append(idx!)
+                }
+            }
+        case "by":
+            var addedBys: Set<String> = []
+            for i in input {
+                let rels = fact.relationsWith(i, predicate: "by")
+                for rel in rels {
+                    let idx = fact.indexOf(id: rel.subject.id)
+                    if input.contains(idx!) && !addedBys.contains(rel.subject.id + "-" + fact.objects[i].id) {
+                        let nearest = fact.objects[i].pos.nearest(rel.subject.points())
+                        let byId = "by:" + fact.objects[i].id + "-" + rel.subject.id
+                        let obj = SpatialObject(id: byId)
+                        obj.cause = .rule_produced
+                        obj.setPosition(nearest.first!)
+                        obj.angle = fact.objects[i].angle
+                        let w = max(rel.delta, fact.adjustment.maxGap)
+                        obj.width = w
+                        obj.depth = w
+                        var h = rel.subject.height
+                        if nearest[0].x == nearest[1].x && nearest[0].z == nearest[1].z {
+                            h = Float(nearest[1].y - nearest[0].y)
+                        }
+                        obj.height = h
+                        newObjects.append(obj.asDict())
+                        indices.append(fact.objects.count)
+                        fact.objects.append(obj)
+                        addedBys.insert(fact.objects[i].id + "-" + rel.subject.id)
+                    }
+                }
+            }
+            
+        default:
+            error.append("Unknown \(rule) rule in produce()")
+            return
+        }
+        if !indices.isEmpty {
+            fact.base["objects"] = (fact.base["objects"] as! [Dictionary<String, Any>]) + newObjects
+            if assignments != "" {
+                assign(assignments, indices: indices)
+            }
+            fact.load()
+            output = input
+            for i in indices {
+                if !output.contains(i) {
+                    output.append(i)
+                }
+            }
+        } else {
+            output = input
+        }
+        succeeded = error.isEmpty
+    }
+    
+    func reload() {
+        fact.syncToObjects()
+        fact.load()
+        output = (0..<fact.objects.count).indices.map { $0 }
         succeeded = !output.isEmpty
     }
     

@@ -21,14 +21,24 @@
 - check for missing terms in SpatialTerms
 - meeting: inverse?
 
+## produce
+- aggregate / group = bbox over all, aligned with largest
+- duplicate / copy = copy of each
+- *side = inbetween bbox (minimal)
+- *aligned = meeting bbox (minimal)
+- orthogonal = spanned area
+- opposite = inbetween bbox (minimal)
+- touching / by = edge bbox
+- meeting / at = plane bbox
+- on = plane bbox
+- sector = sector bbox of each
+
 ## TODO
 
-- adjust(nearby fixed 8) sector limit 2.5; max angle / max gap / thin ratio / 
-- aggregate(); produce(); create()?
+- error handling via inference: error messages
 - each() oder all(): reset input to all objects
 - strings in pipeline: handle no quotes as well as ' and "
 - leftmost, 
-- sameposition
 - Dynamic Vicinity and Adjacency
 - confidence on relations?
 - validate succeeded
@@ -223,8 +233,7 @@ Derived values
 ## Spatial relations
 
 Connectivity : Verbindung
-- in : overlapping?
-- ? : crossing
+- in : container
 - by : touching
 - at : meeting
 - on : ontop

@@ -49,6 +49,11 @@ extension SCNVector3 {
     func length() -> Float {
         return sqrtf(Float(x*x) + Float(y*y) + Float(z*z))
     }
+    
+    // sort list by distance from self
+    func nearest(_ pts: [SCNVector3]) -> [SCNVector3] {
+        return pts.sorted { ($0-self).length() < ($1-self).length() }
+    }
 }
 
 func +(left: SCNVector3, right: SCNVector3) -> SCNVector3 {

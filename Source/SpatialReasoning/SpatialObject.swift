@@ -40,6 +40,9 @@ class SpatialObject {
     var center:SCNVector3 {
         return position + SCNVector3(0.0, height/2.0, 0.0)
     }
+    var pos:SCNVector3 {
+        return position
+    }
     var yaw:Float { // in degrees counter-clockwise of WCS
         return angle * 180.0 / .pi
     }
@@ -249,6 +252,9 @@ class SpatialObject {
                 if let val = value as? Float {
                     return val
                 }
+                if let val = value as? NSNumber {
+                    return val.floatValue
+                }
             }
         }
         return 0
@@ -258,7 +264,7 @@ class SpatialObject {
     // Hint: Codable extension not used to have more control
     
     // full-fledged representation for fact base
-    public func asDict() -> Dictionary<String, Any>? {
+    public func asDict() -> Dictionary<String, Any> {
         var output = [
             "id": id,
             "existence": existence.rawValue,
@@ -309,7 +315,7 @@ class SpatialObject {
     }
     
     // for export
-    public func toAny() -> Dictionary<String, Any>? {
+    public func toAny() -> Dictionary<String, Any> {
         var output = [
             "id": id,
             "existence": existence.rawValue,
@@ -345,29 +351,39 @@ class SpatialObject {
             }
             self.id = id
         }
+        var number:NSNumber?
         var pos = SCNVector3()
-        let position = input["position"] as? [Float] ?? []
-        if position.count == 3 {
-            pos.x = CGFloat(position[0])
-            pos.y = CGFloat(position[1])
-            pos.z = CGFloat(position[2])
+        let list = input["position"] as? [NSNumber] ?? []
+        if list.count == 3 {
+            pos.x = CGFloat(list[0].floatValue)
+            pos.y = CGFloat(list[1].floatValue)
+            pos.z = CGFloat(list[2].floatValue)
         } else {
-            let x = input["x"] as? Float ?? Float(self.position.x)
-            let y = input["y"] as? Float ?? Float(self.position.y)
-            let z = input["z"] as? Float ?? Float(self.position.z)
+            number = input["x"] as? NSNumber
+            let x = number?.floatValue ?? Float(self.position.x)
+            number = input["y"] as? NSNumber
+            let y = number?.floatValue ?? Float(self.position.y)
+            number = input["z"] as? NSNumber
+            let z = number?.floatValue ?? Float(self.position.z)
             pos.x = CGFloat(x)
             pos.y = CGFloat(y)
             pos.z = CGFloat(z)
         }
         setPosition(pos)
-        self.width = input["width"] as? Float ?? input["w"] as? Float ?? self.width
-        self.height = input["height"] as? Float ?? input["h"] as? Float ?? self.height
-        self.depth = input["depth"] as? Float ?? input["d"] as? Float ?? self.depth
-        self.angle = input["angle"] as? Float ?? self.angle
+        
+        number = input["width"] as? NSNumber ?? input["w"] as? NSNumber
+        self.width = number?.floatValue ?? self.width
+        number = input["height"] as? NSNumber ?? input["h"] as? NSNumber
+        self.height = number?.floatValue ?? self.height
+        number = input["depth"] as? NSNumber ?? input["d"] as? NSNumber
+        self.depth = number?.floatValue ?? self.depth
+        number = input["angle"] as? NSNumber
+        self.angle = number?.floatValue ?? self.angle
         self.label = input["label"] as? String ?? self.label
         self.type = input["type"] as? String ?? self.type
         self.supertype = input["supertype"] as? String ?? self.supertype
-        let confidence = input["confidence"] as? Float ?? self.confidence.value
+        number = input["confidence"] as? NSNumber
+        let confidence = number?.floatValue ?? self.confidence.value
         self.confidence.setValue(confidence)
         let cause = input["cause"] as? String ?? self.cause.rawValue
         self.cause = ObjectCause.named(cause)
@@ -414,6 +430,16 @@ class SpatialObject {
     
     func setCenter(_ ctr: SCNVector3) {
         setPosition(.init(x: ctr.x, y: ctr.y - UFloat(height/2.0), z: ctr.z))
+    }
+    
+    func rotShift(_ rad: Float, dx:Float, dy:Float = 0.0, dz:Float = 0.0) {
+        //print("\(rad) \(dx) \(dy) \(dz)")
+        let rotsin = sinf(rad)
+        let rotcos = cosf(rad)
+        let rx = dx * rotcos - dz * rotsin
+        let rz = dx * rotsin + dz * rotcos
+        let vector = SCNVector3(rx, dy, rz)
+        position = position + vector
     }
     
     func setYaw(_ degrees: Float) {
@@ -470,19 +496,19 @@ class SpatialObject {
         var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
         var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
         var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
-        var pos = SCNVector3()
+        var vector = SCNVector3()
         if local == false {
-            p0 = p0.rotate(UFloat(angle))
-            p1 = p1.rotate(UFloat(angle))
-            p2 = p2.rotate(UFloat(angle))
-            p3 = p3.rotate(UFloat(angle))
-            pos = position
+            p0 = p0.rotate(UFloat(-angle))
+            p1 = p1.rotate(UFloat(-angle))
+            p2 = p2.rotate(UFloat(-angle))
+            p3 = p3.rotate(UFloat(-angle))
+            vector = position
         }
         return [
-            SCNVector3(x:UFloat(p0.x + pos.x), y:pos.y, z:UFloat(p0.y + pos.z)),
-            SCNVector3(x:UFloat(p1.x + pos.x), y:pos.y, z:UFloat(p1.y + pos.z)),
-            SCNVector3(x:UFloat(p2.x + pos.x), y:pos.y, z:UFloat(p2.y + pos.z)),
-            SCNVector3(x:UFloat(p3.x + pos.x), y:pos.y, z:UFloat(p3.y + pos.z))
+            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y, z:UFloat(p0.y + vector.z)),
+            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y, z:UFloat(p1.y + vector.z)),
+            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y, z:UFloat(p2.y + vector.z)),
+            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y, z:UFloat(p3.y + vector.z))
         ]
     }
     
@@ -491,87 +517,87 @@ class SpatialObject {
         var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
         var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
         var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
-        var pos = SCNVector3()
+        var vector = SCNVector3()
         if local == false {
-            p0 = p0.rotate(UFloat(angle))
-            p1 = p1.rotate(UFloat(angle))
-            p2 = p2.rotate(UFloat(angle))
-            p3 = p3.rotate(UFloat(angle))
-            pos = position
+            p0 = p0.rotate(UFloat(-angle))
+            p1 = p1.rotate(UFloat(-angle))
+            p2 = p2.rotate(UFloat(-angle))
+            p3 = p3.rotate(UFloat(-angle))
+            vector = position
         }
         return [
-            SCNVector3(x:UFloat(p0.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p0.y + pos.z)),
-            SCNVector3(x:UFloat(p1.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p1.y + pos.z)),
-            SCNVector3(x:UFloat(p2.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p2.y + pos.z)),
-            SCNVector3(x:UFloat(p3.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p3.y + pos.z))
+            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p0.y + vector.z)),
+            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p1.y + vector.z)),
+            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p2.y + vector.z)),
+            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p3.y + vector.z))
         ]
     }
     
     func frontPoints(local:Bool = false) -> [SCNVector3] {
         var p0 = CGPoint(x: UFloat(width)/2.0, y: UFloat(depth)/2.0)
         var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
-        var pos = SCNVector3()
+        var vector = SCNVector3()
         if local == false {
-            p0 = p0.rotate(UFloat(angle))
-            p1 = p1.rotate(UFloat(angle))
-            pos = position
+            p0 = p0.rotate(UFloat(-angle))
+            p1 = p1.rotate(UFloat(-angle))
+            vector = position
         }
         return [
-            SCNVector3(x:UFloat(p0.x + pos.x), y:pos.y, z:UFloat(p0.y + pos.z)),
-            SCNVector3(x:UFloat(p1.x + pos.x), y:pos.y, z:UFloat(p1.y + pos.z)),
-            SCNVector3(x:UFloat(p1.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p1.y + pos.z)),
-            SCNVector3(x:UFloat(p0.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p0.y + pos.z))
+            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y, z:UFloat(p0.y + vector.z)),
+            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y, z:UFloat(p1.y + vector.z)),
+            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p1.y + vector.z)),
+            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p0.y + vector.z))
         ]
     }
     
     func backPoints(local:Bool = false) -> [SCNVector3] {
         var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
         var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
-        var pos = SCNVector3()
+        var vector = SCNVector3()
         if local == false {
-            p2 = p2.rotate(UFloat(angle))
-            p3 = p3.rotate(UFloat(angle))
-            pos = position
+            p2 = p2.rotate(UFloat(-angle))
+            p3 = p3.rotate(UFloat(-angle))
+            vector = position
         }
         return [
-            SCNVector3(x:UFloat(p2.x + pos.x), y:pos.y, z:UFloat(p2.y + pos.z)),
-            SCNVector3(x:UFloat(p3.x + pos.x), y:pos.y, z:UFloat(p3.y + pos.z)),
-            SCNVector3(x:UFloat(p3.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p3.y + pos.z)),
-            SCNVector3(x:UFloat(p2.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p2.y + pos.z))
+            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y, z:UFloat(p2.y + vector.z)),
+            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y, z:UFloat(p3.y + vector.z)),
+            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p3.y + vector.z)),
+            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p2.y + vector.z))
         ]
     }
     
     func rightPoints(local:Bool = false) -> [SCNVector3] {
         var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
         var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
-        var pos = SCNVector3()
+        var vector = SCNVector3()
         if local == false {
-            p1 = p1.rotate(UFloat(angle))
-            p2 = p2.rotate(UFloat(angle))
-            pos = position
+            p1 = p1.rotate(UFloat(-angle))
+            p2 = p2.rotate(UFloat(-angle))
+            vector = position
         }
         return [
-            SCNVector3(x:UFloat(p1.x + pos.x), y:pos.y, z:UFloat(p1.y + pos.z)),
-            SCNVector3(x:UFloat(p2.x + pos.x), y:pos.y, z:UFloat(p2.y + pos.z)),
-            SCNVector3(x:UFloat(p2.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p2.y + pos.z)),
-            SCNVector3(x:UFloat(p1.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p1.y + pos.z))
+            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y, z:UFloat(p1.y + vector.z)),
+            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y, z:UFloat(p2.y + vector.z)),
+            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p2.y + vector.z)),
+            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p1.y + vector.z))
         ]
     }
     
     func leftPoints(local:Bool = false) -> [SCNVector3] {
         var p0 = CGPoint(x: UFloat(width)/2.0, y: UFloat(depth)/2.0)
         var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
-        var pos = SCNVector3()
+        var vector = SCNVector3()
         if local == false {
-            p0 = p0.rotate(UFloat(angle))
-            p3 = p3.rotate(UFloat(angle))
-            pos = position
+            p0 = p0.rotate(UFloat(-angle))
+            p3 = p3.rotate(UFloat(-angle))
+            vector = position
         }
         return [
-            SCNVector3(x:UFloat(p3.x + pos.x), y:pos.y, z:UFloat(p3.y + pos.z)),
-            SCNVector3(x:UFloat(p0.x + pos.x), y:pos.y, z:UFloat(p0.y + pos.z)),
-            SCNVector3(x:UFloat(p0.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p0.y + pos.z)),
-            SCNVector3(x:UFloat(p3.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p3.y + pos.z))
+            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y, z:UFloat(p3.y + vector.z)),
+            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y, z:UFloat(p0.y + vector.z)),
+            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p0.y + vector.z)),
+            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p3.y + vector.z))
         ]
     }
     
@@ -580,23 +606,23 @@ class SpatialObject {
         var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
         var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
         var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
-        var pos = SCNVector3()
+        var vector = SCNVector3()
         if local == false {
-            p0 = p0.rotate(UFloat(angle))
-            p1 = p1.rotate(UFloat(angle))
-            p2 = p2.rotate(UFloat(angle))
-            p3 = p3.rotate(UFloat(angle))
-            pos = position
+            p0 = p0.rotate(UFloat(-angle))
+            p1 = p1.rotate(UFloat(-angle))
+            p2 = p2.rotate(UFloat(-angle))
+            p3 = p3.rotate(UFloat(-angle))
+            vector = position
         }
         return [
-            SCNVector3(x:UFloat(p0.x + pos.x), y:pos.y, z:UFloat(p0.y + pos.z)),
-            SCNVector3(x:UFloat(p1.x + pos.x), y:pos.y, z:UFloat(p1.y + pos.z)),
-            SCNVector3(x:UFloat(p2.x + pos.x), y:pos.y, z:UFloat(p2.y + pos.z)),
-            SCNVector3(x:UFloat(p3.x + pos.x), y:pos.y, z:UFloat(p3.y + pos.z)),
-            SCNVector3(x:UFloat(p0.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p0.y + pos.z)),
-            SCNVector3(x:UFloat(p1.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p1.y + pos.z)),
-            SCNVector3(x:UFloat(p2.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p2.y + pos.z)),
-            SCNVector3(x:UFloat(p3.x + pos.x), y:pos.y+UFloat(height), z:UFloat(p3.y + pos.z))
+            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y, z:UFloat(p0.y + vector.z)),
+            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y, z:UFloat(p1.y + vector.z)),
+            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y, z:UFloat(p2.y + vector.z)),
+            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y, z:UFloat(p3.y + vector.z)),
+            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p0.y + vector.z)),
+            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p1.y + vector.z)),
+            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p2.y + vector.z)),
+            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p3.y + vector.z))
         ]
     }
     
@@ -613,12 +639,12 @@ class SpatialObject {
     // transfer point into local coordinate system
     func intoLocal(pt: SCNVector3) -> SCNVector3 {
         let vx = Float(pt.x - position.x)
-        let vy = Float(pt.z - position.z)
+        let vz = Float(pt.z - position.z)
         let rotsin = sinf(angle)
         let rotcos = cosf(angle)
-        let x = vx * rotcos - vy * rotsin
-        let y = vx * rotsin + vy * rotcos
-        return SCNVector3(x: UFloat(x), y: pt.y - position.y, z: UFloat(y))
+        let x = vx * rotcos - vz * rotsin
+        let z = vx * rotsin + vz * rotcos
+        return SCNVector3(x: UFloat(x), y: pt.y - position.y, z: UFloat(z))
     }
     
     // transfer points into local coordinate system
@@ -628,9 +654,9 @@ class SpatialObject {
         let rotcos = cosf(angle)
         for pt in pts {
             let vx = Float(pt.x - position.x)
-            let vy = Float(pt.z - position.z)
-            let x = vx * rotcos - vy * rotsin
-            let y = vx * rotsin + vy * rotcos
+            let vz = Float(pt.z - position.z)
+            let x = vx * rotcos - vz * rotsin
+            let y = vx * rotsin + vz * rotcos
             result.append(SCNVector3(x: UFloat(x), y: pt.y - position.y, z: UFloat(y)))
         }
         return result
@@ -1410,7 +1436,7 @@ class SpatialObject {
         let fontSize = Float(0.005)
         let (min, max) =  textNode.boundingBox
         textNode.position.x =  -((max.x - min.x)/2.0 * UFloat(fontSize))
-        textNode.position.y = -UFloat(height/2.0)
+        textNode.position.y = -UFloat(height*0.48)
         textNode.position.z = UFloat(depth/2.0 + 0.2)
         textNode.renderingOrder = 1
         textNode.eulerAngles.x = -.pi/2.0
@@ -1472,6 +1498,18 @@ class SpatialObject {
             node.addChildNode(textNode)
         }
         return node
+    }
+    
+    static func pointNodes(_ points: [SCNVector3]) -> SCNNode {
+        let group = SCNNode()
+        for point in points {
+            let geometry = SCNSphere(radius: 0.01)
+            geometry.firstMaterial?.diffuse.contents = CGColor(red: 0.0, green: 1.0, blue: 0.0, alpha: 0.0)
+            let node = SCNNode(geometry: geometry)
+            node.position = point
+            group.addChildNode(node)
+        }
+        return group
     }
     
     static func export3D(to url:URL, nodes: [SCNNode]) {

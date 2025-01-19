@@ -57,6 +57,14 @@ class SpatialReasoner {
         base["snaptime"] = snapTime.description
     }
     
+    func indexOf(id:String) -> Int? {
+        for idx in  0..<objects.count {
+            if objects[idx].id == id {
+                return idx
+            }
+        }
+        return nil
+    }
     
     func setData(key:String, value:Any) {
         var dict = base["data"] as? Dictionary<String, Any>
@@ -137,6 +145,14 @@ class SpatialReasoner {
                 let startIdx = op.index(op.startIndex, offsetBy: 4)
                 let endIdx = op.index(op.endIndex, offsetBy: -1)
                 log(String(op[startIdx..<endIdx]))
+            } else if op.starts(with: "adjust(") {
+                let startIdx = op.index(op.startIndex, offsetBy: 7)
+                let endIdx = op.index(op.endIndex, offsetBy: -1)
+                let ok = adjust(String(op[startIdx..<endIdx]))
+                if !ok {
+                    logError()
+                    break
+                }
             } else if op.starts(with: "deduce(") {
                 let startIdx = op.index(op.startIndex, offsetBy: 7)
                 let endIdx = op.index(op.endIndex, offsetBy: -1)
@@ -214,6 +230,137 @@ class SpatialReasoner {
             }
         }
         return false
+    }
+    
+    func adjust(_ settings: String) -> Bool {
+        var error:String = ""
+        let list = settings.split(separator: ";").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
+        for setting in list {
+            let parts = setting.split(separator: " ")
+            let first = parts.count > 0 ? parts[0] : ""
+            let second = parts.count > 1 ? parts[1] : ""
+            let number = parts.count > 2 ? parts[2] : ""
+            switch first {
+            case "max":
+                switch second {
+                case "gap":
+                    if !number.isEmpty {
+                        if let val = Float(number) {
+                            adjustment.maxGap = val
+                        } else {
+                            error = "Invalid max gap value: \(number)"
+                        }
+                    }
+                case "angle", "delta":
+                    if !number.isEmpty {
+                        if let val = Float(number) {
+                            adjustment.maxAngleDelta = val
+                        } else {
+                            error = "Invalid max angle value: \(number)"
+                        }
+                    }
+                default:
+                    error = "Unknown max setting: \(second)"
+                }
+            case "sector":
+                var setFactor = true
+                switch second {
+                case "fixed":
+                    adjustment.sectorSchema = .fixed
+                case "dimension":
+                    adjustment.sectorSchema = .dimension
+                case "perimeter":
+                    adjustment.sectorSchema = .perimeter
+                case "area":
+                    adjustment.sectorSchema = .area
+                case "nearby":
+                    adjustment.sectorSchema = .nearby
+                case "factor":
+                    setFactor = true
+                case "limit":
+                    setFactor = false
+                    if !number.isEmpty {
+                        if let val = Float(number) {
+                            adjustment.sectorLimit = val
+                        } else {
+                            error = "Invalid sector limit value: \(number)"
+                        }
+                    }
+                default:
+                    error = "Unknown sector setting: \(second)"
+                }
+                if setFactor && !number.isEmpty {
+                    if let val = Float(number) {
+                        adjustment.sectorLimit = val
+                    } else {
+                        error = "Invalid sector limit value: \(number)"
+                    }
+                }
+            case "nearby":
+                var setFactor = true
+                switch second {
+                case "fixed":
+                    adjustment.nearbySchema = .fixed
+                case "circle":
+                    adjustment.nearbySchema = .circle
+                case "sphere":
+                    adjustment.nearbySchema = .sphere
+                case "perimeter":
+                    adjustment.nearbySchema = .perimeter
+                case "area":
+                    adjustment.nearbySchema = .area
+                case "factor":
+                    setFactor = true
+                case "limit":
+                    setFactor = false
+                    if !number.isEmpty {
+                        if let val = Float(number) {
+                            adjustment.nearbyLimit = val
+                        } else {
+                            error = "Invalid nearby limit value: \(number)"
+                        }
+                    }
+                default:
+                    error = "Unknown nearby setting: \(second)"
+                }
+                if setFactor && !number.isEmpty {
+                    if let val = Float(number) {
+                        adjustment.nearbyFactor = val
+                    } else {
+                        error = "Invalid nearby factor value: \(number)"
+                    }
+                }
+            case "long":
+                if second == "ratio" {
+                    if !number.isEmpty {
+                        if let val = Float(number) {
+                            adjustment.longRatio = val
+                        } else {
+                            error = "Invalid long ratio value: \(number)"
+                        }
+                    }
+                }
+            case "thin":
+                if second == "ratio" {
+                    if !number.isEmpty {
+                        if let val = Float(number) {
+                            adjustment.thinRatio = val
+                        } else {
+                            error = "Invalid thin ratio value: \(number)"
+                        }
+                    }
+                }
+            default:
+                error = "Unknown adjust setting: \(first)"
+            }
+        }
+        if !error.isEmpty {
+            print("Error: \(error)")
+            let errorState = SpatialInference(input: [], operation: "adjust(\(settings)", in: self)
+            errorState.error = error
+            return false
+        }
+        return true
     }
     
     func deduce(_ categories: String) {
@@ -362,9 +509,20 @@ class SpatialReasoner {
 #if os(macOS)
         let fileURL = logFolder!.appendingPathComponent("log3D.usdz")
         var nodes:[SCNNode] = []
-        let color:CGColor = CGColor(red: 1, green: 0, blue: 0, alpha: 0.3)
+        let defaultCcolor:CGColor = CGColor(red: 1, green: 0, blue: 0, alpha: 0.5)
         for object in objects {
+            var color = defaultCcolor
+            if object.label.lowercased().starts(with: "subj") || object.id.lowercased().starts(with: "subj") {
+                color = CGColor(red: 0, green: 0, blue: 1, alpha: 0.5)
+            }
+            if object.observing || object.id.lowercased().starts(with: "user") || object.id.lowercased().starts(with: "ego") {
+                color = CGColor(red: 0, green: 1, blue: 0, alpha: 0)
+            }
+            if object.cause == .rule_produced {
+                color = CGColor(red: 1, green: 1, blue: 0, alpha: 0.8)
+            }
             nodes.append(object.bboxCube(color: color))
+            //nodes.append(SpatialObject.pointNodes(object.points()))
         }
         SpatialObject.export3D(to: fileURL, nodes: nodes)
 #endif

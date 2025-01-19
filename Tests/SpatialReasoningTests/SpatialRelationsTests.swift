@@ -279,4 +279,13 @@ struct SpatialTest {
         #expect(relations.contains(where: { $0.predicate == .thinner }))
     }
     
+    @Test("corners")
+    func corners() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: -0.2, y: 0, z: 0.8), width: 0.2, height: 0.9, depth: 0.2, angle: 0.2)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.6, y: 0, z: 0.8), width: 0.25, height: 1.0, depth: 0.25, angle: -0.2)
+        let relations = object.relate(subject: subject, comparison: true)
+        printRelations(relations)
+        export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), SpatialObject.pointNodes(subject.points()), SpatialObject.pointNodes(object.points())])
+    }
+    
 }
