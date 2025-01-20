@@ -9,8 +9,8 @@ import Foundation
 
 class SpatialInference {
         
-    var input:[Int] = [] // index to fact.base.objects
-    var output:[Int] = [] // index to fact.base.objects
+    var input:[Int] = [] // indices to fact.base.objects
+    var output:[Int] = [] // indices to fact.base.objects
     var operation = ""
     var succeeded = false
     var error = ""
@@ -187,7 +187,6 @@ class SpatialInference {
     }
     
     func slice(_ range: String) {
-        //print("slice \(range)")
         let str = range.replacingOccurrences(of: "..", with: ".")
         let list = str.split(separator: ".").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
         var lower = 0

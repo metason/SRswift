@@ -240,7 +240,7 @@ struct SpatialReasoningTests {
         #expect(subject.type == "bed")
     }
     
-    @Test("produce(duplicate)")
+    @Test("produce(copy)")
     func duplicate() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: -0.55, y: 0, z: 0.8), width: 1.01, height: 1.03, depth: 1.02)
         let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
@@ -254,7 +254,7 @@ struct SpatialReasoningTests {
         #expect(done)
     }
     
-    @Test("produce(agregate)")
+    @Test("produce(group)")
     func aggregate() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: -0.75, y: 0.2, z: 1.2), width: 1.01, height: 1.03, depth: 1.02, angle: 0.3)
         let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0.4, z: 1.4), width: 1.0, height: 1.0, depth: 0.5, angle: -0.4)
@@ -263,7 +263,7 @@ struct SpatialReasoningTests {
         sp.load([subject, object, ref])
         let pipeline = """
             filter(id != 'ref')
-            | produce(aggregate : label = 'group')
+            | produce(group : label = 'group')
             | log(base 3D)
         """
         let done = sp.run(pipeline)

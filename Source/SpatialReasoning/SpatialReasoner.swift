@@ -24,7 +24,7 @@ class SpatialReasoner {
     var observer:SpatialObject? = nil
     var relMap:[Int: [SpatialRelation]] = [:] // index:[SpatialRelation]
     var chain:[SpatialInference] = []
-    var base:Dictionary<String, Any> = [:] // fact base, objects will be added
+    var base:Dictionary<String, Any> = [:] // fact base, objects will be duplicated here for r/w access of expression eval
     var snapTime:Date = Date() // load time or update time of fact base
     
     // logging
@@ -130,7 +130,6 @@ class SpatialReasoner {
     func record(_ inference: SpatialInference) {
         chain.append(inference)
         base["chain"] = (base["chain"] as! [Dictionary<String, Any>]) + [inference.asDict()]
-        
     }
     
     func backtrace() -> [Int] {
