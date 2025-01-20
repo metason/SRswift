@@ -1420,9 +1420,9 @@ class SpatialObject {
     // ---- Visualization functions ----------------------------
     
     func bboxCube(color: CGColor) -> SCNNode {
-        let name = id
+        let name = label.isEmpty ? id : label
         let group = SCNNode()
-        group.name = name
+        group.name = id
         let box = SCNBox(width: UFloat(width), height: UFloat(height), length: UFloat(depth), chamferRadius: 0.0)
         box.firstMaterial?.diffuse.contents = color
         box.firstMaterial?.transparency = 1.0 - color.alpha
@@ -1500,8 +1500,10 @@ class SpatialObject {
         return node
     }
     
-    static func pointNodes(_ points: [SCNVector3]) -> SCNNode {
+    func pointNodes(_ pts: [SCNVector3] = []) -> SCNNode {
+        let points = pts.isEmpty ? self.points() : pts
         let group = SCNNode()
+        group.name = "BBox corners of " + (label.count > 0 ? label : id)
         for point in points {
             let geometry = SCNSphere(radius: 0.01)
             geometry.firstMaterial?.diffuse.contents = CGColor(red: 0.0, green: 1.0, blue: 0.0, alpha: 0.0)

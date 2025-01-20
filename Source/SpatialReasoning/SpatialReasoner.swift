@@ -57,6 +57,15 @@ class SpatialReasoner {
         base["snaptime"] = snapTime.description
     }
     
+    func objectWith(id:String) -> SpatialObject? {
+        for idx in  0..<objects.count {
+            if objects[idx].id == id {
+                return objects[idx]
+            }
+        }
+        return nil
+    }
+    
     func indexOf(id:String) -> Int? {
         for idx in  0..<objects.count {
             if objects[idx].id == id {
@@ -522,7 +531,7 @@ class SpatialReasoner {
                 color = CGColor(red: 1, green: 1, blue: 0, alpha: 0.8)
             }
             nodes.append(object.bboxCube(color: color))
-            //nodes.append(SpatialObject.pointNodes(object.points()))
+            //nodes.append(object.pointNodes())
         }
         SpatialObject.export3D(to: fileURL, nodes: nodes)
 #endif

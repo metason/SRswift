@@ -331,11 +331,11 @@ class SpatialInference {
         if list.count > 1 {
             assignments = list[1]
         }
-        // TODO: produce
+        // TODO: produce(at)
         var indices:[Int] = [] // new produced object indices
         var newObjects = [Dictionary<String, Any>]()
         switch rule {
-        case "aggregate", "group":
+        case "group", "aggregate":
             if input.count > 0 {
                 var inputObjects: [SpatialObject] = []
                 var sortedObjects: [SpatialObject]
@@ -369,7 +369,8 @@ class SpatialInference {
                 let dx = minX + w/2.0
                 let dy = minY/2.0
                 let dz = minZ + d/2.0
-                let group = SpatialObject(id: groupId)
+                let objIdx = fact.indexOf(id: groupId) ?? -1
+                let group = objIdx < 0 ? SpatialObject(id: groupId) : fact.objects[objIdx]
                 group.setPosition(largestObject!.pos)
                 group.rotShift(-largestObject!.angle, dx:dx, dy:dy, dz:dz)
                 group.angle = largestObject!.angle
@@ -377,40 +378,46 @@ class SpatialInference {
                 group.height = h
                 group.depth = d
                 group.cause = .rule_produced
-                newObjects.append(group.asDict())
-                indices.append(fact.objects.count)
-                fact.objects.append(group)
+                if objIdx < 0 {
+                    newObjects.append(group.asDict())
+                    indices.append(fact.objects.count)
+                    fact.objects.append(group)
+                }
             }
 
-        case "duplicate", "copy":
+        case "copy", "duplicate":
             for i in input {
                 let copyId = "copy:" + fact.objects[i].id
                 var idx = fact.indexOf(id: copyId)
                 if idx == nil {
                     idx = fact.objects.count
-                    let copy = SpatialObject(id: fact.objects[i].id)
+                    let objIdx = fact.indexOf(id: copyId) ?? -1
+                    let copy = objIdx < 0 ? SpatialObject(id: fact.objects[i].id) : fact.objects[objIdx]
                     copy.fromAny(fact.objects[i].toAny())
                     copy.id = copyId
                     copy.cause = .rule_produced
                     copy.setPosition(fact.objects[i].pos)
                     copy.angle = fact.objects[i].angle
-                    newObjects.append(copy.asDict())
-                    fact.objects.append(copy)
-                    indices.append(idx!)
+                    if objIdx < 0 {
+                        newObjects.append(copy.asDict())
+                        fact.objects.append(copy)
+                        indices.append(idx!)
+                    }
                 } else {
                     indices.append(idx!)
                 }
             }
         case "by":
-            var addedBys: Set<String> = []
+            var processedBys: Set<String> = []
             for i in input {
                 let rels = fact.relationsWith(i, predicate: "by")
                 for rel in rels {
                     let idx = fact.indexOf(id: rel.subject.id)
-                    if input.contains(idx!) && !addedBys.contains(rel.subject.id + "-" + fact.objects[i].id) {
+                    if input.contains(idx!) && !processedBys.contains(rel.subject.id + "-" + fact.objects[i].id) {
                         let nearest = fact.objects[i].pos.nearest(rel.subject.points())
                         let byId = "by:" + fact.objects[i].id + "-" + rel.subject.id
-                        let obj = SpatialObject(id: byId)
+                        let objIdx = fact.indexOf(id: byId) ?? -1
+                        let obj = objIdx < 0 ? SpatialObject(id: byId) : fact.objects[objIdx]
                         obj.cause = .rule_produced
                         obj.setPosition(nearest.first!)
                         obj.angle = fact.objects[i].angle
@@ -422,15 +429,18 @@ class SpatialInference {
                             h = Float(nearest[1].y - nearest[0].y)
                         }
                         obj.height = h
-                        newObjects.append(obj.asDict())
-                        indices.append(fact.objects.count)
-                        fact.objects.append(obj)
-                        addedBys.insert(fact.objects[i].id + "-" + rel.subject.id)
+                        if objIdx < 0 {
+                            newObjects.append(obj.asDict())
+                            indices.append(fact.objects.count)
+                            fact.objects.append(obj)
+                        }
+                        processedBys.insert(fact.objects[i].id + "-" + rel.subject.id)
                     }
                 }
             }
             
         default:
+            // TODO: sectors
             error.append("Unknown \(rule) rule in produce()")
             return
         }
@@ -439,7 +449,6 @@ class SpatialInference {
             if assignments != "" {
                 assign(assignments, indices: indices)
             }
-            fact.load()
             output = input
             for i in indices {
                 if !output.contains(i) {
@@ -449,6 +458,7 @@ class SpatialInference {
         } else {
             output = input
         }
+        fact.load()
         succeeded = error.isEmpty
     }
     

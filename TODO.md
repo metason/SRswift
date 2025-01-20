@@ -22,16 +22,14 @@
 - meeting: inverse?
 
 ## produce
-- aggregate / group = bbox over all, aligned with largest
-- duplicate / copy = copy of each
-- *side = inbetween bbox (minimal)
-- *aligned = meeting bbox (minimal)
-- orthogonal = spanned area
-- opposite = inbetween bbox (minimal)
-- touching / by = edge bbox
-- meeting / at = plane bbox
+- at = meeting plane bbox
 - on = plane bbox
 - sector = sector bbox of each
+- add more use cases to README
+- *side = inbetween bbox (minimal)?
+- *aligned = meeting bbox (minimal)?
+- orthogonal = spanned area?
+- opposite = inbetween bbox (minimal)
 
 ## TODO
 
