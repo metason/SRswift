@@ -9,6 +9,8 @@
   
 ## BUG FIXES
 
+- check on topology == false
+  - sub topologies on/off?
 - check delta calc
 - delta calculation? Euclidean Signed Distance Function (ESDF)?
 - delta of .by and .at (min distance or overlap?)

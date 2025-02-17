@@ -72,7 +72,7 @@ struct SpatialAttributeTests {
     @Test("is moving")
     func ismoving() async throws {
         let object = SpatialObject(id: "2", position: .init(x: 0, y: 0, z: 0), width: 0.1, height: 1.0, depth: 0.1)
-        object.confidence.setValue(0.6)
+        object.confidence.setSpatial(0.6)
         object.velocity = .init(x: 0.2, y: 0.0, z: 0.1)
         #expect(object.motion == .moving)
     }
@@ -91,7 +91,7 @@ struct SpatialAttributeTests {
     func filterAttr() async throws {
         let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
         object.existence = .virtual
-        object.confidence.setValue(0.6)
+        object.confidence.setSpatial(0.6)
         let sp = SpatialReasoner()
         sp.load([object])
         let done = sp.run("filter(virtual AND NOT moving) | log(base)")
@@ -104,7 +104,7 @@ struct SpatialAttributeTests {
         let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
         object.existence = .virtual
         object.label = "Wall"
-        object.confidence.setValue(0.8)
+        object.confidence.label = 0.8
         let sp = SpatialReasoner()
         sp.load([object])
         let done = sp.run("filter(label == 'Wall' AND confidence.label > 0.7) | log(base)")

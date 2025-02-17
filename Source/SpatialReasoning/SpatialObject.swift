@@ -175,7 +175,7 @@ class SpatialObject {
         object.type = label
         object.cause = .object_detected
         object.existence = .real
-        object.confidence.setValue(0.25)
+        object.confidence.setSpatial(0.25)
         object.immobile = false
         object.shape = .unknown
         return object
@@ -197,7 +197,7 @@ class SpatialObject {
         object.supertype = "Building Element"
         object.cause = .plane_detected
         object.existence = .real
-        object.confidence.setValue(0.5)
+        object.confidence.setSpatial(0.5)
         object.immobile = true
         object.shape = .cubical
         return object
@@ -216,7 +216,7 @@ class SpatialObject {
         object.supertype = "Building Element"
         object.cause = .user_captured
         object.existence = .real
-        object.confidence.setValue(0.9)
+        object.confidence.setSpatial(0.9)
         object.immobile = true
         object.shape = .cubical
         return object
@@ -228,7 +228,7 @@ class SpatialObject {
         person.label = name
         person.cause = .self_tracked
         person.existence = .real
-        person.confidence.setValue(1.0)
+        person.confidence.setSpatial(1.0)
         person.immobile = false
         person.supertype = "Creature"
         person.type = "Person"
@@ -330,7 +330,7 @@ class SpatialObject {
             "angle": angle,
             "immobile": immobile,
             "velocity": [velocity.x, velocity.y, velocity.z],
-            "confidence": confidence.value,
+            "confidence": confidence.spatial,
             "shape": shape.rawValue,
             "look": look,
             "visible": visible,
@@ -383,8 +383,8 @@ class SpatialObject {
         self.type = input["type"] as? String ?? self.type
         self.supertype = input["supertype"] as? String ?? self.supertype
         number = input["confidence"] as? NSNumber
-        let confidence = number?.floatValue ?? self.confidence.value
-        self.confidence.setValue(confidence)
+        let confidence = number?.floatValue ?? self.confidence.spatial
+        self.confidence.setSpatial(confidence)
         let cause = input["cause"] as? String ?? self.cause.rawValue
         self.cause = ObjectCause.named(cause)
         let existence = input["existence"] as? String ?? self.existence.rawValue

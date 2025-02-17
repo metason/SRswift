@@ -260,7 +260,7 @@ class SpatialInference {
             case "baseradius": sortedObjects = inputObjects.sorted { $0.baseradius < $1.baseradius }
             case "radius": sortedObjects = inputObjects.sorted { $0.radius < $1.radius }
             case "speed": sortedObjects = inputObjects.sorted { $0.speed < $1.speed }
-            case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.value < $1.confidence.value }
+            case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.spatial < $1.confidence.spatial }
             case "lifespan": sortedObjects = inputObjects.sorted { $0.lifespan < $1.lifespan }
             default: sortedObjects = inputObjects.sorted { $0.dataValue(list[0]) < $1.dataValue(list[0]) }
             }
@@ -282,7 +282,7 @@ class SpatialInference {
             case "baseradius": sortedObjects = inputObjects.sorted { $0.baseradius > $1.baseradius }
             case "radius": sortedObjects = inputObjects.sorted { $0.radius > $1.radius }
             case "speed": sortedObjects = inputObjects.sorted { $0.speed > $1.speed }
-            case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.value > $1.confidence.value }
+            case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.spatial > $1.confidence.spatial }
             case "lifespan": sortedObjects = inputObjects.sorted { $0.lifespan > $1.lifespan }
             default: sortedObjects = inputObjects.sorted { $0.dataValue(list[0]) > $1.dataValue(list[0]) }
             }

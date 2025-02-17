@@ -82,14 +82,6 @@ class ObjectConfidence { // plausability values between 0.0 and 1.0
     var dimension:Float = 0.0  // plausability of size of spatial object
     var label:Float = 0.0  // plausability of classification: label, type, supertype
     var look:Float = 0.0  // plausability of look and shape
-    var value:Float {
-        return (pose + dimension + label)/3.0
-    }
-    func setValue(_ value:Float) {
-        pose = value
-        dimension = value
-        label = value
-    }
     var spatial:Float {
         return (pose + dimension)/2.0
     }
