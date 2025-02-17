@@ -8,7 +8,7 @@
 
 import Testing
 import SceneKit
-@testable import SpatialReasoning
+@testable import SpatialReasoner
 
 @Suite("Spatial Relations: Predicates")
 struct SpatialTest {

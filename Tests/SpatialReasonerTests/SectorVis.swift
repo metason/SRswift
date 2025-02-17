@@ -7,7 +7,7 @@
 
 import Testing
 import SceneKit
-@testable import SpatialReasoning
+@testable import SpatialReasoner
 
 @Suite("BBox Sector Vis")
 struct SectorVis {
