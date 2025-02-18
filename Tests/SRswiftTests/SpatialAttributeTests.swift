@@ -7,7 +7,7 @@
 
 import Testing
 //import SceneKit
-@testable import SpatialReasoner
+@testable import SRswift
 
 @Suite("Spatial Object: Derived Attributes")
 struct SpatialAttributeTests {

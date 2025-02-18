@@ -8,7 +8,7 @@
 
 import Foundation
 import Testing
-@testable import SpatialReasoner
+@testable import SRswift
 
 @Suite("Spatial Reasoning: Queries")
 struct SpatialReasoningTests {

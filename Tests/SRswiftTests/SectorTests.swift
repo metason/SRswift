@@ -7,7 +7,7 @@
 
 import Testing
 import SceneKit
-@testable import SpatialReasoner
+@testable import SRswift
 
 @Suite("BBox Sectors: Directional relations")
 struct SectorTests {
