@@ -160,20 +160,20 @@ public enum SpatialPredicate : String {
     case southwest
     case southeast
     
-    static func named(_ name: String) -> SpatialPredicate {
+    public static func named(_ name: String) -> SpatialPredicate {
         return SpatialPredicate(rawValue: name) ?? .undefined
     }
 }
 
-struct PredicateTerm {
-    var code:SpatialPredicate
-    var predicate:String // subject - predicate - object
-    var preposition:String
-    var synonym:String = ""
-    var reverse:String = "" //  : object - predicate - subject
-    var antonym:String = "" // if not predicate then antonym
+public struct PredicateTerm {
+    public var code:SpatialPredicate
+    public var predicate:String // subject - predicate - object
+    public var preposition:String
+    public var synonym:String = ""
+    public var reverse:String = "" //  : object - predicate - subject
+    public var antonym:String = "" // if not predicate then antonym
     //var opposite:String //  left : right
-    var verb:String = "is"
+    public var verb:String = "is"
 }
 
 // TODO: terms
@@ -186,7 +186,7 @@ struct PredicateTerm {
  case atrear
  */
 
-struct SpatialTerms {
+public struct SpatialTerms {
     nonisolated(unsafe) static let list: [PredicateTerm] = [
         /// proximity in WCS and OCS
         .init(code: .near, predicate: "near", preposition: "to", synonym: "close", reverse: "near", antonym: "far"),
@@ -252,7 +252,7 @@ struct SpatialTerms {
 
     ]
     
-    static func predicate(_ name: String) -> SpatialPredicate {
+    public static func predicate(_ name: String) -> SpatialPredicate {
         let pred = SpatialPredicate.named(name)
         if pred != .undefined {
             return pred
@@ -268,7 +268,7 @@ struct SpatialTerms {
         return .undefined
     }
     
-    static func term(_ code: SpatialPredicate) -> String {
+    public static func term(_ code: SpatialPredicate) -> String {
         for term in list {
             if term.code == code {
                 return term.predicate
@@ -280,7 +280,7 @@ struct SpatialTerms {
         return "undefined"
     }
     
-    static func termWithPreposition(_ code: SpatialPredicate) -> String {
+    public static func termWithPreposition(_ code: SpatialPredicate) -> String {
         for term in list {
             if term.code == code {
                 if term.preposition.isEmpty {
@@ -292,7 +292,7 @@ struct SpatialTerms {
         return "undefined"
     }
     
-    static func termWithVerbAndPreposition(_ code: SpatialPredicate) -> String {
+    public static func termWithVerbAndPreposition(_ code: SpatialPredicate) -> String {
         for term in list {
             if term.code == code {
                 if term.preposition.isEmpty {
@@ -305,7 +305,7 @@ struct SpatialTerms {
     }
     
     // predicate is symmetric / reciprocal / bi-directional
-    static func symmetric(_ code: SpatialPredicate) -> Bool {
+    public static func symmetric(_ code: SpatialPredicate) -> Bool {
         for term in list {
             if term.code == code {
                 return term.predicate == term.reverse
@@ -315,12 +315,12 @@ struct SpatialTerms {
     }
     
     // TODO: inverse
-    static func inverse(_ predicate: String) -> SpatialPredicate {
+    public static func inverse(_ predicate: String) -> SpatialPredicate {
         return .undefined
     }
     
     // TODO: negation
-    static func negation(_ predicate: String) -> SpatialPredicate {
+    public static func negation(_ predicate: String) -> SpatialPredicate {
         return .undefined
     }
 }

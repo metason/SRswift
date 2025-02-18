@@ -7,16 +7,16 @@
 
 import Foundation
 
-class SpatialInference {
+public class SpatialInference {
         
-    var input:[Int] = [] // indices to fact.base.objects
-    var output:[Int] = [] // indices to fact.base.objects
-    var operation = ""
-    var succeeded = false
-    var error = ""
-    var fact:SpatialReasoner
+    public var input:[Int] = [] // indices to fact.base.objects
+    public var output:[Int] = [] // indices to fact.base.objects
+    public var operation = ""
+    public var succeeded = false
+    public var error = ""
+    private var fact:SpatialReasoner
     
-    init(input: [Int], operation: String, in fact: SpatialReasoner) {
+    public init(input: [Int], operation: String, in fact: SpatialReasoner) {
         self.input = input
         self.operation = operation
         self.fact = fact

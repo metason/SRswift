@@ -9,23 +9,23 @@
 
 import Foundation
 
-class SpatialRelation {
-    var subject:SpatialObject // target subject
-    var predicate:SpatialPredicate // proposition matching spatial condition and max deviation
-    var object:SpatialObject // reference object
-    var delta:Float = 0.0 // difference of predicate value between subject and object, e.g. distance
-    var angle:Float = 0.0 // angle deviation of object direction in radiants
-    var yaw:Float { // deviation in degrees
+public class SpatialRelation {
+    public var subject:SpatialObject // target subject
+    public var predicate:SpatialPredicate // proposition matching spatial condition and max deviation
+    public var object:SpatialObject // reference object
+    public var delta:Float = 0.0 // difference of predicate value between subject and object, e.g. distance
+    public var angle:Float = 0.0 // angle deviation of object direction in radiants
+    public var yaw:Float { // deviation in degrees
         return angle * 180.0 / .pi
     }
-    var subjectID:String {
+    public var subjectID:String {
         return subject.id
     }
-    var objectID:String {
+    public var objectID:String {
         return object.id
     }
     
-    init(subject: SpatialObject, predicate: SpatialPredicate, object: SpatialObject, delta:Float = 0.0, angle:Float = 0.0) {
+    public init(subject: SpatialObject, predicate: SpatialPredicate, object: SpatialObject, delta:Float = 0.0, angle:Float = 0.0) {
         self.subject = subject
         self.predicate = predicate
         self.object = object
@@ -33,7 +33,7 @@ class SpatialRelation {
         self.angle = angle
     }
 
-    func desc() -> String {
+    public func desc() -> String {
         var str:String = subject.id
         if !subject.label.isEmpty {
             str = subject.label

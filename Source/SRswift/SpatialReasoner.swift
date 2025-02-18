@@ -12,29 +12,33 @@ import Foundation
 import SceneKit
 #endif
 
-class SpatialReasoner {
+public class SpatialReasoner {
 
     // settings
-    var adjustment = SpatialAdjustment()
-    var deduce = SpatialPredicateCategories()
-    var north = CGVector(dx: 0.0, dy: -1.0) // north direction, e.g., defined by ARKit
+    public var adjustment = SpatialAdjustment()
+    public var deduce = SpatialPredicateCategories()
+    public var north = CGVector(dx: 0.0, dy: -1.0) // north direction, e.g., defined by ARKit
 
     // data
-    var objects:[SpatialObject] = []
-    var observer:SpatialObject? = nil
-    var relMap:[Int: [SpatialRelation]] = [:] // index:[SpatialRelation]
-    var chain:[SpatialInference] = []
-    var base:Dictionary<String, Any> = [:] // fact base, objects will be duplicated here for r/w access of expression eval
-    var snapTime:Date = Date() // load time or update time of fact base
+    public var objects:[SpatialObject] = []
+    public var observer:SpatialObject? = nil
+    private var relMap:[Int: [SpatialRelation]] = [:] // index:[SpatialRelation]
+    public var chain:[SpatialInference] = []
+    public var base:Dictionary<String, Any> = [:] // fact base, objects will be duplicated here for r/w access of expression eval
+    public var snapTime:Date = Date() // load time or update time of fact base
     
     // logging
-    var pipeline:String = "" // last used inference pipeline
-    var name:String = "" // used as title for log
-    var description:String = "" // used in log output
+    public var pipeline:String = "" // last used inference pipeline
+    public var name:String = "" // used as title for log
+    public var description:String = "" // used in log output
     var logCnt:Int = 0
-    var logFolder:URL? = nil // if nil then Downloads folder will be used
+    public var logFolder:URL? = nil // if nil then Downloads folder will be used
 
-    func load(_ objs: [SpatialObject]? = nil) {
+    public init() {
+        
+    }
+    
+    public func load(_ objs: [SpatialObject]? = nil) {
         if objs != nil {
             objects = objs!
         }
@@ -101,14 +105,14 @@ class SpatialReasoner {
         }
     }
                        
-    func load(_ objs: [Dictionary<String, Any>]) {
+    public func load(_ objs: [Dictionary<String, Any>]) {
         base["objects"] = objs
         syncToObjects()
         base["snaptime"] = snapTime.description
         snapTime = Date()
     }
     
-    func load(_ json: String) {
+    public func load(_ json: String) {
         let data = json.data(using: String.Encoding.utf8, allowLossyConversion: false)
         if data != nil {
             let jsonObj = try? JSONSerialization.jsonObject(with: data!, options: .mutableContainers)
@@ -118,11 +122,11 @@ class SpatialReasoner {
         }
     }
     
-    func takeSnapshot() -> Dictionary<String, Any> {
+    public func takeSnapshot() -> Dictionary<String, Any> {
        return base
     }
     
-    func loadSnapshot(_ snapshot: Dictionary<String, Any>) {
+    public func loadSnapshot(_ snapshot: Dictionary<String, Any>) {
         base = snapshot
         syncToObjects()
     }
@@ -141,7 +145,7 @@ class SpatialReasoner {
         return []
     }
 
-    func run(_ pipeline: String) -> Bool {
+    public func run(_ pipeline: String) -> Bool {
         self.pipeline = pipeline
         logCnt = 0
         chain = []
@@ -183,7 +187,7 @@ class SpatialReasoner {
         return false
     }
     
-    func result() -> [SpatialObject] {
+    public func result() -> [SpatialObject] {
         var list:[SpatialObject] = []
         if !chain.isEmpty {
             for idx in chain.last!.output {
@@ -197,7 +201,7 @@ class SpatialReasoner {
         print(chain.last?.error as Any)
     }
     
-    static func printRelations(_ relations: [SpatialRelation]) {
+    public static func printRelations(_ relations: [SpatialRelation]) {
         for relation in relations {
             print("\(relation.subject.id) \(relation.predicate) \(relation.object.id) | " + String(format: "𝛥:%.2f  ", relation.delta) + String(format: "𝜶:%.1f°", relation.yaw))
         }
