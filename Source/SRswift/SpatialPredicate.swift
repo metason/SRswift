@@ -109,11 +109,6 @@ public enum SpatialPredicate : String {
     case twooclock
     case threeoclock
     case fouroclock
-    /// multistage relations
-    case secondleft
-    case secondright
-    case mostleft
-    case mostright
     // CONNECTIVITY
     /// contacts
     case on // on top of, unilateral

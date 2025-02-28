@@ -35,18 +35,26 @@ public class SpatialRelation {
 
     public func desc() -> String {
         var str:String = subject.id
-        if !subject.label.isEmpty {
-            str = subject.label
-        } else if !subject.type.isEmpty {
-            str = subject.type
+        if subject.id.count > 12 {
+            if !subject.label.isEmpty {
+                str = subject.label
+            } else if !subject.type.isEmpty {
+                str = subject.type
+            }
         }
+            
+        
         str = str + " " + SpatialTerms.termWithVerbAndPreposition(predicate) + " "
-        if !object.label.isEmpty {
-            str = str + object.label
-        } else if !object.type.isEmpty {
-            str = str + object.type
-        } else {
+        if object.id.count <= 12 {
             str = str +  object.id
+        } else {
+            if !object.label.isEmpty {
+                str = str + object.label
+            } else if !object.type.isEmpty {
+                str = str + object.type
+            } else {
+                str = str +  object.id
+            }
         }
         str = str + String(format: " (\(predicate.rawValue) 𝛥:%.2f  𝜶:%.1f°)", delta, yaw)
         return str

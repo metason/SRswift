@@ -81,8 +81,8 @@ struct SpatialAttributeTests {
     func azimuth() async throws {
         let object = SpatialObject(id: "2", position: .init(x: 0, y: 0, z: 0), width: 0.1, height: 1.0, depth: 0.1)
         object.setYaw(-30.0)
-        let sp = SpatialReasoner() // set context
-        sp.load([object])
+        let sr = SpatialReasoner() // set context
+        sr.load([object])
         print(object.azimuth)
         #expect(object.azimuth == 210.0)
     }
@@ -92,11 +92,11 @@ struct SpatialAttributeTests {
         let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
         object.existence = .virtual
         object.confidence.setSpatial(0.6)
-        let sp = SpatialReasoner()
-        sp.load([object])
-        let done = sp.run("filter(virtual AND NOT moving) | log(base)")
+        let sr = SpatialReasoner()
+        sr.load([object])
+        let done = sr.run("filter(virtual AND NOT moving) | log(base)")
         #expect(done)
-        #expect(sp.result().count == 1)
+        #expect(sr.result().count == 1)
     }
     
     @Test("filter(label == 'Wall')")
@@ -105,10 +105,10 @@ struct SpatialAttributeTests {
         object.existence = .virtual
         object.label = "Wall"
         object.confidence.label = 0.8
-        let sp = SpatialReasoner()
-        sp.load([object])
-        let done = sp.run("filter(label == 'Wall' AND confidence.label > 0.7) | log(base)")
+        let sr = SpatialReasoner()
+        sr.load([object])
+        let done = sr.run("filter(label == 'Wall' AND confidence.label > 0.7) | log(base)")
         #expect(done)
-        #expect(sp.result().count == 1)
+        #expect(sr.result().count == 1)
     }
 }

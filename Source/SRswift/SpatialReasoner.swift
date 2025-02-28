@@ -136,10 +136,14 @@ public class SpatialReasoner {
         base["chain"] = (base["chain"] as! [Dictionary<String, Any>]) + [inference.asDict()]
     }
     
-    func backtrace() -> [Int] {
+    func backtrace(_ steps: Int = 1) -> [Int] {
+        var cnt = 0
         for idx in (0..<chain.count).reversed() {
+            cnt = cnt + 1
             if chain[idx].isManipulating()  {
-                return chain[idx].input
+                if cnt == steps {
+                    return chain[idx].input
+                }
             }
         }
         return []

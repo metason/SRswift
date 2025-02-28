@@ -221,9 +221,9 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), observer.bboxCube(color: CGColor(red: 0, green: 1, blue: 0, alpha: 0))])
         #expect(relations.contains(where: { $0.predicate == .seenleft }))
-        let sp = SpatialReasoner()
-        sp.load([subject, object, observer])
-        _ = sp.run("deduce(topology visibility) | log(seenleft seenright left right infront behind)")
+        let sr = SpatialReasoner()
+        sr.load([subject, object, observer])
+        _ = sr.run("deduce(topology visibility) | log(seenleft seenright left right infront behind)")
     }
     
     @Test("subj in front of obj")

@@ -105,7 +105,7 @@
 User-related
 - visible
 - focused
-- tangible // can be grabbed (by hand)
+- tangible ? // can be grabbed (by hand)
 
 ## Relation Inference (Query)
 

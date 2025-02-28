@@ -7,8 +7,8 @@
 
 import Foundation
 
-public class SpatialInference {
-        
+public class SpatialInference : Hashable {
+    
     public var input:[Int] = [] // indices to fact.base.objects
     public var output:[Int] = [] // indices to fact.base.objects
     public var operation = ""
@@ -295,24 +295,32 @@ public class SpatialInference {
         succeeded = !output.isEmpty
     }
     
-    func sortByRelation(_ attribute: String) {
+    // backtrace steps
+    func sortByRelation(_ attribute: String, steps: Int = 1) {
         var ascending = false
+        var steps: Int = 1
         var inputObjects: [SpatialObject] = []
-        let preIndices = fact.backtrace()
         var sortedObjects: [SpatialObject]
         for i in input {
             inputObjects.append(fact.objects[i])
         }
         let list = attribute.split(separator: " ").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
+        if list.count == 0 { return }
+        let attr = list[0]
         if list.count > 1 {
-            if list[1] == "<" {
-                ascending = true
+            for i in 1..<list.count {
+                if list[i] == "<" {
+                    ascending = true
+                } else {
+                    steps = Int(list[i]) ?? steps
+                }
             }
         }
+        let preIndices = fact.backtrace(steps)
         if ascending {
-            sortedObjects = inputObjects.sorted { $0.relationValue(attribute, pre: preIndices) < $1.relationValue(attribute, pre: preIndices) }
+            sortedObjects = inputObjects.sorted { $0.relationValue(attr, pre: preIndices) < $1.relationValue(attr, pre: preIndices) }
         } else {
-            sortedObjects = inputObjects.sorted { $0.relationValue(attribute, pre: preIndices) > $1.relationValue(attribute, pre: preIndices) }
+            sortedObjects = inputObjects.sorted { $0.relationValue(attr, pre: preIndices) > $1.relationValue(attr, pre: preIndices) }
         }
         for object in sortedObjects {
             if let idx = fact.objects.firstIndex(where: {$0 === object}) {
@@ -492,14 +500,14 @@ public class SpatialInference {
     }
     
     public func asDict() -> Dictionary<String, Any> {
-        let output = [
+        let dict = [
             "operation": operation,
             "input": input,
             "output": output,
             "error": error,
             "succeeded": succeeded
         ] as [String : Any]
-        return output
+        return dict
     }
     
     static func attributePredicate(_ condition: String) -> NSPredicate? {
@@ -520,6 +528,14 @@ public class SpatialInference {
             }
         }
         return NSPredicate(format: cond)
+    }
+    
+    public static func == (lhs: SpatialInference, rhs: SpatialInference) -> Bool {
+        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
 }
