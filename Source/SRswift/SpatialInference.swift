@@ -295,10 +295,10 @@ public class SpatialInference : Hashable {
         succeeded = !output.isEmpty
     }
     
-    // backtrace steps
-    func sortByRelation(_ attribute: String, steps: Int = 1) {
+    // steps: amount of backtrace steps in pipeline to compare relations with that input
+    func sortByRelation(_ attribute: String, backtraceSteps: Int = 1) {
         var ascending = false
-        var steps: Int = 1
+        var steps: Int = backtraceSteps
         var inputObjects: [SpatialObject] = []
         var sortedObjects: [SpatialObject]
         for i in input {
