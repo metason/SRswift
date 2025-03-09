@@ -1015,7 +1015,7 @@ public class SpatialObject {
                 
                 if  minY < height + adjustment.maxGap && maxY > -adjustment.maxGap {
                     gap = min(xlap, zlap)
-                    if !aligned && canNotOverlap && gap > 0.0 && gap < adjustment.maxGap { // FIXME: min distance check???
+                    if !aligned && canNotOverlap && gap > 0.0 && gap < adjustment.maxGap {
                         if (maxX < -width/2.0 + adjustment.maxGap) || (minX > width/2.0 - adjustment.maxGap) || (maxZ < -depth/2.0 + adjustment.maxGap) || (minZ > depth/2.0 - adjustment.maxGap) {
                             relation = SpatialRelation(subject: subject, predicate: .touching, object: self, delta: gap, angle: theta)
                             result.append(relation)

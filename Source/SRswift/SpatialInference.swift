@@ -338,7 +338,6 @@ public class SpatialInference : Hashable {
         if list.count > 1 {
             assignments = list[1]
         }
-        // TODO: produce(at)
         var indices:[Int] = [] // new produced object indices
         var newObjects = [Dictionary<String, Any>]()
         switch rule {
@@ -445,7 +444,12 @@ public class SpatialInference : Hashable {
                     }
                 }
             }
-            
+        case "on":
+            // TODO: produce(on)
+            break
+        case "at":
+            // TODO: produce(at)
+            break
         default:
             // TODO: sectors
             error.append("Unknown \(rule) rule in produce()")

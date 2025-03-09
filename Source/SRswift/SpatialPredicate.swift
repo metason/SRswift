@@ -171,15 +171,7 @@ public struct PredicateTerm {
     public var verb:String = "is"
 }
 
-// TODO: terms
-/* observer-related
- case facing // facing towards user
- case focusing // gazing; +/-10 = 20 degrees
- case seenleft // A is seen left of B (by observer)
- case seenright
- case infront // (partially) covering
- case atrear
- */
+
 
 public struct SpatialTerms {
     nonisolated(unsafe) static let list: [PredicateTerm] = [
@@ -317,6 +309,28 @@ public struct SpatialTerms {
     // TODO: negation
     public static func negation(_ predicate: String) -> SpatialPredicate {
         return .undefined
+    }
+    
+    //TODO: implement dynamic loading of SpatialTerms
+    public static func load() {
+        
+    }
+    
+    // TODO: make PredicateTerm Codable!
+    public static func save() {
+#if os(macOS)
+        let urls = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
+        if urls.count > 0 {
+            let url = urls.first!
+            do {
+                let fileURL = url.appendingPathComponent("SpatialTerms.json")
+                let jsonData = try JSONSerialization.data(withJSONObject: SpatialTerms.list, options: .prettyPrinted)
+                try jsonData.write(to: fileURL, options: [.atomic])
+            } catch {
+                print(error)
+            }
+        }
+#endif
     }
 }
 
