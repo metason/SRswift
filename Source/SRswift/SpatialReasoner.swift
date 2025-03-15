@@ -173,6 +173,8 @@ public class SpatialReasoner {
                 let startIdx = op.index(op.startIndex, offsetBy: 7)
                 let endIdx = op.index(op.endIndex, offsetBy: -1)
                 deduce(String(op[startIdx..<endIdx]))
+            } else if op.starts(with: "halt(") {
+                break
             } else {
                 let inference = SpatialInference(input: !chain.isEmpty ? chain.last!.output : indices, operation: op, in: self)
                 record(inference)

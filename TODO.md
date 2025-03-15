@@ -13,8 +13,6 @@
 
 ## Clarify
 
-- Capital in pipeline?
-- halt() op: stop pipeline and fail
 - implement dynamic loading of SpatialTerms
   - as library resource
   - concept for language translation
@@ -23,8 +21,7 @@
 ## SUBITO TODO (before launch)
 
 - check TODO:
-- TODO: calculating shortest distance between two rotated rectangles, check GJK algorithm
-- Enhance README: Tests
+- enhance README: Tests
 - finalize produce()
   - on, at
 - check on topology == false

@@ -1015,8 +1015,10 @@ public class SpatialObject {
                 
                 if  minY < height + adjustment.maxGap && maxY > -adjustment.maxGap {
                     gap = min(xlap, zlap)
-                    if !aligned && canNotOverlap && gap > 0.0 && gap < adjustment.maxGap {
-                        if (maxX < -width/2.0 + adjustment.maxGap) || (minX > width/2.0 - adjustment.maxGap) || (maxZ < -depth/2.0 + adjustment.maxGap) || (minZ > depth/2.0 - adjustment.maxGap) {
+                    // WARNING: changed next two conditions and removed inner else
+                    if !aligned && gap > 0.0 && gap < adjustment.maxGap {
+                        if (abs(maxX + width/2.0) <  adjustment.maxGap) || (abs(minX - width/2.0) < adjustment.maxGap) ||
+                            (abs(maxZ + depth/2.0) < adjustment.maxGap) || (abs(minZ - depth/2.0) < adjustment.maxGap) {
                             relation = SpatialRelation(subject: subject, predicate: .touching, object: self, delta: gap, angle: theta)
                             result.append(relation)
                             if !isConnected && context?.deduce.connectivity ?? true {
@@ -1024,9 +1026,6 @@ public class SpatialObject {
                                 result.append(relation)
                                 isConnected = true
                             }
-                        } else {
-                            // TODO: calculating shortest distance between two rotated rectangles, check GJK algorithm,
-                            print("OOPS, rotated bbox might cross: assembly relations by shortest distance not yet implemented! \(subject.id) - ? - \(id)")
                         }
                     } else {
                         //print("alligned assembly \(subject.id) - ? - \(id): \(xlap) \(ylap) \(zlap)")

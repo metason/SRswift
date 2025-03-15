@@ -18,6 +18,7 @@ The SRswift library supports the following operations of the [__Spatial Reasoner
 - [ ] __produce__: create new spatial objects driven by their relations (_partially implemented_)
 - [x] __reload__: reload all spatial objects of fact base as new input
 - [x] __log__: log the current status of the inference pipeline
+- [x] __halt__: stop processing the inference pipeline (for debug purposes)
 
 
 ## Getting Started
