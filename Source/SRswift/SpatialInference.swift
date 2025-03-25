@@ -24,6 +24,9 @@ public class SpatialInference : Hashable {
         if operation.starts(with: "filter(") {
             let startIdx = operation.index(operation.startIndex, offsetBy: 7)
             filter(String(operation[startIdx..<endIdx]))
+        } else if operation.starts(with: "isa(") {
+            let startIdx = operation.index(operation.startIndex, offsetBy: 4)
+            isa(String(operation[startIdx..<endIdx]))
         } else if operation.starts(with: "pick(") {
             let startIdx = operation.index(operation.startIndex, offsetBy: 5)
             pick(String(operation[startIdx..<endIdx]))
@@ -64,6 +67,39 @@ public class SpatialInference : Hashable {
         for i in input {
             let result = predicate!.evaluate(with: baseObjects[i])
             if result {
+                add(index: i)
+            }
+        }
+        succeeded = true
+    }
+    
+    func isa(_ type: String) {
+        var str = type.lowercased().replacingOccurrences(of: " || ", with: " or ")
+        str = str.replacingOccurrences(of: " or ", with: " | ")
+        let list = str.split(separator: "|")
+        
+        let baseObjects = fact.base["objects"] as! [Dictionary<String, Any>]
+        for i in input {
+            var doAdd = false
+            for term in list {
+                if !doAdd {
+                    let targetType = term.trimmingCharacters(in: CharacterSet(charactersIn: "' "))
+                    var baseConcept:SpatialObjectConcept? = nil
+                    var baseType = baseObjects[i]["type"] as? String
+                    if baseType != nil && !baseType!.isEmpty {
+                        baseConcept = SpatialTaxonomy.getConcept(label: baseType!)
+                    }
+                    if baseConcept == nil {
+                        baseType = baseObjects[i]["label"] as? String
+                        baseConcept = SpatialTaxonomy.getConcept(label: baseType!)
+                    }
+                    if baseConcept != nil {
+                        let result = baseConcept!.isa(type: targetType)
+                        doAdd = result != nil
+                    }
+                }
+            }            
+            if doAdd {
                 add(index: i)
             }
         }

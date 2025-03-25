@@ -125,7 +125,6 @@ struct SpatialReasoningTests {
         sr.adjustment.sectorSchema = .fixed
         sr.adjustment.nearbyFactor = 1.0
         sr.load([wall1, wall2, wall3, wall4, floor, door, window, table, book, picture])
-        // | filter(supertype BEGINSWITH 'Building')
         let pipeline = """
             deduce(topology connectivity)
             | log(base 3D ontop inside)
@@ -345,5 +344,88 @@ struct SpatialReasoningTests {
         """
         let done = sr.run(pipeline)
         #expect(done)
+    }
+    
+    @Test("isa base type")
+    func isaBaseType() async throws {
+        let ontoURL = URL(string: "https://service.metason.net/ar/onto/test.owl")
+        if ontoURL != nil {
+            SpatialTaxonomy.load(from: ontoURL!)
+        }
+        sleep(1) // async loading of taxonomy, therefore we wait 1 sec
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
+        object.type = "Bed"
+        let sr = SpatialReasoner()
+        sr.load([object])
+        let pipeline = """
+            isa('Bed')
+            | log(base)
+        """
+        let done = sr.run(pipeline)
+        #expect(done)
+        #expect(sr.result().count == 1)
+
+    }
+    
+    @Test("isa super type")
+    func isaSuperType() async throws {
+        let ontoURL = URL(string: "https://service.metason.net/ar/onto/test.owl")
+        if ontoURL != nil {
+            SpatialTaxonomy.load(from: ontoURL!)
+        }
+        sleep(1)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
+        object.type = "Single Bed"
+        let sr = SpatialReasoner()
+        sr.load([object])
+        let pipeline = """
+            isa('Bed')
+            | log(base)
+        """
+        let done = sr.run(pipeline)
+        #expect(done)
+        #expect(sr.result().count == 1)
+    }
+    
+    @Test("isa synonym type")
+    func isaSynonymType() async throws {
+        let ontoURL = URL(string: "https://service.metason.net/ar/onto/test.owl")
+        if ontoURL != nil {
+            SpatialTaxonomy.load(from: ontoURL!)
+        }
+        sleep(1)
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
+        object.type = "Computer"
+        let sr = SpatialReasoner()
+        sr.load([object])
+        let pipeline = """
+            isa(tool)
+            | log(base)
+        """
+        let done = sr.run(pipeline)
+        #expect(done)
+        #expect(sr.result().count == 1)
+    }
+    
+    @Test("isa OR type")
+    func isaORType() async throws {
+        let ontoURL = URL(string: "https://service.metason.net/ar/onto/test.owl")
+        if ontoURL != nil {
+            SpatialTaxonomy.load(from: ontoURL!)
+        }
+        sleep(1)
+        let subject = SpatialObject(id: "subj", position: .init(x: 0.83, y: 0, z: -0.2), width: 0.4, height: 0.8, depth: 0.5)
+        subject.label = "chair"
+        let object = SpatialObject(id: "obj", position: .init(x: 0.5, y: 0, z: 0.8), width: 1.0, height: 1.0, depth: 1.0)
+        object.type = "Computer"
+        let sr = SpatialReasoner()
+        sr.load([subject, object])
+        let pipeline = """
+            isa(tool OR furniture)
+            | log(base)
+        """
+        let done = sr.run(pipeline)
+        #expect(done)
+        #expect(sr.result().count == 2)
     }
 }

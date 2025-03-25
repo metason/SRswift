@@ -17,7 +17,6 @@ public class SpatialObject {
     public var cause:ObjectCause = .unknown
     public var label:String = "" // name or label
     public var type:String = "" // class
-    public var supertype:String = "" // superclass
     public var look:String = "" // textual description of appearance: color, bright/dark, dull/shiny, metallic, transparent, ...
     public var data:Dictionary<String,Any>? = nil // auxiliary data
     public var created:Date // creation time
@@ -143,7 +142,7 @@ public class SpatialObject {
     
     public static let booleanAttributes: [String] = ["immobile", "moving", "focused", "visible", "equilateral", "thin", "long", "real", "virtual", "conceptual"]
     public static let numericAttributes: [String] = ["width", "height", "depth", "w", "h", "d", "position", "x", "y", "z", "angle", "confidence"]
-    public static let stringAttributes: [String] = ["id", "label", "type", "supertype", "existence", "cause", "shape", "look"]
+    public static let stringAttributes: [String] = ["id", "label", "type", "existence", "cause", "shape", "look"]
 
     public init(id: String, position: SCNVector3 = SCNVector3(), width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0, angle: Float = 0.0, label: String = "", confidence: Float = 0.0) {
         self.id = id
@@ -194,7 +193,6 @@ public class SpatialObject {
         let object = SpatialObject(id: id, position: position, width: width, height: height, depth: depth)
         object.label = type.lowercased()
         object.type = type
-        object.supertype = "Building Element"
         object.cause = .plane_detected
         object.existence = .real
         object.confidence.setSpatial(0.5)
@@ -213,7 +211,6 @@ public class SpatialObject {
         object.angle = -Float(atan2(midVector.z, midVector.x))
         object.label = type.lowercased()
         object.type = type
-        object.supertype = "Building Element"
         object.cause = .user_captured
         object.existence = .real
         object.confidence.setSpatial(0.9)
@@ -230,7 +227,6 @@ public class SpatialObject {
         person.existence = .real
         person.confidence.setSpatial(1.0)
         person.immobile = false
-        person.supertype = "Creature"
         person.type = "Person"
         person.shape = .changing
         return person
@@ -271,7 +267,6 @@ public class SpatialObject {
             "cause": cause.rawValue,
             "label": label,
             "type": type,
-            "supertype": supertype,
             "position": [position.x, position.y, position.z],
             "center": [center.x, center.y, center.z],
             "width": width,
@@ -322,7 +317,6 @@ public class SpatialObject {
             "cause": cause.rawValue,
             "label": label,
             "type": type,
-            "supertype": supertype,
             "position": [position.x, position.y, position.z],
             "width": width,
             "height": height,
@@ -381,7 +375,6 @@ public class SpatialObject {
         self.angle = number?.floatValue ?? self.angle
         self.label = input["label"] as? String ?? self.label
         self.type = input["type"] as? String ?? self.type
-        self.supertype = input["supertype"] as? String ?? self.supertype
         number = input["confidence"] as? NSNumber
         let confidence = number?.floatValue ?? self.confidence.spatial
         self.confidence.setSpatial(confidence)
@@ -410,9 +403,7 @@ public class SpatialObject {
         if !type.isEmpty {
             str = str + "\(type), "
         }
-        if !supertype.isEmpty {
-            str = str + "\(supertype), "
-        }
+
         str = str + String(format: "%.2f/", position.x) + String(format: "%.2f/", position.y) + String(format: "%.2f, ", position.z)
         str = str + String(format: "%.2fx", width) + String(format: "%.2fx", depth) + String(format: "%.2f, ", height)
         str = str + String(format: "𝜶:%.1f°", yaw)
@@ -1400,7 +1391,7 @@ public class SpatialObject {
         let predicate = list[0]
         let attribute = list[1]
         var result: Float = 0.0
-        // FIXME: take min instead of last?
+        // TODO: take min instead of last?
         for i in pre {
             let rels = context!.relationsWith(i, predicate: predicate)
             for rel in rels {

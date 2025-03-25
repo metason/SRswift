@@ -288,4 +288,10 @@ struct SpatialTest {
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), subject.pointNodes(), object.pointNodes()])
     }
     
+    @Test("all in categories")
+    func allInCategroies() async throws {
+        #expect(PredicateCategories.sectors.count == 3*3*3)
+        #expect(PredicateCategories.allInCategories())
+    }
+    
 }

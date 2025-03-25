@@ -471,7 +471,7 @@ public class SpatialReasoner {
                         mmdRels = mmdRels + "    " + relation.subject.id + leftLink + relation.predicate.rawValue + " --> " + relation.object.id + "\n"
                     }
                 }
-                if contacts.contains(relation.predicate) {
+                if PredicateCategories.connectivity.contains(relation.predicate) {
                     var doAddContact = true
                     var leftLink = " -- "
                     if relation.predicate == .by {

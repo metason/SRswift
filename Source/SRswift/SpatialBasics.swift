@@ -80,7 +80,7 @@ public class SpatialPredicateCategories {
 public class ObjectConfidence { // plausability values between 0.0 and 1.0
     public var pose:Float = 0.0 // plausability of position and orientation of (partially) detected part
     public var dimension:Float = 0.0  // plausability of size of spatial object
-    public var label:Float = 0.0  // plausability of classification: label, type, supertype
+    public var label:Float = 0.0  // plausability of classification: label, type
     public var look:Float = 0.0  // plausability of look and shape
     public var spatial:Float {
         return (pose + dimension)/2.0

@@ -13,23 +13,29 @@
 
 ## Clarify
 
+- README of Spatial Reasoner: add Python and C# examples
 - implement dynamic loading of SpatialTerms
   - as library resource
+  - JSON file: key and values NOT capitalized?
   - concept for language translation
 - covering // (partially) hiding
+
 
 ## SUBITO TODO (before launch)
 
 - check TODO:
+- improve assertions in test cases
+- improve Spatial Terms
 - enhance README: Tests
 - finalize produce()
-  - on, at
+  - on, at, sector
 - check on topology == false
   - sub topologies on/off?
 - delta calculation? Euclidean Signed Distance Function (ESDF)
   - check delta calc --> test cases
   - min distance, neg. on overlap?
 - usage of NOT (or !) --> test cases
+- remove WARNING:
 
 ## GENERAL IDEAS
   
@@ -52,6 +58,7 @@
 - Spatial Onthology Editor
   - File format for exchange: meta data (author, context), ruleset
   - ARchi Composer: reasoning editor, show bbox of spatial objects 
+  - Language translator for SpatialTerms and SpatialTaxonomy
 
 
 ## Predicates

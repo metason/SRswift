@@ -9,22 +9,11 @@ import Foundation
 
 // Spatial predicate categories
 
-nonisolated(unsafe) let proximity:[SpatialPredicate] = [.near, .far]
-nonisolated(unsafe) let directionality:[SpatialPredicate] = [.left, .right, .above, .below, .ahead, .behind]
-nonisolated(unsafe) let adjacency:[SpatialPredicate] = [.leftside, .rightside, .ontop, .beneath, .upperside, .lowerside, .frontside, .backside]
-nonisolated(unsafe) let orientations:[SpatialPredicate] = [.orthogonal, .opposite, .aligned, .frontaligned, .backaligned, .rightaligned, .leftaligned]
-nonisolated(unsafe) let assembly:[SpatialPredicate] = [.disjoint, .inside, .containing, .overlapping, .crossing, .touching, .meeting, .beside]
-nonisolated(unsafe) let topology = proximity + directionality + adjacency + orientations + assembly
-nonisolated(unsafe) let contacts:[SpatialPredicate] = [.on, .at, .by, .in]
-nonisolated(unsafe) let connectivity = contacts
-nonisolated(unsafe) let comparability:[SpatialPredicate] = [.smaller, .bigger, .shorter, .longer, .taller, .thinner, .wider, .fitting, .exceeding]
-nonisolated(unsafe) let similarity:[SpatialPredicate] = [.sameheight, .samewidth, .samedepth, .samelength, .samefront, .sameside, .samefootprint, .samevolume, .samecenter, .samecuboid, .congruent, .sameshape]
-nonisolated(unsafe) let visibility:[SpatialPredicate] = [.seenleft, .seenright, .infront, .atrear, .tangible, .eightoclock, .nineoclock, .tenoclock, .elevenoclock, .twelveoclock, .oneoclock, .twooclock, .threeoclock, .fouroclock]
-nonisolated(unsafe) let geography:[SpatialPredicate] = [.north, .south, .east, .west, .northwest, .northeast, .southwest, .southeast]
-nonisolated(unsafe) let sectors:[SpatialPredicate] = [ .i, .a, .b, .o, .u, .l, .r, .al, .ar, .bl, .br, .ao, .au, .bo, .bu, .lo, .lu, .ro, .ru, .alo, .aro, .blo, .bro, .alu, .aru, .blu, .bru]
+//nonisolated(unsafe) let proximity:[SpatialPredicate] = [.near, .far]
+
 
 // Spatial predicates used for: Subject - predicate - Object
-public enum SpatialPredicate : String {
+public enum SpatialPredicate : String, CaseIterable {
     case undefined // try to resolve by synonym or inverse
     // TOPOLOGY
     /// proximity: near by
@@ -160,14 +149,37 @@ public enum SpatialPredicate : String {
     }
 }
 
+public struct PredicateCategories {
+    nonisolated(unsafe) public static let proximity:[SpatialPredicate] = [.near, .far]
+    nonisolated(unsafe) public static let directionality:[SpatialPredicate] = [.left, .right, .above, .below, .ahead, .behind]
+    nonisolated(unsafe) public static let adjacency:[SpatialPredicate] = [.leftside, .rightside, .ontop, .beneath, .upperside, .lowerside, .frontside, .backside]
+    nonisolated(unsafe) public static let orientations:[SpatialPredicate] = [.orthogonal, .opposite, .aligned, .frontaligned, .backaligned, .rightaligned, .leftaligned]
+    nonisolated(unsafe) public static let assembly:[SpatialPredicate] = [.disjoint, .inside, .containing, .overlapping, .crossing, .touching, .meeting, .beside, .fitting, .exceeding]
+    nonisolated(unsafe) public static var connectivity:[SpatialPredicate] = [.on, .at, .by, .in] // contacts
+    nonisolated(unsafe) public static let comparability:[SpatialPredicate] = [.smaller, .bigger, .shorter, .longer, .taller, .thinner, .wider]
+    nonisolated(unsafe) public static let similarity:[SpatialPredicate] = [.sameheight, .samewidth, .samedepth, .samelength, .samefront, .sameside, .samefootprint, .samevolume, .sameperimeter, .samesurface, .sameposition, .samecenter, .samecuboid, .congruent, .sameshape]
+    nonisolated(unsafe) public static let visibility:[SpatialPredicate] = [.seenleft, .seenright, .infront, .atrear, .tangible, .eightoclock, .nineoclock, .tenoclock, .elevenoclock, .twelveoclock, .oneoclock, .twooclock, .threeoclock, .fouroclock]
+    nonisolated(unsafe) public static let geography:[SpatialPredicate] = [.north, .south, .east, .west, .northwest, .northeast, .southwest, .southeast]
+    nonisolated(unsafe) public static let sectors:[SpatialPredicate] = [ .i, .a, .b, .o, .u, .l, .r, .al, .ar, .bl, .br, .ao, .au, .bo, .bu, .lo, .lu, .ro, .ru, .alo, .aro, .blo, .bro, .alu, .aru, .blu, .bru]
+    public static var topology:[SpatialPredicate] {
+        return PredicateCategories.proximity + PredicateCategories.directionality + PredicateCategories.adjacency + PredicateCategories.orientations + PredicateCategories.assembly
+    }
+    
+    public static func allInCategories() -> Bool {
+        let amount = PredicateCategories.proximity.count + PredicateCategories.directionality.count + PredicateCategories.adjacency.count + PredicateCategories.orientations.count + PredicateCategories.assembly.count + PredicateCategories.connectivity.count + PredicateCategories.comparability.count + PredicateCategories.similarity.count + PredicateCategories.visibility.count + PredicateCategories.geography.count + PredicateCategories.sectors.count
+        print("categroies: \(amount) == \(SpatialPredicate.allCases.count - 1)")
+        return amount == SpatialPredicate.allCases.count - 1 // minus undefined
+    }
+    
+}
+
 public struct PredicateTerm {
     public var code:SpatialPredicate
     public var predicate:String // subject - predicate - object
     public var preposition:String
-    public var synonym:String = ""
-    public var reverse:String = "" //  : object - predicate - subject
+    public var synonyms:String = ""
+    public var inverse:String = "" //  reverse, opposite predicate: object - predicate - subject
     public var antonym:String = "" // if not predicate then antonym
-    //var opposite:String //  left : right
     public var verb:String = "is"
 }
 
@@ -176,68 +188,78 @@ public struct PredicateTerm {
 public struct SpatialTerms {
     nonisolated(unsafe) static let list: [PredicateTerm] = [
         /// proximity in WCS and OCS
-        .init(code: .near, predicate: "near", preposition: "to", synonym: "close", reverse: "near", antonym: "far"),
-        .init(code: .far, predicate: "far", preposition: "from", synonym: "close", reverse: "far", antonym: "near"),
+        .init(code: .near, predicate: "near", preposition: "to", synonyms: "close, nearby", inverse: "near", antonym: "far"),
+        .init(code: .far, predicate: "far", preposition: "from", synonyms: "far away", inverse: "far", antonym: "near"),
         /// alignment in OCS
-        .init(code: .left, predicate: "left", preposition: "of", synonym: "to the left"),
-        .init(code: .right, predicate: "right", preposition: "of", synonym: "to the right"),
-        .init(code: .ahead, predicate: "ahead", preposition: "of", synonym: "before"),
-        .init(code: .behind, predicate: "behind", preposition: "", synonym: "after"),
-        .init(code: .above, predicate: "above", preposition: "", synonym: "over", reverse: "below"),
-        .init(code: .below, predicate: "below", preposition: "", synonym: "under", reverse: "above"),
+        .init(code: .left, predicate: "left", preposition: "of", synonyms: "to the left", antonym: "right"),
+        .init(code: .right, predicate: "right", preposition: "of", synonyms: "to the right", antonym: "left"),
+        .init(code: .ahead, predicate: "ahead", preposition: "of", synonyms: "beforehand", inverse: "behind", antonym: "behind"),
+        .init(code: .behind, predicate: "behind", preposition: "", synonyms: "after", inverse: "ahead", antonym: "ahead"),
+        .init(code: .above, predicate: "above", preposition: "", synonyms: "over", inverse: "below", antonym: "below"),
+        .init(code: .below, predicate: "below", preposition: "", synonyms: "under", inverse: "above", antonym: "above"),
         /// adjacancy in OCS
-        .init(code: .ontop, predicate: "on top", preposition: "of", synonym: "at the top", reverse: "beneath"),
-        .init(code: .beneath, predicate: "beneath", preposition: "", synonym: "underneath", reverse: "on top"),
-        .init(code: .upperside, predicate: "at upper side", preposition: "of", reverse: "at lower side" ),
-        .init(code: .lowerside, predicate: "at lower side", preposition: "of", reverse: "at upper side" ),
-        .init(code: .leftside, predicate: "at left side", preposition: "of", synonym: "at left-hand side"),
-        .init(code: .rightside, predicate: "at right side", preposition: "of", synonym: "at right-hand side"),
-        .init(code: .frontside, predicate: "at front side", preposition: "of", synonym: "at forefront"),
-        .init(code: .backside, predicate: "at back side", preposition: "of", synonym: "at rear side"),
+        .init(code: .ontop, predicate: "on top", preposition: "of", synonyms: "at the top, atop", inverse: "beneath"),
+        .init(code: .beneath, predicate: "beneath", preposition: "", synonyms: "underneath", inverse: "on top"),
+        .init(code: .upperside, predicate: "at upper side", preposition: "of", synonyms: "at upperside", inverse: "at lower side" ),
+        .init(code: .lowerside, predicate: "at lower side", preposition: "of", inverse: "at upper side" ),
+        .init(code: .leftside, predicate: "at left side", preposition: "of", synonyms: "at left-hand side"),
+        .init(code: .rightside, predicate: "at right side", preposition: "of", synonyms: "at right-hand side"),
+        .init(code: .frontside, predicate: "at front side", preposition: "of", synonyms: "at frontside, at forefront"),
+        .init(code: .backside, predicate: "at back side", preposition: "of", synonyms: "at backside, at rear side"),
         /// orientation
-        .init(code: .aligned, predicate: "aligned", preposition: "with", synonym: "parallel", reverse: "aligned"),
-        .init(code: .orthogonal, predicate: "orthogonal", preposition: "to", synonym: "perpendicular", reverse: "orthogonal"),
-        .init(code: .opposite, predicate: "opposite", preposition: "", synonym: "vis-a-vis", reverse: "opposite"),
+        .init(code: .aligned, predicate: "aligned", preposition: "with", synonyms: "parallel", inverse: "aligned", antonym: "unaligned"),
+        .init(code: .orthogonal, predicate: "orthogonal", preposition: "to", synonyms: "perpendicular", inverse: "orthogonal"),
+        .init(code: .opposite, predicate: "opposite", preposition: "to", synonyms: "vis-a-vis, face to face", inverse: "opposite"),
         /// topology
-        .init(code: .inside, predicate: "inside", preposition: "", synonym: "within", reverse: "containing"),
-        .init(code: .containing, predicate: "containing", preposition: "", synonym: "contains", reverse: "inside"),
+        .init(code: .inside, predicate: "inside", preposition: "", synonyms: "within", inverse: "containing", antonym: "outside"),
+        .init(code: .containing, predicate: "containing", preposition: "", synonyms: "contains", inverse: "inside"),
         .init(code: .crossing, predicate: "crossing", preposition: ""),
-        .init(code: .overlapping, predicate: "overlapping", preposition: "", synonym: "intersecting", reverse: "overlapping", antonym: "disjoint"),
-        .init(code: .disjoint, predicate: "disjoint", preposition: "to", reverse: "disjoint", antonym: "overlapping"),
-        .init(code: .touching, predicate: "touching", preposition: "", reverse: "touching"),
-        .init(code: .frontaligned, predicate: "front aligned", preposition: "with", reverse: "front aligned"),
-        .init(code: .meeting, predicate: "meeting", preposition: "", reverse: "meeting"),
-        .init(code: .beside, predicate: "beside", preposition: "", reverse: "beside"),
-        .init(code: .fitting, predicate: "fitting", preposition: "into", reverse: "exceeding"),
-        .init(code: .exceeding, predicate: "exceeding", preposition: "into", reverse: "fitting"),
+        .init(code: .overlapping, predicate: "overlapping", preposition: "", synonyms: "intersecting", inverse: "overlapping", antonym: "disjoint"),
+        .init(code: .disjoint, predicate: "disjoint", preposition: "to", inverse: "disjoint", antonym: "overlapping"),
+        .init(code: .touching, predicate: "touching", preposition: "", inverse: "touching"),
+        .init(code: .frontaligned, predicate: "front aligned", preposition: "with", inverse: "front aligned"),
+        .init(code: .backaligned, predicate: "back aligned", preposition: "with", inverse: "back aligned"),
+        .init(code: .meeting, predicate: "meeting", preposition: "", inverse: "meeting"),
+        .init(code: .beside, predicate: "beside", preposition: "", inverse: "beside"),
+        .init(code: .fitting, predicate: "fitting", preposition: "into", inverse: "exceeding"),
+        .init(code: .exceeding, predicate: "exceeding", preposition: "into", inverse: "fitting"),
         /// connectivity
-        .init(code: .on, predicate: "on", preposition: "", reverse: "beneath"),
-        .init(code: .at, predicate: "at", preposition: "", reverse: "meeting"),
-        .init(code: .by, predicate: "by", preposition: "", reverse: "by"),
-        .init(code: .in, predicate: "in", preposition: "", reverse: "containing"),
+        .init(code: .on, predicate: "on", preposition: "", inverse: "beneath"),
+        .init(code: .at, predicate: "at", preposition: "", inverse: "meeting"),
+        .init(code: .by, predicate: "by", preposition: "", inverse: "by"),
+        .init(code: .in, predicate: "in", preposition: "", inverse: "containing"),
         /// similarity
-        .init(code: .samewidth, predicate: "same width", preposition: "as", synonym: "similar width", reverse: "same width", verb: "has"),
-        .init(code: .sameheight, predicate: "same height", preposition: "as", synonym: "similar height", reverse: "same height", verb: "has"),
-        .init(code: .samedepth, predicate: "same depth", preposition: "as", synonym: "similar depth", reverse: "same depth", verb: "has"),
-        .init(code: .samelength, predicate: "same length", preposition: "as", synonym: "similar length", reverse: "same length", verb: "has"),
-        .init(code: .samefootprint, predicate: "same footprint", preposition: "as", synonym: "similar base area", reverse: "same footprint", verb: "has"),
-        .init(code: .samefront, predicate: "same front face", preposition: "as", synonym: "similar front face", reverse: "same front face", verb: "has"),
-        .init(code: .sameside, predicate: "same side face", preposition: "as", synonym: "similar side face", reverse: "same side face", verb: "has"),
-        .init(code: .samevolume, predicate: "same volume", preposition: "as", synonym: "similar volume", reverse: "same volume", verb: "has"),
-        .init(code: .samecuboid, predicate: "same cuboid", preposition: "as", synonym: "similar cuboid", reverse: "same cuboid", verb: "has"),
-        .init(code: .samecenter, predicate: "same center", preposition: "as", synonym: "similar center", reverse: "same center", verb: "has"),
-        .init(code: .sameshape, predicate: "same shape", preposition: "as", synonym: "similar shape", reverse: "same shape", verb: "has"),
-        .init(code: .congruent, predicate: "congruent", preposition: "as", reverse: "congruent"),
+        .init(code: .samewidth, predicate: "same width", preposition: "as", synonyms: "similar width", inverse: "same width", verb: "has"),
+        .init(code: .sameheight, predicate: "same height", preposition: "as", synonyms: "similar height", inverse: "same height", verb: "has"),
+        .init(code: .samedepth, predicate: "same depth", preposition: "as", synonyms: "similar depth", inverse: "same depth", verb: "has"),
+        .init(code: .samelength, predicate: "same length", preposition: "as", synonyms: "similar length", inverse: "same length", verb: "has"),
+        .init(code: .samefootprint, predicate: "same footprint", preposition: "as", synonyms: "similar base area", inverse: "same footprint", verb: "has"),
+        .init(code: .samefront, predicate: "same front face", preposition: "as", synonyms: "similar front face", inverse: "same front face", verb: "has"),
+        .init(code: .sameside, predicate: "same side face", preposition: "as", synonyms: "similar side face", inverse: "same side face", verb: "has"),
+        .init(code: .samevolume, predicate: "same volume", preposition: "as", synonyms: "similar volume", inverse: "same volume", verb: "has"),
+        .init(code: .samecuboid, predicate: "same cuboid", preposition: "as", synonyms: "similar cuboid", inverse: "same cuboid", verb: "has"),
+        .init(code: .samecenter, predicate: "same center", preposition: "as", synonyms: "similar center", inverse: "same center", verb: "has"),
+        .init(code: .sameshape, predicate: "same shape", preposition: "as", synonyms: "similar shape", inverse: "same shape", verb: "has"),
+        .init(code: .congruent, predicate: "congruent", preposition: "as", inverse: "congruent"),
         /// comparisons
-        .init(code: .smaller, predicate: "smaller", preposition: "than", synonym: "tinier", reverse: "bigger"),
-        .init(code: .bigger, predicate: "bigger", preposition: "than", synonym: "larger", reverse: "smaller"),
-        .init(code: .shorter, predicate: "shorter", preposition: "than", reverse: "longer"),
-        .init(code: .longer, predicate: "longer", preposition: "than", reverse: "shorter"),
-        .init(code: .taller, predicate: "taller", preposition: "than", reverse: "shorter"),
-        .init(code: .thinner, predicate: "thinner", preposition: "than", synonym: "narrower", reverse: "wider"),
-        .init(code: .wider, predicate: "wider", preposition: "than", synonym: "thicker", reverse: "thinner"),
+        .init(code: .smaller, predicate: "smaller", preposition: "than", synonyms: "tinier, minor", inverse: "bigger"),
+        .init(code: .bigger, predicate: "bigger", preposition: "than", synonyms: "larger, major", inverse: "smaller"),
+        .init(code: .shorter, predicate: "shorter", preposition: "than", inverse: "longer"),
+        .init(code: .longer, predicate: "longer", preposition: "than", inverse: "shorter"),
+        .init(code: .taller, predicate: "taller", preposition: "than", inverse: "shorter"),
+        .init(code: .thinner, predicate: "thinner", preposition: "than", synonyms: "slimmer, narrower", inverse: "thicker"),
+        .init(code: .wider, predicate: "thicker", preposition: "than", synonyms: "wider, broader", inverse: "thinner")
 
     ]
+    
+    public static func get(_ name: String) -> PredicateTerm? {
+        for term in list {
+            if term.predicate == name {
+                return term
+            }
+        }
+        return nil
+    }
     
     public static func predicate(_ name: String) -> SpatialPredicate {
         let pred = SpatialPredicate.named(name)
@@ -248,11 +270,31 @@ public struct SpatialTerms {
             if term.predicate == name {
                 return term.code
             }
-            if term.synonym == name {
+            if term.synonyms == name {
                 return term.code
             }
         }
         return .undefined
+    }
+    
+    static public func searchPredicate(_ query: String) -> SpatialPredicate? {
+        let pred = SpatialPredicate.named(query)
+        if pred != .undefined {
+            return pred
+        }
+        for term in list {
+            if term.predicate == query {
+                return term.code
+            }
+        }
+        if query.count > 3 {
+            for term in list {
+                if term.synonyms.contains(query)  {
+                    return term.code
+                }
+            }
+        }
+        return nil
     }
     
     public static func term(_ code: SpatialPredicate) -> String {
@@ -288,14 +330,17 @@ public struct SpatialTerms {
                 return term.verb + " " + term.predicate + " " + term.preposition
             }
         }
-        return "undefined"
+        if PredicateCategories.sectors.contains(code) {
+            return "is in sector " + code.rawValue + " of"
+        }
+        return "is " + code.rawValue + " of"
     }
     
     // predicate is symmetric / reciprocal / bi-directional
     public static func symmetric(_ code: SpatialPredicate) -> Bool {
         for term in list {
             if term.code == code {
-                return term.predicate == term.reverse
+                return term.predicate == term.inverse
             }
         }
         return false
