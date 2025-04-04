@@ -165,6 +165,21 @@ public struct PredicateCategories {
         return PredicateCategories.proximity + PredicateCategories.directionality + PredicateCategories.adjacency + PredicateCategories.orientations + PredicateCategories.assembly
     }
     
+    public static func of(_ predicate:SpatialPredicate) -> String {
+        if proximity.contains(predicate) { return "proximity" }
+        if directionality.contains(predicate) { return "directionality" }
+        if adjacency.contains(predicate) { return "adjacency" }
+        if orientations.contains(predicate) { return "orientations" }
+        if assembly.contains(predicate) { return "assembly" }
+        if connectivity.contains(predicate) { return "connectivity" }
+        if comparability.contains(predicate) { return "comparability" }
+        if similarity.contains(predicate) { return "similarity" }
+        if visibility.contains(predicate) { return "visibility" }
+        if geography.contains(predicate) { return "geography" }
+        if sectors.contains(predicate) { return "sectors" }
+        return "unknown"
+    }
+    
     public static func allInCategories() -> Bool {
         let amount = PredicateCategories.proximity.count + PredicateCategories.directionality.count + PredicateCategories.adjacency.count + PredicateCategories.orientations.count + PredicateCategories.assembly.count + PredicateCategories.connectivity.count + PredicateCategories.comparability.count + PredicateCategories.similarity.count + PredicateCategories.visibility.count + PredicateCategories.geography.count + PredicateCategories.sectors.count
         print("categroies: \(amount) == \(SpatialPredicate.allCases.count - 1)")
@@ -181,12 +196,29 @@ public struct PredicateTerm {
     public var inverse:String = "" //  reverse, opposite predicate: object - predicate - subject
     public var antonym:String = "" // if not predicate then antonym
     public var verb:String = "is"
+    public var category:String {
+        return PredicateCategories.of(code)
+    }
+    
+    public func asDict() -> Dictionary<String, Any> {
+        let dict = [
+            "code": code.rawValue,
+            "predicate": predicate,
+            "preposition": preposition,
+            "synonyms": synonyms,
+            "inverse": inverse,
+            "antonym": antonym,
+            "verb": verb,
+            "category": category
+        ] as [String : Any]
+        return dict
+    }
 }
 
 
 
 public struct SpatialTerms {
-    nonisolated(unsafe) static let list: [PredicateTerm] = [
+    nonisolated(unsafe) static var list: [PredicateTerm] = [
         /// proximity in WCS and OCS
         .init(code: .near, predicate: "near", preposition: "to", synonyms: "close, nearby", inverse: "near", antonym: "far"),
         .init(code: .far, predicate: "far", preposition: "from", synonyms: "far away", inverse: "far", antonym: "near"),
@@ -219,6 +251,8 @@ public struct SpatialTerms {
         .init(code: .touching, predicate: "touching", preposition: "", inverse: "touching"),
         .init(code: .frontaligned, predicate: "front aligned", preposition: "with", inverse: "front aligned"),
         .init(code: .backaligned, predicate: "back aligned", preposition: "with", inverse: "back aligned"),
+        .init(code: .leftaligned, predicate: "left aligned", preposition: "with", inverse: "left aligned"),
+        .init(code: .rightaligned, predicate: "right aligned", preposition: "with", inverse: "right aligned"),
         .init(code: .meeting, predicate: "meeting", preposition: "", inverse: "meeting"),
         .init(code: .beside, predicate: "beside", preposition: "", inverse: "beside"),
         .init(code: .fitting, predicate: "fitting", preposition: "into", inverse: "exceeding"),
@@ -237,6 +271,9 @@ public struct SpatialTerms {
         .init(code: .samefront, predicate: "same front face", preposition: "as", synonyms: "similar front face", inverse: "same front face", verb: "has"),
         .init(code: .sameside, predicate: "same side face", preposition: "as", synonyms: "similar side face", inverse: "same side face", verb: "has"),
         .init(code: .samevolume, predicate: "same volume", preposition: "as", synonyms: "similar volume", inverse: "same volume", verb: "has"),
+        .init(code: .sameperimeter, predicate: "same perimeter", preposition: "as", synonyms: "similar perimeter", inverse: "same perimeter", verb: "has"),
+        .init(code: .samesurface, predicate: "same surface", preposition: "as", synonyms: "similar surface", inverse: "same surface", verb: "has"),
+        .init(code: .sameposition, predicate: "same position", preposition: "as", synonyms: "similar position", inverse: "same position", verb: "has"),
         .init(code: .samecuboid, predicate: "same cuboid", preposition: "as", synonyms: "similar cuboid", inverse: "same cuboid", verb: "has"),
         .init(code: .samecenter, predicate: "same center", preposition: "as", synonyms: "similar center", inverse: "same center", verb: "has"),
         .init(code: .sameshape, predicate: "same shape", preposition: "as", synonyms: "similar shape", inverse: "same shape", verb: "has"),
@@ -248,13 +285,71 @@ public struct SpatialTerms {
         .init(code: .longer, predicate: "longer", preposition: "than", inverse: "shorter"),
         .init(code: .taller, predicate: "taller", preposition: "than", inverse: "shorter"),
         .init(code: .thinner, predicate: "thinner", preposition: "than", synonyms: "slimmer, narrower", inverse: "thicker"),
-        .init(code: .wider, predicate: "thicker", preposition: "than", synonyms: "wider, broader", inverse: "thinner")
-
+        .init(code: .wider, predicate: "thicker", preposition: "than", synonyms: "wider, broader", inverse: "thinner"),
+        /// visibility
+        .init(code: .seenleft, predicate: "seen left", preposition: "of", synonyms: "visible to the left", inverse: "seen right"),
+        .init(code: .seenright, predicate: "seen right", preposition: "of", synonyms: "visible to the right", inverse: "seen left"),
+        .init(code: .infront, predicate: "in front", preposition: "of", synonyms: "", inverse: "at rear"),
+        .init(code: .atrear, predicate: "at rear", preposition: "of", inverse: "in front"),
+        .init(code: .tangible, predicate: "tangible", preposition: "by", inverse: ""),
+        .init(code: .eightoclock, predicate: "at eight'o'clock", preposition: "from", synonyms: "at 8 o'clock", inverse: ""),
+        .init(code: .nineoclock, predicate: "at nine'o'clock", preposition: "from", synonyms: "at 9 o'clock", inverse: ""),
+        .init(code: .tenoclock, predicate: "at ten'o'clock", preposition: "from", synonyms: "at 10 o'clock", inverse: ""),
+        .init(code: .elevenoclock, predicate: "at eleven'o'clock", preposition: "from", synonyms: "at 11 o'clock", inverse: ""),
+        .init(code: .twelveoclock, predicate: "at twelve'o'clock", preposition: "from", synonyms: "at 12 o'clock", inverse: ""),
+        .init(code: .oneoclock, predicate: "at one'o'clock", preposition: "from", synonyms: "at 1 o'clock", inverse: ""),
+        .init(code: .twooclock, predicate: "at two'o'clock", preposition: "from", synonyms: "at 2 o'clock", inverse: ""),
+        .init(code: .threeoclock, predicate: "at three'o'clock", preposition: "from", synonyms: "at 3 o'clock", inverse: ""),
+        .init(code: .fouroclock, predicate: "at four'o'clock", preposition: "from", synonyms: "at 4 o'clock", inverse: ""),
+        /// geography
+        .init(code: .north, predicate: "north", preposition: "of", inverse: "south"),
+        .init(code: .northeast, predicate: "northeast", preposition: "of", inverse: "southwest"),
+        .init(code: .east, predicate: "east", preposition: "of", inverse: "west"),
+        .init(code: .southeast, predicate: "southeast", preposition: "of", inverse: "northwest"),
+        .init(code: .south, predicate: "south", preposition: "of", inverse: "north"),
+        .init(code: .southwest, predicate: "southwest", preposition: "of", inverse: "northeast"),
+        .init(code: .west, predicate: "west", preposition: "of", inverse: "east"),
+        .init(code: .northwest, predicate: "northwest", preposition: "of", inverse: "southeast")
     ]
+    
+    public static func createSectorTerms() {
+        list.append(contentsOf: SpatialTerms.sectorTerms())
+    }
+    
+    public static func sectorSyn(_ pred:SpatialPredicate) -> String {
+        let predString = pred.rawValue
+        if predString == "i" { return "inside, inner" }
+        var str = ""
+        var cnt = 0
+        for i in 0..<predString.count {
+            if cnt > 0 {
+                str += "-"
+            }
+            let char = predString[predString.index(predString.startIndex, offsetBy: i)]
+            switch char {
+            case "a": str += "ahead"
+            case "b": str += "behind"
+            case "l": str += "left"
+            case "r": str += "right"
+            case "o": str += "over"
+            case "u": str += "under"
+            default: break
+            }
+            cnt += 1
+        }
+        return str
+    }
+    public static func sectorTerms() -> [PredicateTerm] {
+        var sectors: [PredicateTerm] = []
+        for pred in PredicateCategories.sectors {
+            sectors.append(.init(code: pred, predicate: "in sector \(pred.rawValue)", preposition: "of", synonyms: sectorSyn(pred)))
+        }
+        return sectors
+    }
     
     public static func get(_ name: String) -> PredicateTerm? {
         for term in list {
-            if term.predicate == name {
+            if term.code.rawValue == name {
                 return term
             }
         }
@@ -346,30 +441,38 @@ public struct SpatialTerms {
         return false
     }
     
-    // TODO: inverse
     public static func inverse(_ predicate: String) -> SpatialPredicate {
+        let term = SpatialTerms.get(predicate)
+        if term != nil && !term!.inverse.isEmpty {
+            let result = SpatialTerms.get(term!.inverse)
+            if result != nil {
+                return result!.code            }
+        }
         return .undefined
     }
     
-    // TODO: negation
     public static func negation(_ predicate: String) -> SpatialPredicate {
+        let term = SpatialTerms.get(predicate)
+        if term != nil && !term!.antonym.isEmpty {
+            let result = SpatialTerms.get(term!.antonym)
+            if result != nil {
+                return result!.code            }
+        }
         return .undefined
     }
     
-    //TODO: implement dynamic loading of SpatialTerms
-    public static func load() {
-        
-    }
-    
-    // TODO: make PredicateTerm Codable!
     public static func save() {
 #if os(macOS)
         let urls = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
         if urls.count > 0 {
             let url = urls.first!
+            var terms = [Dictionary<String, Any>]()
+            for term in SpatialTerms.list {
+                terms.append(term.asDict())
+            }
             do {
                 let fileURL = url.appendingPathComponent("SpatialTerms.json")
-                let jsonData = try JSONSerialization.data(withJSONObject: SpatialTerms.list, options: .prettyPrinted)
+                let jsonData = try JSONSerialization.data(withJSONObject: terms, options: [.prettyPrinted, .sortedKeys])
                 try jsonData.write(to: fileURL, options: [.atomic])
             } catch {
                 print(error)

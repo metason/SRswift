@@ -154,7 +154,7 @@ public class SpatialObject {
         self.depth = depth
         self.confidence.setSpatial(confidence)
         self.created = Date()
-        self.updated = Date()
+        self.updated = self.created
     }
 
     func index() -> Int {

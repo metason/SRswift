@@ -13,12 +13,9 @@
 
 ## Clarify
 
-- README of Spatial Reasoner: add Python and C# examples
-- implement dynamic loading of SpatialTerms
-  - as library resource
-  - JSON file: key and values NOT capitalized?
-  - concept for language translation
-- covering // (partially) hiding
+- README of Spatial Reasoner: add C# example
+- SpatialTerms: concept for language translation
+- Predicate: covering, (partially) hiding
 
 
 ## SUBITO TODO (before launch)

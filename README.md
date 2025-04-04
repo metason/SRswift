@@ -16,7 +16,7 @@ The SRswift library supports the following operations of the [__Spatial Reasoner
 - [x] __slice__: choose a subsection of spatial objects 
 - [x] __calc__: calculate global variables in fact base
 - [x] __map__: calculate values of object attributes
-- [ ] __produce__: create new spatial objects driven by their relations (_partially implemented_)
+- [x] __produce__: create new spatial objects driven by their relations
 - [x] __reload__: reload and output all spatial objects of fact base
 - [x] __halt__: stop processing the inference pipeline (for debug purposes)
 - [x] __log__: log the current status of the inference pipeline

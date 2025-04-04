@@ -64,13 +64,38 @@ public class SpatialObjectConcept : Hashable, Identifiable {
                 }
             }
         }
-        if !precise {
-            // TODO: not precise
-        }
         if parent != nil {
             return parent!.isa(type: query, precise: precise)
         }
+        if !precise {
+            if label.lowercased().contains(query) {
+                return self
+            }
+            if synonyms != nil {
+                for syn in synonyms!{
+                    if syn.lowercased().contains(query) {
+                        return self
+                    }
+                }
+            }
+        }
         return nil
+    }
+    
+    public func asText(level:Int = 0, prefix: String = "- ", indent: String = "  ") -> String {
+        var str = String(repeating: indent, count: level)
+        str = str + prefix + label
+        if synonyms != nil {
+            str = str + " (" + synonyms!.joined(separator: ", ") + ")\n"
+        } else {
+            str = str + "\n"
+        }
+        if children != nil {
+            for child in children! {
+                str = str + child.asText(level: level+1, prefix: prefix, indent: indent)
+            }
+        }
+        return str
     }
     
     public static func == (lhs: SpatialObjectConcept, rhs: SpatialObjectConcept) -> Bool {
@@ -186,14 +211,20 @@ public struct SpatialTaxonomy {
     
     static public func buildHierachy() {
         for concept in SpatialTaxonomy.concepts {
-            if concept.parent == nil && concept.children == nil {
+            if concept.parent == nil && concept.parentId != nil {
                 let parent = getConcept(id: concept.parentId ?? "")
                 if parent != nil {
                     concept.parent = parent!
                     parent!.addChild(concept)
                 }
-                
             }
+        }
+        //printConcepts()
+    }
+    
+    static public func printConcepts() {
+        for concept in SpatialTaxonomy.concepts {
+            print("\(concept.label) \(concept.parentId ?? "") \(concept.parent != nil)")
         }
     }
     
@@ -237,4 +268,11 @@ public struct SpatialTaxonomy {
         return list
     }
     
+    static public func asText(prefix: String = "- ", indent: String = "  ") -> String {
+        var str = ""
+        for top in topConcepts() {
+            str = str + top.asText(prefix: prefix, indent: indent)
+        }
+        return str
+    }
 }

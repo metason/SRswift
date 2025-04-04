@@ -43,6 +43,7 @@ public class SpatialReasoner {
             objects = objs!
         }
         observer = nil
+        chain = []
         relMap = [:]
         base["objects"] = []
         if !objects.isEmpty {
@@ -106,6 +107,7 @@ public class SpatialReasoner {
     }
                        
     public func load(_ objs: [Dictionary<String, Any>]) {
+        chain = []
         base["objects"] = objs
         syncToObjects()
         base["snaptime"] = snapTime.description

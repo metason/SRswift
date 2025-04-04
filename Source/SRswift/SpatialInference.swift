@@ -457,7 +457,7 @@ public class SpatialInference : Hashable {
                     let idx = fact.indexOf(id: rel.subject.id)
                     if input.contains(idx!) && !processedBys.contains(rel.subject.id + "-" + fact.objects[i].id) {
                         let nearest = fact.objects[i].pos.nearest(rel.subject.points())
-                        let byId = "by:" + fact.objects[i].id + "-" + rel.subject.id
+                        let byId = "by:" + rel.subject.id + "-" + fact.objects[i].id
                         let objIdx = fact.indexOf(id: byId) ?? -1
                         let obj = objIdx < 0 ? SpatialObject(id: byId) : fact.objects[objIdx]
                         obj.cause = .rule_produced
@@ -481,13 +481,104 @@ public class SpatialInference : Hashable {
                 }
             }
         case "on":
-            // TODO: produce(on)
-            break
+            for i in input {
+                let rels = fact.relationsWith(i, predicate: "on")
+                for rel in rels {
+                    let onId = "on:" + rel.subject.id + "-" + rel.object.id
+                    let objIdx = fact.indexOf(id: onId) ?? -1
+                    let obj = objIdx < 0 ? SpatialObject(id: onId) : fact.objects[objIdx]
+                    obj.cause = .rule_produced
+                    let h = max(rel.delta, fact.adjustment.maxGap)
+                    obj.height = h
+                    var pos = rel.subject.pos
+                    pos.y = pos.y - CGFloat(h/2.0)
+                    obj.setPosition(pos)
+                    obj.angle = rel.subject.angle
+                    obj.width = rel.subject.width
+                    obj.depth = rel.subject.depth
+                    if objIdx < 0 {
+                        newObjects.append(obj.asDict())
+                        indices.append(fact.objects.count)
+                        fact.objects.append(obj)
+                    }
+                }
+            }
         case "at":
-            // TODO: produce(at)
-            break
+            for i in input {
+                let rels = fact.relationsWith(i, predicate: "at")
+                for rel in rels {
+                    let atId = "at:" + rel.subject.id + "-" + rel.object.id
+                    let objIdx = fact.indexOf(id: atId) ?? -1
+                    let obj = objIdx < 0 ? SpatialObject(id: atId) : fact.objects[objIdx]
+                    obj.cause = .rule_produced
+                    var pos = rel.subject.pos
+                    var shift = CGPoint(x: 0, y: 0)
+                    var w = rel.subject.width
+                    let h = rel.subject.height
+                    let d = max(rel.delta, fact.adjustment.maxGap)
+                    let meetingIdx = fact.indexOf(id: rel.subject.id) ?? -1
+                    if fact.does(subject: rel.object, have: "ahead", with: meetingIdx) {
+                        shift.x = CGFloat((rel.subject.depth + d)/2.0)
+                        shift = shift.rotate(CGFloat(rel.subject.angle) + .pi/2)
+                        obj.angle = rel.subject.angle
+                    } else if fact.does(subject: rel.object, have: "behind", with: meetingIdx) {
+                        shift.x = CGFloat((rel.subject.depth + d)/2.0)
+                        shift = shift.rotate(CGFloat(rel.subject.angle) + .pi/2)
+                        obj.angle = rel.subject.angle
+                    } else if fact.does(subject: rel.object, have: "left", with: meetingIdx) {
+                        shift.x = CGFloat((rel.subject.width + d)/2.0)
+                        shift = shift.rotate(CGFloat(rel.subject.angle))
+                        w = rel.subject.depth
+                        obj.angle = rel.subject.angle + .pi/2
+                    } else if fact.does(subject: rel.object, have: "right", with: meetingIdx) {
+                        shift.x = CGFloat((rel.subject.width + d)/2.0)
+                        shift = shift.rotate(CGFloat(rel.subject.angle) + .pi)
+                        w = rel.subject.depth
+                        obj.angle = rel.subject.angle + .pi/2
+                    }
+                    pos.x = pos.x + shift.x
+                    pos.z = pos.z + shift.y
+                    obj.setPosition(pos)
+                    obj.depth = d
+                    obj.width = w
+                    obj.height = h
+                    if objIdx < 0 {
+                        newObjects.append(obj.asDict())
+                        indices.append(fact.objects.count)
+                        fact.objects.append(obj)
+                    }
+                }
+            }
         default:
-            // TODO: sectors
+            let pred = SpatialPredicate.named(rule)            
+            if PredicateCategories.sectors.contains(pred) {
+                // TODO: sectors
+                for i in input {
+//                    let dims = sectorLenghts(sector)
+//                    let box = SCNBox(width: dims.x, height: dims.y, length: dims.z, chamferRadius: 0.0)
+//                    box.firstMaterial?.diffuse.contents = CGColor(gray: 0.1, alpha: 0.5)
+//                    box.firstMaterial?.transparency = 0.5
+//                    let node = SCNNode(geometry: box)
+//                    node.name = sector.description + " sector"
+//                    var shift:SCNVector3 = .init()
+//                    if sector.contains(.o) {
+//                        shift.y = (UFloat(height) + dims.y)/2.0
+//                    } else if sector.contains(.u) {
+//                        shift.y = (UFloat(-height) - dims.y)/2.0
+//                    }
+//                    if sector.contains(.r) {
+//                        shift.x = (UFloat(-width) - dims.x)/2.0
+//                    } else if sector.contains(.l) {
+//                        shift.x = (UFloat(width) + dims.x)/2.0
+//                    }
+//                    if sector.contains(.a) {
+//                        shift.z = (UFloat(depth) + dims.z)/2.0
+//                    } else if sector.contains(.b) {
+//                        shift.z = (UFloat(-depth) - dims.z)/2.0
+//                    }
+                }
+                
+            }
             error.append("Unknown \(rule) rule in produce()")
             return
         }

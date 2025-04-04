@@ -314,7 +314,7 @@ struct SpatialReasoningTests {
         #expect(done)
     }
     
-    @Test("produce(by: edge)")
+    @Test("produce(by : edge)")
     func produceby() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: 0.83, y: 0, z: -0.2), width: 0.4, height: 0.8, depth: 0.5)
         subject.setYaw(45.0)
@@ -341,6 +341,50 @@ struct SpatialReasoningTests {
         let pipeline = """
             produce(by : label = 'corner'; h = 0.02)
             | log(base 3D overlapping)
+        """
+        let done = sr.run(pipeline)
+        #expect(done)
+    }
+    
+    @Test("produce(on : zone)")
+    func produceon() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 1.01, z: 0), width: 0.8, height: 0.6, depth: 0.25)
+        subject.setYaw(30.0)
+        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0.0, z: 0), width: 1.0, height: 1.0, depth: 1.0)
+        let sr = SpatialReasoner()
+        sr.load([subject, object])
+        let pipeline = """
+            produce(on : label = 'zone')
+            | log(base 3D)
+        """
+        let done = sr.run(pipeline)
+        #expect(done)
+    }
+    
+    @Test("produce(at : zone) [back]")
+    func produceatback() async throws {
+        let wall4 = SpatialObject.createBuildingElement(id: "wall4", from: .init(x: -2, y: 0, z: 2.5), to: .init(x: -2, y: 0, z: 0), height: 2.3)
+        let picture = SpatialObject(id: "picture", position: .init(x: -1.98, y: 1, z: 1.4), width: 0.9, height: 0.6, depth: 0.02)
+        picture.angle = .pi / 2.0
+        let sr = SpatialReasoner()
+        sr.load([wall4, picture])
+        let pipeline = """
+            produce(at : label = 'zone')
+            | log(base 3D)
+        """
+        let done = sr.run(pipeline)
+        #expect(done)
+    }
+    
+    @Test("produce(at : zone) [left]")
+    func produceatleft() async throws {
+        let wall4 = SpatialObject.createBuildingElement(id: "wall4", from: .init(x: -2, y: 0, z: 2.5), to: .init(x: -2, y: 0, z: 0), height: 2.3)
+        let box = SpatialObject(id: "box", position: .init(x: -1.58, y: 1, z: 1.4), width: 0.8, height: 0.6, depth: 0.4)
+        let sr = SpatialReasoner()
+        sr.load([wall4, box])
+        let pipeline = """
+            produce(at : label = 'zone')
+            | log(base 3D)
         """
         let done = sr.run(pipeline)
         #expect(done)
