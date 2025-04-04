@@ -7,16 +7,16 @@
 
 import Foundation
 
-class SpatialInference {
-        
-    var input:[Int] = [] // indices to fact.base.objects
-    var output:[Int] = [] // indices to fact.base.objects
-    var operation = ""
-    var succeeded = false
-    var error = ""
-    var fact:SpatialReasoner
+public class SpatialInference : Hashable {
     
-    init(input: [Int], operation: String, in fact: SpatialReasoner) {
+    public var input:[Int] = [] // indices to fact.base.objects
+    public var output:[Int] = [] // indices to fact.base.objects
+    public var operation = ""
+    public var succeeded = false
+    public var error = ""
+    private var fact:SpatialReasoner
+    
+    public init(input: [Int], operation: String, in fact: SpatialReasoner) {
         self.input = input
         self.operation = operation
         self.fact = fact
@@ -24,6 +24,9 @@ class SpatialInference {
         if operation.starts(with: "filter(") {
             let startIdx = operation.index(operation.startIndex, offsetBy: 7)
             filter(String(operation[startIdx..<endIdx]))
+        } else if operation.starts(with: "isa(") {
+            let startIdx = operation.index(operation.startIndex, offsetBy: 4)
+            isa(String(operation[startIdx..<endIdx]))
         } else if operation.starts(with: "pick(") {
             let startIdx = operation.index(operation.startIndex, offsetBy: 5)
             pick(String(operation[startIdx..<endIdx]))
@@ -64,6 +67,39 @@ class SpatialInference {
         for i in input {
             let result = predicate!.evaluate(with: baseObjects[i])
             if result {
+                add(index: i)
+            }
+        }
+        succeeded = true
+    }
+    
+    func isa(_ type: String) {
+        var str = type.lowercased().replacingOccurrences(of: " || ", with: " or ")
+        str = str.replacingOccurrences(of: " or ", with: " | ")
+        let list = str.split(separator: "|")
+        
+        let baseObjects = fact.base["objects"] as! [Dictionary<String, Any>]
+        for i in input {
+            var doAdd = false
+            for term in list {
+                if !doAdd {
+                    let targetType = term.trimmingCharacters(in: CharacterSet(charactersIn: "' "))
+                    var baseConcept:SpatialObjectConcept? = nil
+                    var baseType = baseObjects[i]["type"] as? String
+                    if baseType != nil && !baseType!.isEmpty {
+                        baseConcept = SpatialTaxonomy.getConcept(label: baseType!)
+                    }
+                    if baseConcept == nil {
+                        baseType = baseObjects[i]["label"] as? String
+                        baseConcept = SpatialTaxonomy.getConcept(label: baseType!)
+                    }
+                    if baseConcept != nil {
+                        let result = baseConcept!.isa(type: targetType)
+                        doAdd = result != nil
+                    }
+                }
+            }            
+            if doAdd {
                 add(index: i)
             }
         }
@@ -260,7 +296,7 @@ class SpatialInference {
             case "baseradius": sortedObjects = inputObjects.sorted { $0.baseradius < $1.baseradius }
             case "radius": sortedObjects = inputObjects.sorted { $0.radius < $1.radius }
             case "speed": sortedObjects = inputObjects.sorted { $0.speed < $1.speed }
-            case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.value < $1.confidence.value }
+            case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.spatial < $1.confidence.spatial }
             case "lifespan": sortedObjects = inputObjects.sorted { $0.lifespan < $1.lifespan }
             default: sortedObjects = inputObjects.sorted { $0.dataValue(list[0]) < $1.dataValue(list[0]) }
             }
@@ -282,7 +318,7 @@ class SpatialInference {
             case "baseradius": sortedObjects = inputObjects.sorted { $0.baseradius > $1.baseradius }
             case "radius": sortedObjects = inputObjects.sorted { $0.radius > $1.radius }
             case "speed": sortedObjects = inputObjects.sorted { $0.speed > $1.speed }
-            case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.value > $1.confidence.value }
+            case "confidence": sortedObjects = inputObjects.sorted { $0.confidence.spatial > $1.confidence.spatial }
             case "lifespan": sortedObjects = inputObjects.sorted { $0.lifespan > $1.lifespan }
             default: sortedObjects = inputObjects.sorted { $0.dataValue(list[0]) > $1.dataValue(list[0]) }
             }
@@ -295,24 +331,32 @@ class SpatialInference {
         succeeded = !output.isEmpty
     }
     
-    func sortByRelation(_ attribute: String) {
+    // steps: amount of backtrace steps in pipeline to compare relations with that input
+    func sortByRelation(_ attribute: String, backtraceSteps: Int = 1) {
         var ascending = false
+        var steps: Int = backtraceSteps
         var inputObjects: [SpatialObject] = []
-        let preIndices = fact.backtrace()
         var sortedObjects: [SpatialObject]
         for i in input {
             inputObjects.append(fact.objects[i])
         }
         let list = attribute.split(separator: " ").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
+        if list.count == 0 { return }
+        let attr = list[0]
         if list.count > 1 {
-            if list[1] == "<" {
-                ascending = true
+            for i in 1..<list.count {
+                if list[i] == "<" {
+                    ascending = true
+                } else {
+                    steps = Int(list[i]) ?? steps
+                }
             }
         }
+        let preIndices = fact.backtrace(steps)
         if ascending {
-            sortedObjects = inputObjects.sorted { $0.relationValue(attribute, pre: preIndices) < $1.relationValue(attribute, pre: preIndices) }
+            sortedObjects = inputObjects.sorted { $0.relationValue(attr, pre: preIndices) < $1.relationValue(attr, pre: preIndices) }
         } else {
-            sortedObjects = inputObjects.sorted { $0.relationValue(attribute, pre: preIndices) > $1.relationValue(attribute, pre: preIndices) }
+            sortedObjects = inputObjects.sorted { $0.relationValue(attr, pre: preIndices) > $1.relationValue(attr, pre: preIndices) }
         }
         for object in sortedObjects {
             if let idx = fact.objects.firstIndex(where: {$0 === object}) {
@@ -330,7 +374,6 @@ class SpatialInference {
         if list.count > 1 {
             assignments = list[1]
         }
-        // TODO: produce(at)
         var indices:[Int] = [] // new produced object indices
         var newObjects = [Dictionary<String, Any>]()
         switch rule {
@@ -414,7 +457,7 @@ class SpatialInference {
                     let idx = fact.indexOf(id: rel.subject.id)
                     if input.contains(idx!) && !processedBys.contains(rel.subject.id + "-" + fact.objects[i].id) {
                         let nearest = fact.objects[i].pos.nearest(rel.subject.points())
-                        let byId = "by:" + fact.objects[i].id + "-" + rel.subject.id
+                        let byId = "by:" + rel.subject.id + "-" + fact.objects[i].id
                         let objIdx = fact.indexOf(id: byId) ?? -1
                         let obj = objIdx < 0 ? SpatialObject(id: byId) : fact.objects[objIdx]
                         obj.cause = .rule_produced
@@ -437,9 +480,105 @@ class SpatialInference {
                     }
                 }
             }
-            
+        case "on":
+            for i in input {
+                let rels = fact.relationsWith(i, predicate: "on")
+                for rel in rels {
+                    let onId = "on:" + rel.subject.id + "-" + rel.object.id
+                    let objIdx = fact.indexOf(id: onId) ?? -1
+                    let obj = objIdx < 0 ? SpatialObject(id: onId) : fact.objects[objIdx]
+                    obj.cause = .rule_produced
+                    let h = max(rel.delta, fact.adjustment.maxGap)
+                    obj.height = h
+                    var pos = rel.subject.pos
+                    pos.y = pos.y - CGFloat(h/2.0)
+                    obj.setPosition(pos)
+                    obj.angle = rel.subject.angle
+                    obj.width = rel.subject.width
+                    obj.depth = rel.subject.depth
+                    if objIdx < 0 {
+                        newObjects.append(obj.asDict())
+                        indices.append(fact.objects.count)
+                        fact.objects.append(obj)
+                    }
+                }
+            }
+        case "at":
+            for i in input {
+                let rels = fact.relationsWith(i, predicate: "at")
+                for rel in rels {
+                    let atId = "at:" + rel.subject.id + "-" + rel.object.id
+                    let objIdx = fact.indexOf(id: atId) ?? -1
+                    let obj = objIdx < 0 ? SpatialObject(id: atId) : fact.objects[objIdx]
+                    obj.cause = .rule_produced
+                    var pos = rel.subject.pos
+                    var shift = CGPoint(x: 0, y: 0)
+                    var w = rel.subject.width
+                    let h = rel.subject.height
+                    let d = max(rel.delta, fact.adjustment.maxGap)
+                    let meetingIdx = fact.indexOf(id: rel.subject.id) ?? -1
+                    if fact.does(subject: rel.object, have: "ahead", with: meetingIdx) {
+                        shift.x = CGFloat((rel.subject.depth + d)/2.0)
+                        shift = shift.rotate(CGFloat(rel.subject.angle) + .pi/2)
+                        obj.angle = rel.subject.angle
+                    } else if fact.does(subject: rel.object, have: "behind", with: meetingIdx) {
+                        shift.x = CGFloat((rel.subject.depth + d)/2.0)
+                        shift = shift.rotate(CGFloat(rel.subject.angle) + .pi/2)
+                        obj.angle = rel.subject.angle
+                    } else if fact.does(subject: rel.object, have: "left", with: meetingIdx) {
+                        shift.x = CGFloat((rel.subject.width + d)/2.0)
+                        shift = shift.rotate(CGFloat(rel.subject.angle))
+                        w = rel.subject.depth
+                        obj.angle = rel.subject.angle + .pi/2
+                    } else if fact.does(subject: rel.object, have: "right", with: meetingIdx) {
+                        shift.x = CGFloat((rel.subject.width + d)/2.0)
+                        shift = shift.rotate(CGFloat(rel.subject.angle) + .pi)
+                        w = rel.subject.depth
+                        obj.angle = rel.subject.angle + .pi/2
+                    }
+                    pos.x = pos.x + shift.x
+                    pos.z = pos.z + shift.y
+                    obj.setPosition(pos)
+                    obj.depth = d
+                    obj.width = w
+                    obj.height = h
+                    if objIdx < 0 {
+                        newObjects.append(obj.asDict())
+                        indices.append(fact.objects.count)
+                        fact.objects.append(obj)
+                    }
+                }
+            }
         default:
-            // TODO: sectors
+            let pred = SpatialPredicate.named(rule)            
+            if PredicateCategories.sectors.contains(pred) {
+                // TODO: sectors
+                for i in input {
+//                    let dims = sectorLenghts(sector)
+//                    let box = SCNBox(width: dims.x, height: dims.y, length: dims.z, chamferRadius: 0.0)
+//                    box.firstMaterial?.diffuse.contents = CGColor(gray: 0.1, alpha: 0.5)
+//                    box.firstMaterial?.transparency = 0.5
+//                    let node = SCNNode(geometry: box)
+//                    node.name = sector.description + " sector"
+//                    var shift:SCNVector3 = .init()
+//                    if sector.contains(.o) {
+//                        shift.y = (UFloat(height) + dims.y)/2.0
+//                    } else if sector.contains(.u) {
+//                        shift.y = (UFloat(-height) - dims.y)/2.0
+//                    }
+//                    if sector.contains(.r) {
+//                        shift.x = (UFloat(-width) - dims.x)/2.0
+//                    } else if sector.contains(.l) {
+//                        shift.x = (UFloat(width) + dims.x)/2.0
+//                    }
+//                    if sector.contains(.a) {
+//                        shift.z = (UFloat(depth) + dims.z)/2.0
+//                    } else if sector.contains(.b) {
+//                        shift.z = (UFloat(-depth) - dims.z)/2.0
+//                    }
+                }
+                
+            }
             error.append("Unknown \(rule) rule in produce()")
             return
         }
@@ -492,14 +631,14 @@ class SpatialInference {
     }
     
     public func asDict() -> Dictionary<String, Any> {
-        let output = [
+        let dict = [
             "operation": operation,
             "input": input,
             "output": output,
             "error": error,
             "succeeded": succeeded
         ] as [String : Any]
-        return output
+        return dict
     }
     
     static func attributePredicate(_ condition: String) -> NSPredicate? {
@@ -520,6 +659,14 @@ class SpatialInference {
             }
         }
         return NSPredicate(format: cond)
+    }
+    
+    public static func == (lhs: SpatialInference, rhs: SpatialInference) -> Bool {
+        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 
 }

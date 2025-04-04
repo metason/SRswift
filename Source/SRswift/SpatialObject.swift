@@ -10,96 +10,95 @@
 import Foundation
 import SceneKit
 
-class SpatialObject {
+public class SpatialObject {
     /// non-spatial characteristics, to distinguish object references
-    var id:String = "" // unique id: UUID of source or own generated unique id
-    var existence:SpatialExistence = .real
-    var cause:ObjectCause = .unknown
-    var label:String = "" // name or label
-    var type:String = "" // class
-    var supertype:String = "" // superclass
-    var look:String = "" // textual description of appearance: color, bright/dark, dull/shiny, metallic, transparent, ...
-    var data:Dictionary<String,Any>? = nil // auxiliary data
-    var created:Date // creation time
-    var updated:Date // last update time
+    public var id:String = "" // unique id: UUID of source or own generated unique id
+    public var existence:SpatialExistence = .real
+    public var cause:ObjectCause = .unknown
+    public var label:String = "" // name or label
+    public var type:String = "" // class
+    public var look:String = "" // textual description of appearance: color, bright/dark, dull/shiny, metallic, transparent, ...
+    public var data:Dictionary<String,Any>? = nil // auxiliary data
+    public var created:Date // creation time
+    public var updated:Date // last update time
     /// spatial characteristics
     private var position:SCNVector3 = SCNVector3() // base center point at bottom, use setPosition() or setCenter()
-    var width:Float = 0.0
-    var height:Float = 0.0
-    var depth:Float = 0.0
-    var angle:Float = 0.0 // rotation around y axis in radiants, counter-clockwise
-    var immobile:Bool = false
-    var velocity:SCNVector3 = SCNVector3() // velocity vector, is calculated via setPosition() over time
-    var confidence = ObjectConfidence()
-    var shape:ObjectShape = .unknown
-    var visible:Bool = false // in screen
-    var focused:Bool = false // in center of screen, for some time
-    var context:SpatialReasoner? = nil // optional, defines fact base and adjustment settings
+    public var width:Float = 0.0
+    public var height:Float = 0.0
+    public var depth:Float = 0.0
+    public var angle:Float = 0.0 // rotation around y axis in radiants, counter-clockwise
+    public var immobile:Bool = false
+    public var velocity:SCNVector3 = SCNVector3() // velocity vector, is calculated via setPosition() over time
+    public var confidence = ObjectConfidence()
+    public var shape:ObjectShape = .unknown
+    public var visible:Bool = false // in screen
+    public var focused:Bool = false // in center of screen, for some time
+    public var context:SpatialReasoner? = nil // optional, defines fact base and adjustment settings
     
     /// derived attributes
-    var center:SCNVector3 {
+    public var center:SCNVector3 {
         return position + SCNVector3(0.0, height/2.0, 0.0)
     }
-    var pos:SCNVector3 {
+    public var pos:SCNVector3 {
         return position
     }
-    var yaw:Float { // in degrees counter-clockwise of WCS
+    public var yaw:Float { // in degrees counter-clockwise of WCS
         return angle * 180.0 / .pi
     }
-    var azimuth:Float { // in degrees clockwise of GCS as ±360°
+    public var azimuth:Float { // in degrees clockwise of GCS as ±360°
         if context != nil {
             return -(yaw + Float(atan2(context!.north.dy, context!.north.dx) * 180.0 / .pi) - 90.0).truncatingRemainder(dividingBy: 360.0)
         }
         return 0.0
     }
-    var thin:Bool {
+    public var thin:Bool {
         return thin() > 0
     }
-    var long:Bool {
+    public var long:Bool {
         return long() > 0
     }
-    var equilateral:Bool {
+    public var equilateral:Bool {
         if long(ratio: 1.1) == 0 {
             return true
         }
         return false
     }
-    var real:Bool {
+    public var real:Bool {
         return existence == .real
     }
-    var virtual:Bool {
+    public var virtual:Bool {
         return existence == .virtual
     }
-    var conceptual:Bool {
+    public var conceptual:Bool {
         return existence == .conceptual
     }
-    var perimeter:Float { // footprint perimeter
+    public var perimeter:Float { // footprint perimeter
         return (depth+width) * 2.0
     }
-    var footprint:Float { // base area, floor space
+    public var footprint:Float { // base area, floor space
         return depth*width
     }
-    var frontface:Float { // front area
+    public var frontface:Float { // front area
         return height*width
     }
-    var sideface:Float { // side area
+    public var sideface:Float { // side area
         return height*depth
     }
-    var surface:Float { // total surface of bbox
+    public var surface:Float { // total surface of bbox
         return (height*width + depth*width + height*depth) * 2.0
     }
-    var volume:Float {
+    public var volume:Float {
         return depth*width*height
     }
     // sphere radius from center comprising body volume
-    var radius:Float {
+    public var radius:Float {
         return SCNVector3(x:UFloat(width)/2.0, y:UFloat(depth)/2.0, z:UFloat(height)/2.0).length()
     }
     // circle radius on 2D base / floorground, radius from position encircling base area
-    var baseradius:Float {
+    public var baseradius:Float {
         return Float(CGPoint(x:Double(width)/2.0, y:Double(depth)/2.0).length())
     }
-    var motion:MotionState {
+    public var motion:MotionState {
         if immobile {
             return .stationary
         }
@@ -111,16 +110,16 @@ class SpatialObject {
         }
         return .unknown
     }
-    var moving:Bool {
+    public var moving:Bool {
         return motion == .moving
     }
-    var speed:Float {
+    public var speed:Float {
         return velocity.length()
     }
-    var observing:Bool {
+    public var observing:Bool {
         return cause == .self_tracked
     }
-    var length:Float {
+    public var length:Float {
         let alignment = long(ratio: 1.1)
         if alignment == 1 {
             return width
@@ -129,23 +128,23 @@ class SpatialObject {
         }
         return depth
     }
-    var lifespan:Double {
+    public var lifespan:Double {
         let now = Date()
         return now.timeIntervalSince(created)
     }
-    var updateInterval:Double {
+    public var updateInterval:Double {
         let now = Date()
         return now.timeIntervalSince(updated)
     }
-    var adjustment:SpatialAdjustment {
+    public var adjustment:SpatialAdjustment {
         return context?.adjustment ?? defaultAdjustment
     }
     
-    static let booleanAttributes: [String] = ["immobile", "moving", "focused", "visible", "equilateral", "thin", "long", "real", "virtual", "conceptual"]
-    static let numericAttributes: [String] = ["width", "height", "depth", "w", "h", "d", "position", "x", "y", "z", "angle", "confidence"]
-    static let stringAttributes: [String] = ["id", "label", "type", "supertype", "existence", "cause", "shape", "look"]
+    public static let booleanAttributes: [String] = ["immobile", "moving", "focused", "visible", "equilateral", "thin", "long", "real", "virtual", "conceptual"]
+    public static let numericAttributes: [String] = ["width", "height", "depth", "w", "h", "d", "position", "x", "y", "z", "angle", "confidence"]
+    public static let stringAttributes: [String] = ["id", "label", "type", "existence", "cause", "shape", "look"]
 
-    init(id: String, position: SCNVector3 = SCNVector3(), width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0, angle: Float = 0.0, label: String = "", confidence: Float = 0.0) {
+    public init(id: String, position: SCNVector3 = SCNVector3(), width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0, angle: Float = 0.0, label: String = "", confidence: Float = 0.0) {
         self.id = id
         self.label = label
         self.position = position
@@ -155,7 +154,7 @@ class SpatialObject {
         self.depth = depth
         self.confidence.setSpatial(confidence)
         self.created = Date()
-        self.updated = Date()
+        self.updated = self.created
     }
 
     func index() -> Int {
@@ -165,23 +164,23 @@ class SpatialObject {
         return -1
     }
     
-    static func isBoolean(attribute: String) -> Bool {
+    public static func isBoolean(attribute: String) -> Bool {
         return booleanAttributes.contains(attribute)
     }
     
-    static func createDetectedObject(id: String, label: String = "", width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0) -> SpatialObject {
+    public static func createDetectedObject(id: String, label: String = "", width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0) -> SpatialObject {
         let object = SpatialObject(id: id, position: .init(x: 0, y: 0, z: 0), width: width, height: height, depth: depth)
         object.label = label.lowercased()
         object.type = label
         object.cause = .object_detected
         object.existence = .real
-        object.confidence.setValue(0.25)
+        object.confidence.setSpatial(0.25)
         object.immobile = false
         object.shape = .unknown
         return object
     }
     
-    static func createVirtualObject(id: String, width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0) -> SpatialObject {
+    public static func createVirtualObject(id: String, width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0) -> SpatialObject {
         let object = SpatialObject(id: id, position: .init(x: 0, y: 0, z: 0), width: width, height: height, depth: depth)
         object.cause = .user_generated
         object.existence = .virtual
@@ -190,20 +189,19 @@ class SpatialObject {
         return object
     }
     
-    static func createBuildingElement(id: String, type: String = "", position: SCNVector3, width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0) -> SpatialObject {
+    public static func createBuildingElement(id: String, type: String = "", position: SCNVector3, width: Float = 1.0, height: Float = 1.0, depth: Float = 1.0) -> SpatialObject {
         let object = SpatialObject(id: id, position: position, width: width, height: height, depth: depth)
         object.label = type.lowercased()
         object.type = type
-        object.supertype = "Building Element"
         object.cause = .plane_detected
         object.existence = .real
-        object.confidence.setValue(0.5)
+        object.confidence.setSpatial(0.5)
         object.immobile = true
         object.shape = .cubical
         return object
     }
     
-    static func createBuildingElement(id: String, type: String = "", from: SCNVector3, to: SCNVector3, height: Float = 1.0, depth: Float = 0.25) -> SpatialObject {
+    public static func createBuildingElement(id: String, type: String = "", from: SCNVector3, to: SCNVector3, height: Float = 1.0, depth: Float = 0.25) -> SpatialObject {
         let midVector = SCNVector3((to.x - from.x) / 2.0, (to.y - from.y) / 2.0, (to.z - from.z) / 2.0)
         let midVectorLength = midVector.length()
         let factor = UFloat(depth / midVectorLength / 2.0)
@@ -213,31 +211,29 @@ class SpatialObject {
         object.angle = -Float(atan2(midVector.z, midVector.x))
         object.label = type.lowercased()
         object.type = type
-        object.supertype = "Building Element"
         object.cause = .user_captured
         object.existence = .real
-        object.confidence.setValue(0.9)
+        object.confidence.setSpatial(0.9)
         object.immobile = true
         object.shape = .cubical
         return object
     }
     
-    static func createPerson(id: String, position: SCNVector3, name: String = "") -> SpatialObject {
+    public static func createPerson(id: String, position: SCNVector3, name: String = "") -> SpatialObject {
         /// create with average dimension of a person
         let person = SpatialObject(id: id, position: position, width: 0.46, height: 1.72, depth: 0.34)
         person.label = name
         person.cause = .self_tracked
         person.existence = .real
-        person.confidence.setValue(1.0)
+        person.confidence.setSpatial(1.0)
         person.immobile = false
-        person.supertype = "Creature"
         person.type = "Person"
         person.shape = .changing
         return person
     }
     
     // set auxiliary data
-    func setData(key: String, value: Any) {
+    public func setData(key: String, value: Any) {
         if data != nil {
             data![key] = value
         } else {
@@ -245,7 +241,7 @@ class SpatialObject {
         }
     }
     
-    func dataValue(_ key: String) -> Float {
+    public func dataValue(_ key: String) -> Float {
         if data != nil {
             let value =  data![key]
             if value != nil {
@@ -271,7 +267,6 @@ class SpatialObject {
             "cause": cause.rawValue,
             "label": label,
             "type": type,
-            "supertype": supertype,
             "position": [position.x, position.y, position.z],
             "center": [center.x, center.y, center.z],
             "width": width,
@@ -322,7 +317,6 @@ class SpatialObject {
             "cause": cause.rawValue,
             "label": label,
             "type": type,
-            "supertype": supertype,
             "position": [position.x, position.y, position.z],
             "width": width,
             "height": height,
@@ -330,7 +324,7 @@ class SpatialObject {
             "angle": angle,
             "immobile": immobile,
             "velocity": [velocity.x, velocity.y, velocity.z],
-            "confidence": confidence.value,
+            "confidence": confidence.spatial,
             "shape": shape.rawValue,
             "look": look,
             "visible": visible,
@@ -381,10 +375,9 @@ class SpatialObject {
         self.angle = number?.floatValue ?? self.angle
         self.label = input["label"] as? String ?? self.label
         self.type = input["type"] as? String ?? self.type
-        self.supertype = input["supertype"] as? String ?? self.supertype
         number = input["confidence"] as? NSNumber
-        let confidence = number?.floatValue ?? self.confidence.value
-        self.confidence.setValue(confidence)
+        let confidence = number?.floatValue ?? self.confidence.spatial
+        self.confidence.setSpatial(confidence)
         let cause = input["cause"] as? String ?? self.cause.rawValue
         self.cause = ObjectCause.named(cause)
         let existence = input["existence"] as? String ?? self.existence.rawValue
@@ -402,7 +395,7 @@ class SpatialObject {
         self.updated = Date()
     }
     
-    func desc() -> String {
+    public func desc() -> String {
         var str:String = ""
         if !label.isEmpty && label != id {
             str = str + "\(label), "
@@ -410,16 +403,14 @@ class SpatialObject {
         if !type.isEmpty {
             str = str + "\(type), "
         }
-        if !supertype.isEmpty {
-            str = str + "\(supertype), "
-        }
+
         str = str + String(format: "%.2f/", position.x) + String(format: "%.2f/", position.y) + String(format: "%.2f, ", position.z)
         str = str + String(format: "%.2fx", width) + String(format: "%.2fx", depth) + String(format: "%.2f, ", height)
         str = str + String(format: "𝜶:%.1f°", yaw)
         return str
     }
     
-    func setPosition(_ pos: SCNVector3) {
+    public func setPosition(_ pos: SCNVector3) {
         let interval = updateInterval
         if interval > 0.003 && !immobile {
             let prevPos = position
@@ -428,11 +419,11 @@ class SpatialObject {
         position = pos
     }
     
-    func setCenter(_ ctr: SCNVector3) {
+    public func setCenter(_ ctr: SCNVector3) {
         setPosition(.init(x: ctr.x, y: ctr.y - UFloat(height/2.0), z: ctr.z))
     }
     
-    func rotShift(_ rad: Float, dx:Float, dy:Float = 0.0, dz:Float = 0.0) {
+    public func rotShift(_ rad: Float, dx:Float, dy:Float = 0.0, dz:Float = 0.0) {
         //print("\(rad) \(dx) \(dy) \(dz)")
         let rotsin = sinf(rad)
         let rotcos = cosf(rad)
@@ -442,17 +433,17 @@ class SpatialObject {
         position = position + vector
     }
     
-    func setYaw(_ degrees: Float) {
+    public func setYaw(_ degrees: Float) {
         angle = degrees * .pi / 180.0
     }
     
     // returns 0 when no dominant direction, else axis direction x-y-z as 1-2-3
-    func mainDirection() -> Int {
+    public func mainDirection() -> Int {
         return long()
     }
     
     // if not thin returns 0, else thiness direction x-y-z as 1-2-3
-    func thin(ratio: Float = defaultAdjustment.thinRatio) -> Int {
+    public func thin(ratio: Float = defaultAdjustment.thinRatio) -> Int {
         let values: Array<Float> = [width, height, depth]
         let max = values.max() ?? 0.0
         let min = values.min() ?? 0.0
@@ -471,7 +462,7 @@ class SpatialObject {
     }
     
     // if not long returns 0, else long axis direction x-y-z as 1-2-3
-    func long(ratio: Float = defaultAdjustment.longRatio) -> Int {
+    public func long(ratio: Float = defaultAdjustment.longRatio) -> Int {
         let values: Array<Float> = [width, height, depth]
         let max = values.max() ?? 0.0
         let min = values.min() ?? 0.0
@@ -491,7 +482,7 @@ class SpatialObject {
         return 0
     }
     
-    func lowerPoints(local:Bool = false) -> [SCNVector3] {
+    public func lowerPoints(local:Bool = false) -> [SCNVector3] {
         var p0 = CGPoint(x: UFloat(width)/2.0, y: UFloat(depth)/2.0)
         var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
         var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
@@ -512,7 +503,7 @@ class SpatialObject {
         ]
     }
     
-    func upperPoints(local:Bool = false) -> [SCNVector3] {
+    public func upperPoints(local:Bool = false) -> [SCNVector3] {
         var p0 = CGPoint(x: UFloat(width)/2.0, y: UFloat(depth)/2.0)
         var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
         var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
@@ -533,7 +524,7 @@ class SpatialObject {
         ]
     }
     
-    func frontPoints(local:Bool = false) -> [SCNVector3] {
+    public func frontPoints(local:Bool = false) -> [SCNVector3] {
         var p0 = CGPoint(x: UFloat(width)/2.0, y: UFloat(depth)/2.0)
         var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
         var vector = SCNVector3()
@@ -550,7 +541,7 @@ class SpatialObject {
         ]
     }
     
-    func backPoints(local:Bool = false) -> [SCNVector3] {
+    public func backPoints(local:Bool = false) -> [SCNVector3] {
         var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
         var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
         var vector = SCNVector3()
@@ -567,7 +558,7 @@ class SpatialObject {
         ]
     }
     
-    func rightPoints(local:Bool = false) -> [SCNVector3] {
+    public func rightPoints(local:Bool = false) -> [SCNVector3] {
         var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
         var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
         var vector = SCNVector3()
@@ -584,7 +575,7 @@ class SpatialObject {
         ]
     }
     
-    func leftPoints(local:Bool = false) -> [SCNVector3] {
+    public func leftPoints(local:Bool = false) -> [SCNVector3] {
         var p0 = CGPoint(x: UFloat(width)/2.0, y: UFloat(depth)/2.0)
         var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
         var vector = SCNVector3()
@@ -601,7 +592,7 @@ class SpatialObject {
         ]
     }
     
-    func points(local:Bool = false) -> [SCNVector3] {
+    public func points(local:Bool = false) -> [SCNVector3] {
         var p0 = CGPoint(x: UFloat(width)/2.0, y: UFloat(depth)/2.0)
         var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
         var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
@@ -626,18 +617,18 @@ class SpatialObject {
         ]
     }
     
-    func distance(_ to: SCNVector3) -> Float {
+    public func distance(_ to: SCNVector3) -> Float {
         return (to - center).length()
     }
     
-    func baseDistance(_ to: SCNVector3) -> Float {
+    public func baseDistance(_ to: SCNVector3) -> Float {
         var point = to
         point.y = position.y
         return (point - position).length()
     }
     
     // transfer point into local coordinate system
-    func intoLocal(pt: SCNVector3) -> SCNVector3 {
+    public func intoLocal(pt: SCNVector3) -> SCNVector3 {
         let vx = Float(pt.x - position.x)
         let vz = Float(pt.z - position.z)
         let rotsin = sinf(angle)
@@ -648,7 +639,7 @@ class SpatialObject {
     }
     
     // transfer points into local coordinate system
-    func intoLocal(pts: [SCNVector3]) -> [SCNVector3] {
+    public func intoLocal(pts: [SCNVector3]) -> [SCNVector3] {
         var result = [SCNVector3]()
         let rotsin = sinf(angle)
         let rotcos = cosf(angle)
@@ -662,7 +653,7 @@ class SpatialObject {
         return result
     }
     
-    func rotate(pts: [SCNVector3], by angle: Float) -> [SCNVector3] {
+    public func rotate(pts: [SCNVector3], by angle: Float) -> [SCNVector3] {
         var result = [SCNVector3]()
         let rotsin = UFloat(sinf(angle))
         let rotcos = UFloat(cosf(angle))
@@ -677,7 +668,7 @@ class SpatialObject {
     // point must be transformed upfront into local object coordinate system
     // nearBy: check for point is nearby
     // epsilon: shift in bbox border, negative number decreases inner zone
-    func sectorOf(point: SCNVector3, nearBy:Bool = false, epsilon:Float = -100.0) -> BBoxSector {
+    public func sectorOf(point: SCNVector3, nearBy:Bool = false, epsilon:Float = -100.0) -> BBoxSector {
         var zone = BBoxSector()
         if nearBy {
             var pt = point
@@ -712,7 +703,7 @@ class SpatialObject {
         return zone
     }
     
-    func nearbyRadius() -> Float {
+    public func nearbyRadius() -> Float {
         switch adjustment.nearbySchema {
         case .fixed:
             return adjustment.nearbyFactor
@@ -727,7 +718,7 @@ class SpatialObject {
         }
     }
     
-    func sectorLenghts(_ sector: BBoxSector = .i) -> SCNVector3 {
+    public func sectorLenghts(_ sector: BBoxSector = .i) -> SCNVector3 {
         var result = SCNVector3(x: UFloat(width), y: UFloat(height), z: UFloat(depth))
         if sector.contains(.a) || sector.contains(.b) {
             switch adjustment.sectorSchema {
@@ -759,7 +750,7 @@ class SpatialObject {
         return result
     }
     
-    func topologies(subject: SpatialObject) -> [SpatialRelation] {
+    public func topologies(subject: SpatialObject) -> [SpatialRelation] {
         var result = [SpatialRelation]()
         var relation:SpatialRelation
         var gap:Float = 0.0
@@ -1015,8 +1006,10 @@ class SpatialObject {
                 
                 if  minY < height + adjustment.maxGap && maxY > -adjustment.maxGap {
                     gap = min(xlap, zlap)
-                    if !aligned && canNotOverlap && gap > 0.0 && gap < adjustment.maxGap { // FIXME: min distance check???
-                        if (maxX < -width/2.0 + adjustment.maxGap) || (minX > width/2.0 - adjustment.maxGap) || (maxZ < -depth/2.0 + adjustment.maxGap) || (minZ > depth/2.0 - adjustment.maxGap) {
+                    // WARNING: changed next two conditions and removed inner else
+                    if !aligned && gap > 0.0 && gap < adjustment.maxGap {
+                        if (abs(maxX + width/2.0) <  adjustment.maxGap) || (abs(minX - width/2.0) < adjustment.maxGap) ||
+                            (abs(maxZ + depth/2.0) < adjustment.maxGap) || (abs(minZ - depth/2.0) < adjustment.maxGap) {
                             relation = SpatialRelation(subject: subject, predicate: .touching, object: self, delta: gap, angle: theta)
                             result.append(relation)
                             if !isConnected && context?.deduce.connectivity ?? true {
@@ -1024,9 +1017,6 @@ class SpatialObject {
                                 result.append(relation)
                                 isConnected = true
                             }
-                        } else {
-                            // TODO: calculating shortest distance between two rotated rectangles, check GJK algorithm,
-                            print("OOPS, rotated bbox might cross: assembly relations by shortest distance not yet implemented! \(subject.id) - ? - \(id)")
                         }
                     } else {
                         //print("alligned assembly \(subject.id) - ? - \(id): \(xlap) \(ylap) \(zlap)")
@@ -1153,7 +1143,7 @@ class SpatialObject {
         return result
     }
     
-    func similarities(subject: SpatialObject) -> [SpatialRelation] {
+    public func similarities(subject: SpatialObject) -> [SpatialRelation] {
         var result = [SpatialRelation]()
         var relation:SpatialRelation
         let theta = subject.angle - angle
@@ -1264,7 +1254,7 @@ class SpatialObject {
         return result
     }
     
-    func comparisons(subject:SpatialObject) -> [SpatialRelation] {
+    public func comparisons(subject:SpatialObject) -> [SpatialRelation] {
         var result = [SpatialRelation]()
         var relation:SpatialRelation
         let theta = subject.angle - angle
@@ -1326,7 +1316,7 @@ class SpatialObject {
     }
     
     // sector
-    func sector(subject: SpatialObject, nearBy:Bool = false, epsilon:Float = 0.0) -> SpatialRelation {
+    public func sector(subject: SpatialObject, nearBy:Bool = false, epsilon:Float = 0.0) -> SpatialRelation {
         let centerVector = subject.center - center
         let centerDistance = centerVector.length()
         let localCenter = intoLocal(pt: subject.center)
@@ -1336,7 +1326,7 @@ class SpatialObject {
         return SpatialRelation(subject:subject, predicate: pred, object:self, delta: centerDistance, angle:theta)
     }
     
-    func asseen(subject: SpatialObject, observer: SpatialObject) -> [SpatialRelation] {
+    public func asseen(subject: SpatialObject, observer: SpatialObject) -> [SpatialRelation] {
         var result = [SpatialRelation]()
         let posVector = subject.position - position
         let posDistance = posVector.length()
@@ -1376,7 +1366,7 @@ class SpatialObject {
         return result
     }
     
-    func relate(subject: SpatialObject, topology:Bool = false, similarity:Bool = false, comparison:Bool = false) -> [SpatialRelation] {
+    public func relate(subject: SpatialObject, topology:Bool = false, similarity:Bool = false, comparison:Bool = false) -> [SpatialRelation] {
         var result = [SpatialRelation]()
         if topology || context?.deduce.topology ?? false || context?.deduce.connectivity ?? false {
             result.append(contentsOf: topologies(subject:subject))
@@ -1393,7 +1383,7 @@ class SpatialObject {
         return result
     }
     
-    func relationValue(_ relval: String, pre: [Int]) -> Float {
+    public func relationValue(_ relval: String, pre: [Int]) -> Float {
         let list = relval.split(separator: ".").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
         if list.count != 2 && context == nil {
             return 0.0
@@ -1401,7 +1391,7 @@ class SpatialObject {
         let predicate = list[0]
         let attribute = list[1]
         var result: Float = 0.0
-        // FIXME: take min instead of last?
+        // TODO: take min instead of last?
         for i in pre {
             let rels = context!.relationsWith(i, predicate: predicate)
             for rel in rels {
@@ -1419,7 +1409,7 @@ class SpatialObject {
     
     // ---- Visualization functions ----------------------------
     
-    func bboxCube(color: CGColor) -> SCNNode {
+    public func bboxCube(color: CGColor) -> SCNNode {
         let name = label.isEmpty ? id : label
         let group = SCNNode()
         group.name = id
@@ -1447,7 +1437,7 @@ class SpatialObject {
         return group
     }
     
-    func nearbySphere() -> SCNNode {
+    public func nearbySphere() -> SCNNode {
         let r = nearbyRadius()
         let sphere = SCNSphere(radius: UFloat(r))
         sphere.firstMaterial?.diffuse.contents = CGColor(gray: 0.1, alpha: 0.5)
@@ -1458,7 +1448,7 @@ class SpatialObject {
         return node
     }
     
-    func sectorCube(_ sector: BBoxSector = .i, _ withLabel:Bool = false) -> SCNNode {
+    public func sectorCube(_ sector: BBoxSector = .i, _ withLabel:Bool = false) -> SCNNode {
         let dims = sectorLenghts(sector)
         let box = SCNBox(width: dims.x, height: dims.y, length: dims.z, chamferRadius: 0.0)
         box.firstMaterial?.diffuse.contents = CGColor(gray: 0.1, alpha: 0.5)
@@ -1500,7 +1490,7 @@ class SpatialObject {
         return node
     }
     
-    func pointNodes(_ pts: [SCNVector3] = []) -> SCNNode {
+    public func pointNodes(_ pts: [SCNVector3] = []) -> SCNNode {
         let points = pts.isEmpty ? self.points() : pts
         let group = SCNNode()
         group.name = "BBox corners of " + (label.count > 0 ? label : id)

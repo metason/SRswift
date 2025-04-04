@@ -27,31 +27,31 @@ public enum SectorSchema {
 
 // Set adjustment parameters before executing pipeline or calling relate() method.
 // SpatialReasoner has its own local adjustment that should be set upfront.
-class SpatialAdjustment {
+public class SpatialAdjustment {
     // Max deviations
-    var maxGap:Float = 0.02 /// max distance of deviation in all directions in meters
-    var maxAngleDelta:Float = 0.05 * .pi /// max angle delta in both directions in radiants
+    public var maxGap:Float = 0.02 /// max distance of deviation in all directions in meters
+    public var maxAngleDelta:Float = 0.05 * .pi /// max angle delta in both directions in radiants
     // Sector size
-    var sectorSchema:SectorSchema = .nearby
-    var sectorFactor:Float = 1.0 /// multiplying result of claculation schema
-    var sectorLimit:Float = 2.5 /// maximal length
+    public var sectorSchema:SectorSchema = .nearby
+    public var sectorFactor:Float = 1.0 /// multiplying result of claculation schema
+    public var sectorLimit:Float = 2.5 /// maximal length
     // Vicinity
-    var nearbySchema:NearbySchema = .circle
-    var nearbyFactor:Float = 2.0 /// multiplying radius sum of object and subject (relative to size) as max distance
-    var nearbyLimit:Float = 2.5 /// maximal absolute distance
+    public var nearbySchema:NearbySchema = .circle
+    public var nearbyFactor:Float = 2.0 /// multiplying radius sum of object and subject (relative to size) as max distance
+    public var nearbyLimit:Float = 2.5 /// maximal absolute distance
     // Proportions
-    var longRatio:Float = 4.0 /// one dimension is factor larger than both others
-    var thinRatio:Float = 10.0 /// one dimension is 1/factor smaller than both others
+    public var longRatio:Float = 4.0 /// one dimension is factor larger than both others
+    public var thinRatio:Float = 10.0 /// one dimension is 1/factor smaller than both others
     
     /// get/set max delta of orientation in degrees
-    var yaw:Float {
+    public var yaw:Float {
         return maxAngleDelta * 180.0 / .pi
     }
-    func setYaw(_ degrees:Float) {
+    public func setYaw(_ degrees:Float) {
         maxAngleDelta = degrees * .pi / 180.0
     }
     
-    init(gap:Float = 0.02, angle:Float = 0.05 * .pi, sectorSchema:SectorSchema = .nearby, sectorFactor:Float = 1.0, sectorLimit:Float = 2.5, nearbySchema:NearbySchema = .circle, nearbyFactor:Float = 2.0, nearbyLimit:Float = 2.5) {
+    public init(gap:Float = 0.02, angle:Float = 0.05 * .pi, sectorSchema:SectorSchema = .nearby, sectorFactor:Float = 1.0, sectorLimit:Float = 2.5, nearbySchema:NearbySchema = .circle, nearbyFactor:Float = 2.0, nearbyLimit:Float = 2.5) {
         self.maxGap = gap
         self.maxAngleDelta = angle
         self.sectorSchema = sectorSchema
@@ -64,41 +64,33 @@ class SpatialAdjustment {
 }
 
 // Default adjustment only used when no SpatialReasoner builds context
-nonisolated(unsafe) var defaultAdjustment = SpatialAdjustment()
-nonisolated(unsafe) var tightAdjustment = SpatialAdjustment(gap:0.002, angle:0.01 * .pi, sectorFactor:0.5)
+nonisolated(unsafe) public var defaultAdjustment = SpatialAdjustment()
+nonisolated(unsafe) public var tightAdjustment = SpatialAdjustment(gap:0.002, angle:0.01 * .pi, sectorFactor:0.5)
 
-class SpatialPredicateCategories {
-    var topology = true
-    var connectivity = true
-    var comparability = false
-    var similarity = false
-    var sectoriality = false
-    var visibility = false
-    var geography = false
+public class SpatialPredicateCategories {
+    public var topology = true
+    public var connectivity = true
+    public var comparability = false
+    public var similarity = false
+    public var sectoriality = false
+    public var visibility = false
+    public var geography = false
 }
 
-class ObjectConfidence { // plausability values between 0.0 and 1.0
-    var pose:Float = 0.0 // plausability of position and orientation of (partially) detected part
-    var dimension:Float = 0.0  // plausability of size of spatial object
-    var label:Float = 0.0  // plausability of classification: label, type, supertype
-    var look:Float = 0.0  // plausability of look and shape
-    var value:Float {
-        return (pose + dimension + label)/3.0
-    }
-    func setValue(_ value:Float) {
-        pose = value
-        dimension = value
-        label = value
-    }
-    var spatial:Float {
+public class ObjectConfidence { // plausability values between 0.0 and 1.0
+    public var pose:Float = 0.0 // plausability of position and orientation of (partially) detected part
+    public var dimension:Float = 0.0  // plausability of size of spatial object
+    public var label:Float = 0.0  // plausability of classification: label, type
+    public var look:Float = 0.0  // plausability of look and shape
+    public var spatial:Float {
         return (pose + dimension)/2.0
     }
-    func setSpatial(_ value:Float) {
+    public func setSpatial(_ value:Float) {
         pose = value
         dimension = value
     }
-    func asDict() -> Dictionary<String, Float> {
-        return ["pose":pose, "dimension":dimension, "label":label, "look":look]  
+    public func asDict() -> Dictionary<String, Float> {
+        return ["pose":pose, "dimension":dimension, "label":label, "look":look]
     }
 }
 
@@ -132,7 +124,7 @@ public enum SpatialExistence: String {
     case conceptual // non-visual, conceptual area, e.g., corner, zone, sensing area, region of interest, interaction field
     case aggregational // non-visual part-of group, container
     
-    static func named(_ name: String) -> SpatialExistence {
+    public static func named(_ name: String) -> SpatialExistence {
         return SpatialExistence(rawValue: name) ?? .undefined
     }
 }
@@ -147,7 +139,7 @@ public enum ObjectCause : String {
     case rule_produced // produced by rule or by program logic
     case remote_created // created by remote service
     
-    static func named(_ name: String) -> ObjectCause {
+    public static func named(_ name: String) -> ObjectCause {
         return ObjectCause(rawValue: name) ?? .unknown
     }
 }
@@ -169,7 +161,7 @@ public enum ObjectShape : String {
     case irregular // complex shape
     case changing // changing shape, e.g., of creature
     
-    static func named(_ name: String) -> ObjectShape {
+    public static func named(_ name: String) -> ObjectShape {
         return ObjectShape(rawValue: name) ?? .unknown
     }
 }

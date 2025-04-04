@@ -7,7 +7,7 @@
 
 import Testing
 import SceneKit
-@testable import SpatialReasoning
+@testable import SRswift
 
 struct RelationVis {
     

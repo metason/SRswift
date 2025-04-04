@@ -8,7 +8,7 @@
 
 import Testing
 import SceneKit
-@testable import SpatialReasoning
+@testable import SRswift
 
 @Suite("Spatial Relations: Predicates")
 struct SpatialTest {
@@ -374,5 +374,11 @@ struct SpatialTest {
         let relations = object.relate(subject: subject, comparison: true)
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque), subject.pointNodes(), object.pointNodes()])
+    }
+    
+    @Test("all in categories")
+    func allInCategroies() async throws {
+        #expect(PredicateCategories.sectors.count == 3*3*3)
+        #expect(PredicateCategories.allInCategories())
     }
 }
