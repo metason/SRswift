@@ -312,6 +312,8 @@ struct SpatialReasoningTests {
         """
         let done = sr.run(pipeline)
         #expect(done)
+        #expect(sr.result().count == 3)
+
     }
     
     @Test("produce(by : edge)")
@@ -328,6 +330,8 @@ struct SpatialReasoningTests {
         """
         let done = sr.run(pipeline)
         #expect(done)
+        #expect(sr.result().count == 3)
+
     }
     
     @Test("produce(by : corner)")
@@ -344,6 +348,7 @@ struct SpatialReasoningTests {
         """
         let done = sr.run(pipeline)
         #expect(done)
+        #expect(sr.result().count == 8)
     }
     
     @Test("produce(on : zone)")
@@ -359,6 +364,7 @@ struct SpatialReasoningTests {
         """
         let done = sr.run(pipeline)
         #expect(done)
+        #expect(sr.result().count == 3)
     }
     
     @Test("produce(at : zone) [back]")
@@ -374,6 +380,7 @@ struct SpatialReasoningTests {
         """
         let done = sr.run(pipeline)
         #expect(done)
+        #expect(sr.result().count == 3)
     }
     
     @Test("produce(at : zone) [left]")
@@ -388,6 +395,24 @@ struct SpatialReasoningTests {
         """
         let done = sr.run(pipeline)
         #expect(done)
+        #expect(sr.result().count == 3)
+    }
+    
+    @Test("produce(bro : sector)")
+    func producesector() async throws {
+        let subject = SpatialObject(id: "subj", position: .init(x: 0, y: 1.01, z: 0), width: 0.8, height: 0.6, depth: 0.25)
+        subject.setYaw(30.0)
+        let box = SpatialObject(id: "box", position: .init(x: -1.58, y: 1, z: 1.4), width: 0.8, height: 0.6, depth: 0.7)
+        let sr = SpatialReasoner()
+        sr.load([subject, box])
+        let pipeline = """
+            adjust(sector dimension)
+            | produce(bro : label = 'bro')
+            | log(base 3D)
+        """
+        let done = sr.run(pipeline)
+        #expect(done)
+        #expect(sr.result().count == 4)
     }
     
     @Test("isa base type")

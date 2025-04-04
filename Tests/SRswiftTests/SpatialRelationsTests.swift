@@ -82,7 +82,6 @@ struct SpatialTest {
         export([subject.bboxCube(color: subjectTransparent), object.bboxCube(color: objectTransparent)])
         #expect(relations.contains(where: { $0.predicate == .containing }))
         #expect(relations.contains(where: { $0.predicate == .disjoint }) == false)
-        
         #expect(relations.contains(where: { $0.predicate == .near }))
         #expect(relations.contains(where: { $0.predicate == .aligned }))
     }
@@ -95,7 +94,6 @@ struct SpatialTest {
         printRelations(relations)
         export([wall1.bboxCube(color: subjectTransparent), door.bboxCube(color: objectTransparent)])
         #expect(relations.contains(where: { $0.predicate == .inside }))
-        
         #expect(relations.contains(where: { $0.predicate == .in }))
         #expect(relations.contains(where: { $0.predicate == .near }))
         #expect(relations.contains(where: { $0.predicate == .aligned }))
@@ -111,7 +109,6 @@ struct SpatialTest {
         printRelations(relations)
         export([wall2.bboxCube(color: subjectTransparent), window.bboxCube(color: objectTransparent)])
         #expect(relations.contains(where: { $0.predicate == .inside }))
-        
         #expect(relations.contains(where: { $0.predicate == .inside }))
         #expect(relations.contains(where: { $0.predicate == .in }))
         #expect(relations.contains(where: { $0.predicate == .near }))
@@ -128,7 +125,6 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .below }))
-        
         #expect(relations.contains(where: { $0.predicate == .near }))
         #expect(relations.contains(where: { $0.predicate == .lowerside }))
         #expect(relations.contains(where: { $0.predicate == .disjoint }))
@@ -144,7 +140,6 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .above }))
-        
         #expect(relations.contains(where: { $0.predicate == .aligned }))
         #expect(relations.contains(where: { $0.predicate == .disjoint }))
         #expect(relations.contains(where: { $0.predicate == .near }))
@@ -158,7 +153,6 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .ontop }))
-        
         #expect(relations.contains(where: { $0.predicate == .above }))
         #expect(relations.contains(where: { $0.predicate == .near }))
         #expect(relations.contains(where: { $0.predicate == .on }))
@@ -176,7 +170,6 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectTransparent), object.bboxCube(color: objectTransparent)])
         #expect(relations.contains(where: { $0.predicate == .overlapping }))
-        
         #expect(relations.contains(where: { $0.predicate == .meeting }))
         #expect(relations.contains(where: { $0.predicate == .near }))
         #expect(relations.contains(where: { $0.predicate == .aligned }))
@@ -191,7 +184,6 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectTransparent), object.bboxCube(color: objectTransparent)])
         #expect(relations.contains(where: { $0.predicate == .crossing }))
-        
         #expect(relations.contains(where: { $0.predicate == .near}))
         #expect(relations.contains(where: { $0.predicate == .meeting }))
     }
@@ -204,7 +196,6 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectTransparent), object.bboxCube(color: objectTransparent)])
         #expect(relations.contains(where: { $0.predicate == .crossing }))
-        
         #expect(relations.contains(where: { $0.predicate == .near}))
         #expect(relations.contains(where: { $0.predicate == .meeting }))
     }
@@ -219,7 +210,6 @@ struct SpatialTest {
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .touching }))
         #expect(relations.contains(where: { $0.predicate == .beside }))
-        
         #expect(relations.contains(where: { $0.predicate == .leftside }))
         #expect(relations.contains(where: { $0.predicate == .left }))
         #expect(relations.contains(where: { $0.predicate == .near }))
@@ -236,12 +226,10 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .meeting }))
-        
         #expect(relations.contains(where: { $0.predicate == .near }))
         #expect(relations.contains(where: { $0.predicate == .leftside }))
         #expect(relations.contains(where: { $0.predicate == .beside }))
         #expect(relations.contains(where: { $0.predicate == .left }))
-        
         #expect(relations.contains(where: { $0.predicate == .at }))
         #expect(relations.contains(where: { $0.predicate == .orthogonal }))
         #expect(relations.contains(where: { $0.predicate == .disjoint }))
@@ -255,7 +243,6 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectTransparent), object.bboxCube(color: objectTransparent)])
         #expect(relations.contains(where: { $0.predicate == .congruent }))
-        
         #expect(relations.contains(where: { $0.predicate == .samecenter }))
         #expect(relations.contains(where: { $0.predicate == .sameposition }))
         #expect(relations.contains(where: { $0.predicate == .samewidth }))
@@ -328,7 +315,6 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectTransparent), observer.bboxCube(color: CGColor(red: 0, green: 1, blue: 0, alpha: 0))])
         #expect(relations.contains(where: { $0.predicate == .elevenoclock }))
-        
         #expect(relations.contains(where: { $0.predicate == .far }))
         #expect(relations.contains(where: { $0.predicate == .left }))
         #expect(relations.contains(where: { $0.predicate == .ahead }))
@@ -343,7 +329,6 @@ struct SpatialTest {
         let relations = observer.relate(subject: subject, topology: true)
         printRelations(relations)
         export([subject.bboxCube(color: subjectTransparent), observer.bboxCube(color: CGColor(red: 0, green: 1, blue: 0, alpha: 0))])
-        
         #expect(relations.contains(where: { $0.predicate == .twooclock }))
         #expect(relations.contains(where: { $0.predicate == .right }))
         #expect(relations.contains(where: { $0.predicate == .ahead }))
@@ -360,7 +345,6 @@ struct SpatialTest {
         printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])
         #expect(relations.contains(where: { $0.predicate == .thinner }))
-        
         #expect(relations.contains(where: { $0.predicate == .shorter }))
         #expect(relations.contains(where: { $0.predicate == .smaller }))
         #expect(relations.contains(where: { $0.predicate == .fitting }))

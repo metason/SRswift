@@ -95,4 +95,13 @@ extension BBoxSector: CustomStringConvertible {
         return description ?? "no sector"
     }
     
+    public static func named(_ name: String) -> BBoxSector {
+        for (sector, sectorName) in BBoxSector.debugDescriptions {
+            if sectorName == name {
+                return sector
+            }
+        }
+        return .none
+    }
+    
 }

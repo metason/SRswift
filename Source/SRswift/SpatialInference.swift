@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SceneKit
 
 public class SpatialInference : Hashable {
     
@@ -552,35 +553,49 @@ public class SpatialInference : Hashable {
         default:
             let pred = SpatialPredicate.named(rule)            
             if PredicateCategories.sectors.contains(pred) {
-                // TODO: sectors
+                let sector = BBoxSector.named(rule)
                 for i in input {
-//                    let dims = sectorLenghts(sector)
-//                    let box = SCNBox(width: dims.x, height: dims.y, length: dims.z, chamferRadius: 0.0)
-//                    box.firstMaterial?.diffuse.contents = CGColor(gray: 0.1, alpha: 0.5)
-//                    box.firstMaterial?.transparency = 0.5
-//                    let node = SCNNode(geometry: box)
-//                    node.name = sector.description + " sector"
-//                    var shift:SCNVector3 = .init()
-//                    if sector.contains(.o) {
-//                        shift.y = (UFloat(height) + dims.y)/2.0
-//                    } else if sector.contains(.u) {
-//                        shift.y = (UFloat(-height) - dims.y)/2.0
-//                    }
-//                    if sector.contains(.r) {
-//                        shift.x = (UFloat(-width) - dims.x)/2.0
-//                    } else if sector.contains(.l) {
-//                        shift.x = (UFloat(width) + dims.x)/2.0
-//                    }
-//                    if sector.contains(.a) {
-//                        shift.z = (UFloat(depth) + dims.z)/2.0
-//                    } else if sector.contains(.b) {
-//                        shift.z = (UFloat(-depth) - dims.z)/2.0
-//                    }
+                    let sectorId = rule + ":" + fact.objects[i].id
+                    let objIdx = fact.indexOf(id: sectorId) ?? -1
+                    let obj = objIdx < 0 ? SpatialObject(id: sectorId) : fact.objects[objIdx]
+                    obj.cause = .rule_produced
+                    let dims = fact.objects[i].sectorLenghts(sector)
+                    obj.width = Float(dims.x)
+                    obj.height = Float(dims.y)
+                    obj.depth = Float(dims.z)
+                    var shift:SCNVector3 = .init()
+                    if sector.contains(.o) {
+                        shift.y = (UFloat(fact.objects[i].height) + dims.y)/2.0
+                    } else if sector.contains(.u) {
+                        shift.y = (UFloat(-fact.objects[i].height) - dims.y)/2.0
+                    }
+                    if sector.contains(.r) {
+                        shift.x = (UFloat(-fact.objects[i].width) - dims.x)/2.0
+                    } else if sector.contains(.l) {
+                        shift.x = (UFloat(fact.objects[i].width) + dims.x)/2.0
+                    }
+                    if sector.contains(.a) {
+                        shift.z = (UFloat(fact.objects[i].depth) + dims.z)/2.0
+                    } else if sector.contains(.b) {
+                        shift.z = (UFloat(-fact.objects[i].depth) - dims.z)/2.0
+                    }
+                    obj.angle = fact.objects[i].angle
+                    var vector = CGPoint(x: shift.x, y: -shift.z)
+                    vector = vector.rotate(CGFloat(fact.objects[i].angle))
+                    shift.x = vector.x
+                    shift.z = -vector.y
+                    let center = fact.objects[i].center
+                    obj.setCenter(center + shift)
+                    if objIdx < 0 {
+                        newObjects.append(obj.asDict())
+                        indices.append(fact.objects.count)
+                        fact.objects.append(obj)
+                    }
                 }
-                
+            } else {
+                error.append("Unknown \(rule) rule in produce()")
+                return
             }
-            error.append("Unknown \(rule) rule in produce()")
-            return
         }
         if !indices.isEmpty {
             fact.base["objects"] = (fact.base["objects"] as! [Dictionary<String, Any>]) + newObjects
