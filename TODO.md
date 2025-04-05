@@ -16,33 +16,24 @@
 - README of Spatial Reasoner: add C# example
 - SpatialTerms: concept for language translation
 - Predicate: covering, (partially) hiding
+- sub topologies on/off?
+- usage of NOT (or !) --> test cases
 
+## TODO
 
-## SUBITO TODO (before launch)
-
-- check TODO:
-- improve assertions in test cases
-- improve Spatial Terms
-- enhance README: Tests
-- finalize produce()
-  - on, at, sector
-- check on topology == false
-  - sub topologies on/off?
-- delta calculation? Euclidean Signed Distance Function (ESDF)
+- Euclidean Signed Distance Function (ESDF)
   - check delta calc --> test cases
   - min distance, neg. on overlap?
-- usage of NOT (or !) --> test cases
-- remove WARNING:
 
 ## GENERAL IDEAS
   
+- improve assertions in test cases
 - substitute not found predicates
     - match to synonyms
     - NOT predicate for antonyms
 - strings in pipeline: handle no quotes as well as ' and "
 - confidence on relations
 - enhance produce()
-  - sectors?
   - *side = inbetween bbox (minimal)?
   - *aligned = meeting bbox (minimal)?
   - orthogonal = spanned area?
@@ -52,29 +43,19 @@
   - change SpatialAdjustment dynamically --> use in spatial rule engine demo
   - step-wise relaxing of border conditions when pipeline not successful
 - adjacency voronoi graph (Nachbarschaft)
-- Spatial Onthology Editor
+- Spatial Onthology Editor (standalone from ARchi Composer)
   - File format for exchange: meta data (author, context), ruleset
   - ARchi Composer: reasoning editor, show bbox of spatial objects 
   - Language translator for SpatialTerms and SpatialTaxonomy
-
 
 ## Predicates
 
 - is fitting into, is exceeding
 - is facing / facing towards
 - is focusing // gazing; +/- maxAngleDelta
-- is closest to, nearest to, --> use sort()
-  - furthest away from, farthest, remotest, outermost --> use sort()
 - Nr3D dataset: sample sentences https://referit3d.github.io/benchmarks.html
 - geography /geodetic: altitude: ?
-- chained spatial relations --> use sort()
-  - secondleft, thirdleft, forthleft, fifthleft
-  - secondleft, secondright, secondabove, secondbelow, secondahead, secondbehind
-  - mostleft, ...
-  - circularity: circle relations? 
-    - circularleft?
 - visible, focused: as attribute, also as relation?
-
 
 ## Object Attributes
 
@@ -85,9 +66,7 @@
   - none // closed box
   - closablefront, closabletop...
   - opentop, openfront, openside
-  
 - shape: Rectangular, Triangular?
-
 - User-related
   - visible
   - focused
@@ -100,7 +79,6 @@
   - liftable
   - rotatable
   - tangible?? user-dep.
-
 
 ## Long-term Topics / Use Cases
 

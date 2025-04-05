@@ -35,7 +35,7 @@ https://github.com/metason/SRswift.
 
 ## Tests
 
-TODO: Comments on Tests and Visualizations
+SRswift includes extensive test cases. They include some `expect()` conditions but also `log(base 3D)` pipeleine operations for visual approval. Some test cases (named `*Vis`) are "misused" to generate visualizations that are included in the [documentation of SpatialReasoner](https://github.com/metason/SpatialReasoner).
 
 ## License
 

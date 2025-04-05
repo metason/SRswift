@@ -1006,7 +1006,6 @@ public class SpatialObject {
                 
                 if  minY < height + adjustment.maxGap && maxY > -adjustment.maxGap {
                     gap = min(xlap, zlap)
-                    // WARNING: changed next two conditions and removed inner else
                     if !aligned && gap > 0.0 && gap < adjustment.maxGap {
                         if (abs(maxX + width/2.0) <  adjustment.maxGap) || (abs(minX - width/2.0) < adjustment.maxGap) ||
                             (abs(maxZ + depth/2.0) < adjustment.maxGap) || (abs(minZ - depth/2.0) < adjustment.maxGap) {
