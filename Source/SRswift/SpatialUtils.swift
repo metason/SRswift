@@ -11,7 +11,7 @@ import Foundation
 import SceneKit
 
 // UFloat: Universal Float
-// macOS uses CGFloats for describing CGPoint and SCNVector3, iOS uses Floats.
+// macOS uses CGFloats for describing CGPoint and SCNVector3, iOS & visionOS use Floats.
 // In order to share the same code, this typealias allows conversion between Floats and CGFloats
 #if os(macOS)
 typealias UFloat = CGFloat

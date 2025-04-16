@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "SRswift",
     platforms: [
-        .macOS(.v12), .iOS(.v13)
+        .macOS(.v12), .iOS(.v13), .visionOS(.v2)
     ],
     products: [
         .library(name: "SRswift", targets: ["SRswift"])
