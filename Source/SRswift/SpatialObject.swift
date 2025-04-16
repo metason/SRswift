@@ -205,7 +205,7 @@ public class SpatialObject {
         let midVector = SCNVector3((to.x - from.x) / 2.0, (to.y - from.y) / 2.0, (to.z - from.z) / 2.0)
         let midVectorLength = midVector.length()
         let factor = UFloat(depth / midVectorLength / 2.0)
-        let normal = CGPoint(x: UFloat(midVector.x*factor), y: UFloat(midVector.z*factor)).rotate(UFloat(.pi/2.0))
+        let normal = CGPoint(x: Double(midVector.x*factor), y: Double(midVector.z*factor)).rotate(UFloat(.pi/2.0))
         let pos = from + midVector - SCNVector3(normal.x, 0.0, normal.y)
         let object = SpatialObject(id: id, position: pos, width: midVectorLength*2.0, height: height, depth: depth)
         object.angle = -Float(atan2(midVector.z, midVector.x))
@@ -349,9 +349,9 @@ public class SpatialObject {
         var pos = SCNVector3()
         let list = input["position"] as? [NSNumber] ?? []
         if list.count == 3 {
-            pos.x = CGFloat(list[0].floatValue)
-            pos.y = CGFloat(list[1].floatValue)
-            pos.z = CGFloat(list[2].floatValue)
+            pos.x = UFloat(list[0].floatValue)
+            pos.y = UFloat(list[1].floatValue)
+            pos.z = UFloat(list[2].floatValue)
         } else {
             number = input["x"] as? NSNumber
             let x = number?.floatValue ?? Float(self.position.x)
@@ -359,9 +359,9 @@ public class SpatialObject {
             let y = number?.floatValue ?? Float(self.position.y)
             number = input["z"] as? NSNumber
             let z = number?.floatValue ?? Float(self.position.z)
-            pos.x = CGFloat(x)
-            pos.y = CGFloat(y)
-            pos.z = CGFloat(z)
+            pos.x = UFloat(x)
+            pos.y = UFloat(y)
+            pos.z = UFloat(z)
         }
         setPosition(pos)
         
@@ -483,10 +483,10 @@ public class SpatialObject {
     }
     
     public func lowerPoints(local:Bool = false) -> [SCNVector3] {
-        var p0 = CGPoint(x: UFloat(width)/2.0, y: UFloat(depth)/2.0)
-        var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
-        var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
-        var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
+        var p0 = CGPoint(x: Double(width)/2.0, y: Double(depth)/2.0)
+        var p1 = CGPoint(x: Double(-width)/2.0, y: Double(depth)/2.0)
+        var p2 = CGPoint(x: Double(-width)/2.0, y: Double(-depth)/2.0)
+        var p3 = CGPoint(x: Double(width)/2.0, y: Double(-depth)/2.0)
         var vector = SCNVector3()
         if local == false {
             p0 = p0.rotate(UFloat(-angle))
@@ -496,18 +496,18 @@ public class SpatialObject {
             vector = position
         }
         return [
-            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y, z:UFloat(p0.y + vector.z)),
-            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y, z:UFloat(p1.y + vector.z)),
-            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y, z:UFloat(p2.y + vector.z)),
-            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y, z:UFloat(p3.y + vector.z))
+            SCNVector3(x:UFloat(p0.x) + UFloat(vector.x), y:vector.y, z:UFloat(p0.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p1.x) + UFloat(vector.x), y:vector.y, z:UFloat(p1.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p2.x) + UFloat(vector.x), y:vector.y, z:UFloat(p2.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p3.x) + UFloat(vector.x), y:vector.y, z:UFloat(p3.y) + UFloat(vector.z))
         ]
     }
     
     public func upperPoints(local:Bool = false) -> [SCNVector3] {
-        var p0 = CGPoint(x: UFloat(width)/2.0, y: UFloat(depth)/2.0)
-        var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
-        var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
-        var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
+        var p0 = CGPoint(x: Double(width)/2.0, y: Double(depth)/2.0)
+        var p1 = CGPoint(x: Double(-width)/2.0, y: Double(depth)/2.0)
+        var p2 = CGPoint(x: Double(-width)/2.0, y: Double(-depth)/2.0)
+        var p3 = CGPoint(x: Double(width)/2.0, y: Double(-depth)/2.0)
         var vector = SCNVector3()
         if local == false {
             p0 = p0.rotate(UFloat(-angle))
@@ -517,16 +517,16 @@ public class SpatialObject {
             vector = position
         }
         return [
-            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p0.y + vector.z)),
-            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p1.y + vector.z)),
-            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p2.y + vector.z)),
-            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p3.y + vector.z))
+            SCNVector3(x:UFloat(p0.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p0.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p1.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p1.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p2.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p2.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p3.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p3.y) + UFloat(vector.z))
         ]
     }
     
     public func frontPoints(local:Bool = false) -> [SCNVector3] {
-        var p0 = CGPoint(x: UFloat(width)/2.0, y: UFloat(depth)/2.0)
-        var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
+        var p0 = CGPoint(x: Double(width)/2.0, y: Double(depth)/2.0)
+        var p1 = CGPoint(x: Double(-width)/2.0, y: Double(depth)/2.0)
         var vector = SCNVector3()
         if local == false {
             p0 = p0.rotate(UFloat(-angle))
@@ -534,16 +534,16 @@ public class SpatialObject {
             vector = position
         }
         return [
-            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y, z:UFloat(p0.y + vector.z)),
-            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y, z:UFloat(p1.y + vector.z)),
-            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p1.y + vector.z)),
-            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p0.y + vector.z))
+            SCNVector3(x:UFloat(p0.x) + UFloat(vector.x), y:vector.y, z:UFloat(p0.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p1.x) + UFloat(vector.x), y:vector.y, z:UFloat(p1.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p1.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p1.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p0.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p0.y) + UFloat(vector.z))
         ]
     }
     
     public func backPoints(local:Bool = false) -> [SCNVector3] {
-        var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
-        var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
+        var p2 = CGPoint(x: Double(-width)/2.0, y: Double(-depth)/2.0)
+        var p3 = CGPoint(x: Double(width)/2.0, y: Double(-depth)/2.0)
         var vector = SCNVector3()
         if local == false {
             p2 = p2.rotate(UFloat(-angle))
@@ -551,16 +551,16 @@ public class SpatialObject {
             vector = position
         }
         return [
-            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y, z:UFloat(p2.y + vector.z)),
-            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y, z:UFloat(p3.y + vector.z)),
-            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p3.y + vector.z)),
-            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p2.y + vector.z))
+            SCNVector3(x:UFloat(p2.x) + UFloat(vector.x), y:vector.y, z:UFloat(p2.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p3.x) + UFloat(vector.x), y:vector.y, z:UFloat(p3.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p3.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p3.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p2.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p2.y) + UFloat(vector.z))
         ]
     }
     
     public func rightPoints(local:Bool = false) -> [SCNVector3] {
-        var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
-        var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
+        var p1 = CGPoint(x: Double(-width)/2.0, y: Double(depth)/2.0)
+        var p2 = CGPoint(x: Double(-width)/2.0, y: Double(-depth)/2.0)
         var vector = SCNVector3()
         if local == false {
             p1 = p1.rotate(UFloat(-angle))
@@ -568,16 +568,16 @@ public class SpatialObject {
             vector = position
         }
         return [
-            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y, z:UFloat(p1.y + vector.z)),
-            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y, z:UFloat(p2.y + vector.z)),
-            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p2.y + vector.z)),
-            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p1.y + vector.z))
+            SCNVector3(x:UFloat(p1.x) + UFloat(vector.x), y:vector.y, z:UFloat(p1.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p2.x) + UFloat(vector.x), y:vector.y, z:UFloat(p2.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p2.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p2.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p1.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p1.y) + UFloat(vector.z))
         ]
     }
     
     public func leftPoints(local:Bool = false) -> [SCNVector3] {
-        var p0 = CGPoint(x: UFloat(width)/2.0, y: UFloat(depth)/2.0)
-        var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
+        var p0 = CGPoint(x: Double(width)/2.0, y: Double(depth)/2.0)
+        var p3 = CGPoint(x: Double(width)/2.0, y: Double(-depth)/2.0)
         var vector = SCNVector3()
         if local == false {
             p0 = p0.rotate(UFloat(-angle))
@@ -585,18 +585,18 @@ public class SpatialObject {
             vector = position
         }
         return [
-            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y, z:UFloat(p3.y + vector.z)),
-            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y, z:UFloat(p0.y + vector.z)),
-            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p0.y + vector.z)),
-            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p3.y + vector.z))
+            SCNVector3(x:UFloat(p3.x) + UFloat(vector.x), y:vector.y, z:UFloat(p3.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p0.x) + UFloat(vector.x), y:vector.y, z:UFloat(p0.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p0.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p0.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p3.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p3.y) + UFloat(vector.z))
         ]
     }
     
     public func points(local:Bool = false) -> [SCNVector3] {
-        var p0 = CGPoint(x: UFloat(width)/2.0, y: UFloat(depth)/2.0)
-        var p1 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(depth)/2.0)
-        var p2 = CGPoint(x: UFloat(-width)/2.0, y: UFloat(-depth)/2.0)
-        var p3 = CGPoint(x: UFloat(width)/2.0, y: UFloat(-depth)/2.0)
+        var p0 = CGPoint(x: Double(width)/2.0, y: Double(depth)/2.0)
+        var p1 = CGPoint(x: Double(-width)/2.0, y: Double(depth)/2.0)
+        var p2 = CGPoint(x: Double(-width)/2.0, y: Double(-depth)/2.0)
+        var p3 = CGPoint(x: Double(width)/2.0, y: Double(-depth)/2.0)
         var vector = SCNVector3()
         if local == false {
             p0 = p0.rotate(UFloat(-angle))
@@ -606,14 +606,14 @@ public class SpatialObject {
             vector = position
         }
         return [
-            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y, z:UFloat(p0.y + vector.z)),
-            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y, z:UFloat(p1.y + vector.z)),
-            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y, z:UFloat(p2.y + vector.z)),
-            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y, z:UFloat(p3.y + vector.z)),
-            SCNVector3(x:UFloat(p0.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p0.y + vector.z)),
-            SCNVector3(x:UFloat(p1.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p1.y + vector.z)),
-            SCNVector3(x:UFloat(p2.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p2.y + vector.z)),
-            SCNVector3(x:UFloat(p3.x + vector.x), y:vector.y+UFloat(height), z:UFloat(p3.y + vector.z))
+            SCNVector3(x:UFloat(p0.x) + UFloat(vector.x), y:vector.y, z:UFloat(p0.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p1.x) + UFloat(vector.x), y:vector.y, z:UFloat(p1.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p2.x) + UFloat(vector.x), y:vector.y, z:UFloat(p2.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p3.x) + UFloat(vector.x), y:vector.y, z:UFloat(p3.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p0.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p0.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p1.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p1.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p2.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p2.y) + UFloat(vector.z)),
+            SCNVector3(x:UFloat(p3.x) + UFloat(vector.x), y:vector.y+UFloat(height), z:UFloat(p3.y) + UFloat(vector.z))
         ]
     }
     
@@ -672,7 +672,7 @@ public class SpatialObject {
         var zone = BBoxSector()
         if nearBy {
             var pt = point
-            pt.y = pt.y - CGFloat(height/2.0)
+            pt.y = pt.y - UFloat(height/2.0)
             let distance = pt.length()
             if distance > nearbyRadius() {
                 return zone
@@ -719,6 +719,7 @@ public class SpatialObject {
     }
     
     public func sectorLenghts(_ sector: BBoxSector = .i) -> SCNVector3 {
+        //print(sector, adjustment.sectorFactor, adjustment.sectorLimit, width, height, depth, adjustment.sectorSchema)
         var result = SCNVector3(x: UFloat(width), y: UFloat(height), z: UFloat(depth))
         if sector.contains(.a) || sector.contains(.b) {
             switch adjustment.sectorSchema {
@@ -1412,7 +1413,7 @@ public class SpatialObject {
         let name = label.isEmpty ? id : label
         let group = SCNNode()
         group.name = id
-        let box = SCNBox(width: UFloat(width), height: UFloat(height), length: UFloat(depth), chamferRadius: 0.0)
+        let box = SCNBox(width: CGFloat(width), height: CGFloat(height), length: CGFloat(depth), chamferRadius: 0.0)
         box.firstMaterial?.diffuse.contents = color
         box.firstMaterial?.transparency = 1.0 - color.alpha
         let boxNode = SCNNode(geometry: box)
@@ -1438,7 +1439,7 @@ public class SpatialObject {
     
     public func nearbySphere() -> SCNNode {
         let r = nearbyRadius()
-        let sphere = SCNSphere(radius: UFloat(r))
+        let sphere = SCNSphere(radius: Double(r))
         sphere.firstMaterial?.diffuse.contents = CGColor(gray: 0.1, alpha: 0.5)
         sphere.firstMaterial?.transparency = 0.5
         let node = SCNNode(geometry: sphere)
@@ -1449,7 +1450,7 @@ public class SpatialObject {
     
     public func sectorCube(_ sector: BBoxSector = .i, _ withLabel:Bool = false) -> SCNNode {
         let dims = sectorLenghts(sector)
-        let box = SCNBox(width: dims.x, height: dims.y, length: dims.z, chamferRadius: 0.0)
+        let box = SCNBox(width: CGFloat(UFloat(dims.x)), height: CGFloat(dims.y), length: CGFloat(dims.z), chamferRadius: 0.0)
         box.firstMaterial?.diffuse.contents = CGColor(gray: 0.1, alpha: 0.5)
         box.firstMaterial?.transparency = 0.5
         let node = SCNNode(geometry: box)

@@ -8,7 +8,7 @@
 import Foundation
 import SceneKit
 
-public class SpatialInference : Hashable {
+public class SpatialInference : Hashable, Identifiable {
     
     public var input:[Int] = [] // indices to fact.base.objects
     public var output:[Int] = [] // indices to fact.base.objects
@@ -71,7 +71,7 @@ public class SpatialInference : Hashable {
                 add(index: i)
             }
         }
-        succeeded = true
+        succeeded = !output.isEmpty
     }
     
     func isa(_ type: String) {
@@ -104,7 +104,7 @@ public class SpatialInference : Hashable {
                 add(index: i)
             }
         }
-        succeeded = true
+        succeeded = !output.isEmpty
     }
     
     func pick(_ relations: String) {
@@ -353,7 +353,7 @@ public class SpatialInference : Hashable {
                 }
             }
         }
-        let preIndices = fact.backtrace(steps)
+        let preIndices = fact.backtrace(abs(steps))
         if ascending {
             sortedObjects = inputObjects.sorted { $0.relationValue(attr, pre: preIndices) < $1.relationValue(attr, pre: preIndices) }
         } else {
@@ -368,7 +368,6 @@ public class SpatialInference : Hashable {
     }
     
     func produce(_ terms: String) {
-        print(terms)
         let list = terms.split(separator: ":").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
         var assignments = ""
         let rule = list[0]
@@ -421,10 +420,13 @@ public class SpatialInference : Hashable {
                 group.height = h
                 group.depth = d
                 group.cause = .rule_produced
+                group.existence = .conceptual
                 if objIdx < 0 {
                     newObjects.append(group.asDict())
                     indices.append(fact.objects.count)
                     fact.objects.append(group)
+                } else {
+                    indices.append(objIdx)
                 }
             }
 
@@ -439,12 +441,15 @@ public class SpatialInference : Hashable {
                     copy.fromAny(fact.objects[i].toAny())
                     copy.id = copyId
                     copy.cause = .rule_produced
+                    copy.existence = .conceptual
                     copy.setPosition(fact.objects[i].pos)
                     copy.angle = fact.objects[i].angle
                     if objIdx < 0 {
                         newObjects.append(copy.asDict())
                         fact.objects.append(copy)
                         indices.append(idx!)
+                    } else {
+                        indices.append(objIdx)
                     }
                 } else {
                     indices.append(idx!)
@@ -462,6 +467,7 @@ public class SpatialInference : Hashable {
                         let objIdx = fact.indexOf(id: byId) ?? -1
                         let obj = objIdx < 0 ? SpatialObject(id: byId) : fact.objects[objIdx]
                         obj.cause = .rule_produced
+                        obj.existence = .conceptual
                         obj.setPosition(nearest.first!)
                         obj.angle = fact.objects[i].angle
                         let w = max(rel.delta, fact.adjustment.maxGap)
@@ -476,6 +482,8 @@ public class SpatialInference : Hashable {
                             newObjects.append(obj.asDict())
                             indices.append(fact.objects.count)
                             fact.objects.append(obj)
+                        } else {
+                            indices.append(objIdx)
                         }
                         processedBys.insert(fact.objects[i].id + "-" + rel.subject.id)
                     }
@@ -489,10 +497,11 @@ public class SpatialInference : Hashable {
                     let objIdx = fact.indexOf(id: onId) ?? -1
                     let obj = objIdx < 0 ? SpatialObject(id: onId) : fact.objects[objIdx]
                     obj.cause = .rule_produced
+                    obj.existence = .conceptual
                     let h = max(rel.delta, fact.adjustment.maxGap)
                     obj.height = h
                     var pos = rel.subject.pos
-                    pos.y = pos.y - CGFloat(h/2.0)
+                    pos.y = pos.y - UFloat(h/2.0)
                     obj.setPosition(pos)
                     obj.angle = rel.subject.angle
                     obj.width = rel.subject.width
@@ -501,6 +510,8 @@ public class SpatialInference : Hashable {
                         newObjects.append(obj.asDict())
                         indices.append(fact.objects.count)
                         fact.objects.append(obj)
+                    } else {
+                        indices.append(objIdx)
                     }
                 }
             }
@@ -512,6 +523,7 @@ public class SpatialInference : Hashable {
                     let objIdx = fact.indexOf(id: atId) ?? -1
                     let obj = objIdx < 0 ? SpatialObject(id: atId) : fact.objects[objIdx]
                     obj.cause = .rule_produced
+                    obj.existence = .conceptual
                     var pos = rel.subject.pos
                     var shift = CGPoint(x: 0, y: 0)
                     var w = rel.subject.width
@@ -519,26 +531,26 @@ public class SpatialInference : Hashable {
                     let d = max(rel.delta, fact.adjustment.maxGap)
                     let meetingIdx = fact.indexOf(id: rel.subject.id) ?? -1
                     if fact.does(subject: rel.object, have: "ahead", with: meetingIdx) {
-                        shift.x = CGFloat((rel.subject.depth + d)/2.0)
-                        shift = shift.rotate(CGFloat(rel.subject.angle) + .pi/2)
+                        shift.x = Double((rel.subject.depth + d)/2.0)
+                        shift = shift.rotate(UFloat(rel.subject.angle) + .pi/2)
                         obj.angle = rel.subject.angle
                     } else if fact.does(subject: rel.object, have: "behind", with: meetingIdx) {
-                        shift.x = CGFloat((rel.subject.depth + d)/2.0)
-                        shift = shift.rotate(CGFloat(rel.subject.angle) + .pi/2)
+                        shift.x = Double((rel.subject.depth + d)/2.0)
+                        shift = shift.rotate(UFloat(rel.subject.angle) + .pi/2)
                         obj.angle = rel.subject.angle
                     } else if fact.does(subject: rel.object, have: "left", with: meetingIdx) {
-                        shift.x = CGFloat((rel.subject.width + d)/2.0)
-                        shift = shift.rotate(CGFloat(rel.subject.angle))
+                        shift.x = Double((rel.subject.width + d)/2.0)
+                        shift = shift.rotate(UFloat(rel.subject.angle))
                         w = rel.subject.depth
                         obj.angle = rel.subject.angle + .pi/2
                     } else if fact.does(subject: rel.object, have: "right", with: meetingIdx) {
-                        shift.x = CGFloat((rel.subject.width + d)/2.0)
-                        shift = shift.rotate(CGFloat(rel.subject.angle) + .pi)
+                        shift.x = Double((rel.subject.width + d)/2.0)
+                        shift = shift.rotate(UFloat(rel.subject.angle) + .pi)
                         w = rel.subject.depth
                         obj.angle = rel.subject.angle + .pi/2
                     }
-                    pos.x = pos.x + shift.x
-                    pos.z = pos.z + shift.y
+                    pos.x = pos.x + UFloat(shift.x)
+                    pos.z = pos.z + UFloat(shift.y)
                     obj.setPosition(pos)
                     obj.depth = d
                     obj.width = w
@@ -547,6 +559,8 @@ public class SpatialInference : Hashable {
                         newObjects.append(obj.asDict())
                         indices.append(fact.objects.count)
                         fact.objects.append(obj)
+                    } else {
+                        indices.append(objIdx)
                     }
                 }
             }
@@ -559,6 +573,7 @@ public class SpatialInference : Hashable {
                     let objIdx = fact.indexOf(id: sectorId) ?? -1
                     let obj = objIdx < 0 ? SpatialObject(id: sectorId) : fact.objects[objIdx]
                     obj.cause = .rule_produced
+                    obj.existence = .conceptual
                     let dims = fact.objects[i].sectorLenghts(sector)
                     obj.width = Float(dims.x)
                     obj.height = Float(dims.y)
@@ -580,16 +595,18 @@ public class SpatialInference : Hashable {
                         shift.z = (UFloat(-fact.objects[i].depth) - dims.z)/2.0
                     }
                     obj.angle = fact.objects[i].angle
-                    var vector = CGPoint(x: shift.x, y: -shift.z)
-                    vector = vector.rotate(CGFloat(fact.objects[i].angle))
-                    shift.x = vector.x
-                    shift.z = -vector.y
+                    var vector = CGPoint(x: Double(shift.x), y: Double(-shift.z))
+                    vector = vector.rotate(UFloat(fact.objects[i].angle))
+                    shift.x = UFloat(vector.x)
+                    shift.z = UFloat(-vector.y)
                     let center = fact.objects[i].center
                     obj.setCenter(center + shift)
                     if objIdx < 0 {
                         newObjects.append(obj.asDict())
                         indices.append(fact.objects.count)
                         fact.objects.append(obj)
+                    } else {
+                        indices.append(objIdx)
                     }
                 }
             } else {
@@ -633,6 +650,9 @@ public class SpatialInference : Hashable {
         if operation.starts(with: "pick") {
             return true
         }
+        if operation.starts(with: "isa") {
+            return true
+        }
         if operation.starts(with: "select") {
             return true
         }
@@ -640,6 +660,12 @@ public class SpatialInference : Hashable {
             return true
         }
         if operation.starts(with: "slice") {
+            return true
+        }
+        if operation.starts(with: "reload") {
+            return true
+        }
+        if operation.starts(with: "sort") {
             return true
         }
         return false
@@ -677,7 +703,7 @@ public class SpatialInference : Hashable {
     }
     
     public static func == (lhs: SpatialInference, rhs: SpatialInference) -> Bool {
-        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+        return lhs === rhs
     }
 
     public func hash(into hasher: inout Hasher) {

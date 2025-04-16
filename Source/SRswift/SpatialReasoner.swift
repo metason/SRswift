@@ -21,6 +21,7 @@ public class SpatialReasoner {
 
     // data
     public var objects:[SpatialObject] = []
+    public var loadedObjectsCount:Int = 0 // amount of originally loaded objects (without produced ones)
     public var observer:SpatialObject? = nil
     private var relMap:[Int: [SpatialRelation]] = [:] // index:[SpatialRelation]
     public var chain:[SpatialInference] = []
@@ -38,14 +39,16 @@ public class SpatialReasoner {
         
     }
     
+    // WARNING: content of if changed, do fix!
     public func load(_ objs: [SpatialObject]? = nil) {
         if objs != nil {
             objects = objs!
+            observer = nil
+            chain.removeAll()
+            relMap = [:]
+            base["objects"] = []
+            loadedObjectsCount = objects.count
         }
-        observer = nil
-        chain = []
-        relMap = [:]
-        base["objects"] = []
         if !objects.isEmpty {
             let indices:[Int] = (0..<objects.count).indices.map { $0 }
             var objList = [Any]()
@@ -71,7 +74,7 @@ public class SpatialReasoner {
         return nil
     }
     
-    func indexOf(id:String) -> Int? {
+    public func indexOf(id:String) -> Int? {
         for idx in  0..<objects.count {
             if objects[idx].id == id {
                 return idx
@@ -99,6 +102,7 @@ public class SpatialReasoner {
         for idx in  0..<(base["objects"] as! [Dictionary<String, Any>]).count {
             let obj = SpatialObject(id: (base["objects"] as! [Dictionary<String, Any>])[idx]["id"] as! String)
             obj.fromAny((base["objects"] as! [Dictionary<String, Any>])[idx])
+            obj.context = self
             objects.append(obj)
             if obj.observing {
                 observer = obj
@@ -107,7 +111,7 @@ public class SpatialReasoner {
     }
                        
     public func load(_ objs: [Dictionary<String, Any>]) {
-        chain = []
+        chain.removeAll()
         base["objects"] = objs
         syncToObjects()
         base["snaptime"] = snapTime.description
@@ -154,7 +158,7 @@ public class SpatialReasoner {
     public func run(_ pipeline: String) -> Bool {
         self.pipeline = pipeline
         logCnt = 0
-        chain = []
+        chain.removeAll()
         base["chain"] = [Any]()
         let list = pipeline.split(separator: "|").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
         let indices: [Int] = (0..<objects.count).indices.map { $0 }

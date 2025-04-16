@@ -99,7 +99,7 @@ public class SpatialObjectConcept : Hashable, Identifiable {
     }
     
     public static func == (lhs: SpatialObjectConcept, rhs: SpatialObjectConcept) -> Bool {
-        lhs.label == rhs.label
+        return lhs.label == rhs.label
     }
 
     public func hash(into hasher: inout Hasher) {

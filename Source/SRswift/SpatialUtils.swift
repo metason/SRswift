@@ -15,31 +15,31 @@ import SceneKit
 // In order to share the same code, this typealias allows conversion between Floats and CGFloats
 #if os(macOS)
 typealias UFloat = CGFloat
-#elseif os(iOS)
+#else 
 typealias UFloat = Float
 #endif
 
 extension CGPoint {
     
     func length() -> UFloat {
-        return sqrt(x*x + y*y)
+        return UFloat(sqrt(x*x + y*y))
     }
     
     func rotate(_ radians: UFloat) -> CGPoint {
-        let rotationSin = sin(radians)
-        let rotationCos = cos(radians)
-        let x = self.x * rotationCos - self.y * rotationSin
-        let y = self.x * rotationSin + self.y * rotationCos
+        let rotationSin:Double = Double(sin(radians))
+        let rotationCos:Double = Double(cos(radians))
+        let x:Double = self.x * rotationCos - self.y * rotationSin
+        let y:Double = self.x * rotationSin + self.y * rotationCos
         return CGPoint(x: x, y: y)
     }
     
     func rotate(_ radians: UFloat, pivot: CGPoint) -> CGPoint {
-        let shiftedX = self.x - pivot.x
-        let shiftedY = self.y - pivot.y
-        let rotationSin = sin(radians)
-        let rotationCos = cos(radians)
-        let x = (shiftedX * rotationCos - shiftedY * rotationSin) + pivot.x
-        let y = (shiftedX * rotationSin + shiftedY * rotationCos) + pivot.y
+        let shiftedX:Double = self.x - pivot.x
+        let shiftedY:Double = self.y - pivot.y
+        let rotationSin:Double = Double(sin(radians))
+        let rotationCos:Double = Double(cos(radians))
+        let x = Double(shiftedX * rotationCos - shiftedY * rotationSin) + pivot.x
+        let y = Double(shiftedX * rotationSin + shiftedY * rotationCos) + pivot.y
         return CGPoint(x: x, y: y)
     }
 }
