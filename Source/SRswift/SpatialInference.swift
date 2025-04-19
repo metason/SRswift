@@ -49,6 +49,9 @@ public class SpatialInference : Hashable, Identifiable {
         } else if operation.starts(with: "map(") {
             let startIdx = operation.index(operation.startIndex, offsetBy: 4)
             map(String(operation[startIdx..<endIdx]))
+        } else if operation.starts(with: "backtrac") {
+            let startIdx = operation.index(operation.startIndex, offsetBy: 10)
+            backtrace(String(operation[startIdx..<endIdx]))
         } else if operation.starts(with: "reload(") {
             reload()
         } else  {
@@ -630,6 +633,12 @@ public class SpatialInference : Hashable, Identifiable {
         }
         fact.load()
         succeeded = error.isEmpty
+    }
+    
+    func backtrace(_ term:String) {
+        let steps = Int(term) ?? 1
+        output = fact.backtrace(abs(steps))
+        succeeded = !output.isEmpty
     }
     
     func reload() {

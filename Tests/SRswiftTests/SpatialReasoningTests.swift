@@ -267,6 +267,27 @@ struct SpatialReasoningTests {
         #expect(subject.type == "bed")
     }
     
+    @Test("backtrace(-2)")
+    func backtrace() async throws {
+        let subject1 = SpatialObject(id: "subj1", position: .init(x: -0.55, y: 0, z: -2.1), width: 1.01, height: 1.03, depth: 1.02)
+        let subject2 = SpatialObject(id: "subj2", position: .init(x: -0.95, y: 0, z: 1.5), width: 0.4, height: 0.5, depth: 0.3)
+        let subject3 = SpatialObject(id: "subj3", position: .init(x: 2.2, y: 0.3, z: 1.2), width: 0.4, height: 0.2, depth: 0.3)
+        let observer = SpatialObject.createPerson(id: "ego", position: .init(x: 0.3, y: 0, z: 2.3))
+        observer.angle = .pi + 0.24
+        let sr = SpatialReasoner()
+        sr.load([subject1, subject2, subject3, observer])
+        let pipeline = """
+            filter(id == 'ego') 
+            | pick(disjoint) 
+            | filter(volume < 0.8)
+            | backtrace(-2)
+            | log(base 3D)
+        """
+        let done = sr.run(pipeline)
+        #expect(done)
+        #expect(sr.result().count == 1)
+    }
+    
     @Test("reload()")
     func reload() async throws {
         let subject = SpatialObject(id: "subj", position: .init(x: -0.55, y: 0, z: 0.8), width: 1.01, height: 1.03, depth: 1.02)

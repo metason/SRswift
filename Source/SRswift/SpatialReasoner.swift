@@ -34,12 +34,11 @@ public class SpatialReasoner {
     public var description:String = "" // used in log output
     var logCnt:Int = 0
     public var logFolder:URL? = nil // if nil then Downloads folder will be used
-
+    
     public init() {
         
     }
     
-    // WARNING: content of if changed, do fix!
     public func load(_ objs: [SpatialObject]? = nil) {
         if objs != nil {
             objects = objs!

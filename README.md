@@ -17,6 +17,7 @@ The SRswift library supports the following operations of the [__Spatial Reasoner
 - [x] __calc__: calculate global variables in fact base
 - [x] __map__: calculate values of object attributes
 - [x] __produce__: create new spatial objects driven by their relations
+- [x] __backtrace__: output spatial objects of operation some steps back in pipeline  
 - [x] __reload__: reload and output all spatial objects of fact base
 - [x] __halt__: stop processing the inference pipeline (for debug purposes)
 - [x] __log__: log the current status of the inference pipeline

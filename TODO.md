@@ -16,14 +16,12 @@
 - README of Spatial Reasoner: add C# example
 - SpatialTerms: concept for language translation
 - Predicate: covering, (partially) hiding
-- sub topologies on/off?
+- deduce sub topologies separately?
 - usage of NOT (or !) --> test cases
-
-## TODO
-
 - Euclidean Signed Distance Function (ESDF)
-  - check delta calc --> test cases
+  - interpretation of negative values
   - min distance, neg. on overlap?
+  - check delta calc --> test cases
 
 ## GENERAL IDEAS
   
@@ -80,7 +78,7 @@
   - rotatable
   - tangible?? user-dep.
 
-## Long-term Topics / Use Cases
+## Long-term Topics / Future Use Cases
 
 Spatio-temporal Reasoning
 - keep time-stamped snapshots
