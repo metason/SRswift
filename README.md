@@ -41,3 +41,7 @@ SRswift includes extensive test cases. They include some `expect()` conditions b
 ## License
 
 Released under the [Creative Commons CC0 License](LICENSE).
+
+## Contact
+
+Philipp Ackermann, philipp@metason.net
