@@ -135,7 +135,7 @@ public class SpatialInference : Hashable, Identifiable {
     
     func select(_ terms: String) {
         let list = terms.split(separator: "?").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
-        let relations:String
+        var relations:String
         var conditions:String = ""
         if list.count == 1 {
             relations = list[0]
@@ -146,9 +146,23 @@ public class SpatialInference : Hashable, Identifiable {
             error = "Invalid select query"
             return
         }
+        var exclude = false
+        if relations.lowercased().contains("not ") || relations.lowercased().contains("!"){
+            exclude = true
+            relations = relations.replacingOccurrences(of: "NOT ", with: "").replacingOccurrences(of: "not ", with: "").replacingOccurrences(of: "!", with: "")
+        }
+        var inclusive = false
+        if relations.lowercased().contains("all ") {
+            inclusive = true
+            relations = relations.replacingOccurrences(of: "ALL ", with: "").replacingOccurrences(of: "all ", with: "")
+        }
         let predicates = relations.keywords()
         let baseObjects = fact.base["objects"] as! [Any]
         for i in input {
+            var limit = fact.objects.count - 1
+            if i == limit {
+                limit = limit - 1
+            }
             for j in 0..<fact.objects.count {
                 var cond = relations
                 if i != j {
@@ -166,8 +180,19 @@ public class SpatialInference : Hashable, Identifiable {
                             let attrPredicate = SpatialInference.attributePredicate(conditions)
                             result2 = attrPredicate!.evaluate(with: baseObjects[j])
                         }
-                        if result2 {
+                        if inclusive {
+                            if !result2 {
+                                break
+                            }
+                            if j == limit {
+                                add(index: i)
+                            }
+                        } else if result2 != exclude {
                             add(index: i)
+                        }
+                    } else {
+                        if inclusive {
+                            break
                         }
                     }
                 }
@@ -200,7 +225,11 @@ public class SpatialInference : Hashable, Identifiable {
                     let expression = NSExpression(format: expr)
                     let value = expression.expressionValue(with: baseObjects[i], context: nil)
                     if value != nil {
+                        let oldValue = dict[key]
                         dict[key] = value
+                        if oldValue as? AnyHashable != dict[key] as? AnyHashable {
+                            fact.changes.insert(i)
+                        }
                     }
                 }
             }
@@ -427,6 +456,7 @@ public class SpatialInference : Hashable, Identifiable {
                 if objIdx < 0 {
                     newObjects.append(group.asDict())
                     indices.append(fact.objects.count)
+                    fact.changes.insert(fact.objects.count)
                     fact.objects.append(group)
                 } else {
                     indices.append(objIdx)
@@ -451,6 +481,7 @@ public class SpatialInference : Hashable, Identifiable {
                         newObjects.append(copy.asDict())
                         fact.objects.append(copy)
                         indices.append(idx!)
+                        fact.changes.insert(idx!)
                     } else {
                         indices.append(objIdx)
                     }
@@ -484,6 +515,7 @@ public class SpatialInference : Hashable, Identifiable {
                         if objIdx < 0 {
                             newObjects.append(obj.asDict())
                             indices.append(fact.objects.count)
+                            fact.changes.insert(fact.objects.count)
                             fact.objects.append(obj)
                         } else {
                             indices.append(objIdx)
@@ -512,6 +544,7 @@ public class SpatialInference : Hashable, Identifiable {
                     if objIdx < 0 {
                         newObjects.append(obj.asDict())
                         indices.append(fact.objects.count)
+                        fact.changes.insert(fact.objects.count)
                         fact.objects.append(obj)
                     } else {
                         indices.append(objIdx)
@@ -561,6 +594,7 @@ public class SpatialInference : Hashable, Identifiable {
                     if objIdx < 0 {
                         newObjects.append(obj.asDict())
                         indices.append(fact.objects.count)
+                        fact.changes.insert(fact.objects.count)
                         fact.objects.append(obj)
                     } else {
                         indices.append(objIdx)
@@ -607,6 +641,7 @@ public class SpatialInference : Hashable, Identifiable {
                     if objIdx < 0 {
                         newObjects.append(obj.asDict())
                         indices.append(fact.objects.count)
+                        fact.changes.insert(fact.objects.count)
                         fact.objects.append(obj)
                     } else {
                         indices.append(objIdx)

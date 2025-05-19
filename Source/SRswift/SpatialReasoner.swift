@@ -26,6 +26,7 @@ public class SpatialReasoner {
     private var relMap:[Int: [SpatialRelation]] = [:] // index:[SpatialRelation]
     public var chain:[SpatialInference] = []
     public var base:Dictionary<String, Any> = [:] // fact base, objects will be duplicated here for r/w access of expression eval
+    public var changes:Set<Int> = [] // set of indices of changed objects
     public var snapTime:Date = Date() // load time or update time of fact base
     
     // logging
@@ -44,11 +45,14 @@ public class SpatialReasoner {
             objects = objs!
             observer = nil
             chain.removeAll()
-            relMap = [:]
+            changes.removeAll(keepingCapacity: true)
             base["objects"] = []
             loadedObjectsCount = objects.count
+            snapTime = Date()
+            base["snaptime"] = snapTime.description
         }
         if !objects.isEmpty {
+            relMap = [:] // enforce rebullding of relations
             let indices:[Int] = (0..<objects.count).indices.map { $0 }
             var objList = [Any]()
             for idx in indices {
@@ -60,8 +64,6 @@ public class SpatialReasoner {
             }
             base["objects"] = objList
         }
-        snapTime = Date()
-        base["snaptime"] = snapTime.description
     }
     
     func objectWith(id:String) -> SpatialObject? {
@@ -94,17 +96,20 @@ public class SpatialReasoner {
     
     // sync to spatial objects from dictionaries
     func syncToObjects() {
-        objects = []
-        observer = nil
-        relMap = [:]
-        // base["objects"] as! [Dictionary<String, Any>]
         for idx in  0..<(base["objects"] as! [Dictionary<String, Any>]).count {
-            let obj = SpatialObject(id: (base["objects"] as! [Dictionary<String, Any>])[idx]["id"] as! String)
-            obj.fromAny((base["objects"] as! [Dictionary<String, Any>])[idx])
-            obj.context = self
-            objects.append(obj)
-            if obj.observing {
-                observer = obj
+            if changes.contains(idx) {
+                var obj:SpatialObject
+                if idx < objects.count {
+                    obj = objects[idx]
+                } else {
+                    obj = SpatialObject(id: (base["objects"] as! [Dictionary<String, Any>])[idx]["id"] as! String)
+                    obj.context = self
+                    objects.append(obj)
+                    if obj.observing {
+                        observer = obj
+                    }
+                }
+                obj.fromAny((base["objects"] as! [Dictionary<String, Any>])[idx])
             }
         }
     }
@@ -158,6 +163,7 @@ public class SpatialReasoner {
         self.pipeline = pipeline
         logCnt = 0
         chain.removeAll()
+        changes.removeAll(keepingCapacity: true)
         base["chain"] = [Any]()
         let list = pipeline.split(separator: "|").map({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
         let indices: [Int] = (0..<objects.count).indices.map { $0 }
@@ -196,6 +202,10 @@ public class SpatialReasoner {
             return true
         }
         return false
+    }
+    
+    public func baseHasChanged() -> Bool {
+        return !changes.isEmpty
     }
     
     public func result() -> [SpatialObject] {
@@ -314,9 +324,9 @@ public class SpatialReasoner {
                 }
                 if setFactor && !number.isEmpty {
                     if let val = Float(number) {
-                        adjustment.sectorLimit = val
+                        adjustment.sectorFactor = val
                     } else {
-                        error = "Invalid sector limit value: \(number)"
+                        error = "Invalid sector factor value: \(number)"
                     }
                 }
             case "nearby":
