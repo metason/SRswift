@@ -146,15 +146,19 @@ public class SpatialInference : Hashable, Identifiable {
             error = "Invalid select query"
             return
         }
-        var exclude = false
-        if relations.lowercased().contains("not ") || relations.lowercased().contains("!"){
-            exclude = true
-            relations = relations.replacingOccurrences(of: "NOT ", with: "").replacingOccurrences(of: "not ", with: "").replacingOccurrences(of: "!", with: "")
+        if relations.lowercased().contains("any ") {
+            relations = relations.replacingOccurrences(of: "ANY ", with: "").replacingOccurrences(of: "any ", with: "")
         }
         var inclusive = false
         if relations.lowercased().contains("all ") {
             inclusive = true
             relations = relations.replacingOccurrences(of: "ALL ", with: "").replacingOccurrences(of: "all ", with: "")
+        }
+        var exclude = false
+        if relations.lowercased().contains("not ") || relations.lowercased().contains("!"){
+            exclude = true
+            inclusive = true
+            relations = relations.replacingOccurrences(of: "NOT ", with: "").replacingOccurrences(of: "not ", with: "").replacingOccurrences(of: "!", with: "")
         }
         let predicates = relations.keywords()
         let baseObjects = fact.base["objects"] as! [Any]
@@ -173,26 +177,32 @@ public class SpatialInference : Hashable, Identifiable {
                             cond = cond.replacingOccurrences(of: predicate, with: "FALSEPREDICATE")
                         }
                     }
-                    let result = NSPredicate(format: cond).evaluate(with: nil)
+                    let resultRel = NSPredicate(format: cond).evaluate(with: nil)
+                    var resultAttr = true
+                    if conditions != "" {
+                        let attrPredicate = SpatialInference.attributePredicate(conditions)
+                        resultAttr = attrPredicate!.evaluate(with: baseObjects[j])
+                    }
+                    let result = resultRel && resultAttr
                     if result {
-                        var result2 = true
-                        if conditions != "" {
-                            let attrPredicate = SpatialInference.attributePredicate(conditions)
-                            result2 = attrPredicate!.evaluate(with: baseObjects[j])
-                        }
                         if inclusive {
-                            if !result2 {
+                            if exclude {
                                 break
                             }
                             if j == limit {
                                 add(index: i)
                             }
-                        } else if result2 != exclude {
+                        } else {
                             add(index: i)
                         }
                     } else {
                         if inclusive {
-                            break
+                            if !exclude && resultAttr {
+                                break
+                            }
+                            if j == limit {
+                                add(index: i)
+                            }
                         }
                     }
                 }

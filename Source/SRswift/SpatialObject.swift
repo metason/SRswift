@@ -826,10 +826,9 @@ public class SpatialObject {
         var aligned = false // orthogonal aligned
         var isBeside = false
         if centerZone != .i {
-            if abs(theta.truncatingRemainder(dividingBy: .pi/2.0)) < adjustment.maxAngleDelta {
+            if isAligned(angle: theta, alignment: .pi/2.0, epsilon: adjustment.maxAngleDelta) {
                 aligned = true
             }
-            //print("aligned: \(aligned) theta: \(theta) \(theta.truncatingRemainder(dividingBy: .pi/2.0))")
             var min:Float = Float.greatestFiniteMagnitude
             if centerZone == .l {
                 for pt in localPts {
@@ -1087,10 +1086,11 @@ public class SpatialObject {
             }
         } else {
             gap = centerDistance
-            if abs(theta.truncatingRemainder(dividingBy: .pi)) < adjustment.maxAngleDelta {
+            print(theta, abs(abs(theta.truncatingRemainder(dividingBy: .pi)) - .pi))
+            if isAligned(angle: theta, alignment: .pi, epsilon: adjustment.maxAngleDelta) {
                 relation = SpatialRelation(subject: subject, predicate: .opposite, object: self, delta: gap, angle: theta)
                 result.append(relation)
-            } else if abs(theta.truncatingRemainder(dividingBy: .pi/2.0)) < adjustment.maxAngleDelta {
+            } else if aligned {
                 relation = SpatialRelation(subject: subject, predicate: .orthogonal, object: self, delta: gap, angle: theta)
                 result.append(relation)
             }

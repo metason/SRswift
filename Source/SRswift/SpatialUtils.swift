@@ -107,3 +107,14 @@ func / (vector: SCNVector3, scalar: Float) -> SCNVector3 {
 func /= (vector: inout SCNVector3, scalar: Float) {
     vector = vector / scalar
 }
+
+func isAligned(angle:Float, alignment:Float, epsilon: Float) -> Bool {
+    let val = abs(angle).truncatingRemainder(dividingBy: alignment)
+    if val < epsilon {
+        return true
+    }
+    if val > alignment - epsilon {
+        return true
+    }
+    return false
+}
