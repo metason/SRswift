@@ -27,7 +27,7 @@ The SRswift library supports the following operations of the [__Spatial Reasoner
 
 ### Documentation
 
-See [__Docu on SpatialReasoner__](https://github.com/metason/SpatialReasoner) in separate repository.
+See [__Docu on SpatialReasoner__](https://github.com/metason/SpatialReasoner) framework in separate repository.
 
 ### Building and Integrating
 

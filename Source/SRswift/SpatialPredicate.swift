@@ -382,8 +382,11 @@ public struct SpatialTerms {
                 return term.code
             }
         }
-        if query.count > 3 {
+        if query.count > 2 {
             for term in list {
+                if term.predicate.contains(query)  {
+                    return term.code
+                }
                 if term.synonyms.contains(query)  {
                     return term.code
                 }

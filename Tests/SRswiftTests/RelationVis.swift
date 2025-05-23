@@ -240,9 +240,9 @@ struct RelationVis {
     
     @Test("orthogonal")
     func orthogonal() async throws {
-        let subject = SpatialObject(id: "subj", position: .init(x: -0.3, y: 0, z: 0.72), width: 1.0, height: 1.0, depth: 0.12)
+        let subject = SpatialObject(id: "subj", x: -0.3, y: 0, z: 0.72, w: 1.0, h: 1.0, d: 0.12)
         subject.angle = .pi / 2
-        let object = SpatialObject(id: "obj", position: .init(x: 0, y: 0, z: 0), width: 1.0, height: 1.0, depth: 0.3)
+        let object = SpatialObject(id: "obj", x: 0, y: 0, z: 0, w: 1.0, h: 1.0, d: 0.3)
         let relations = object.relate(subject: subject, topology: true)
         SpatialReasoner.printRelations(relations)
         export([subject.bboxCube(color: subjectOpaque), object.bboxCube(color: objectOpaque)])

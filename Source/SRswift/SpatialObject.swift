@@ -156,6 +156,19 @@ public class SpatialObject {
         self.created = Date()
         self.updated = self.created
     }
+    
+    public init(id: String, x: Float = 0.0, y: Float = 0.0, z: Float = 0.0, w: Float = 1.0, h: Float = 1.0, d: Float = 1.0, angle: Float = 0.0, label: String = "", confidence: Float = 0.0) {
+        self.id = id
+        self.label = label
+        self.position = SCNVector3(x:UFloat(x), y:UFloat(y), z:UFloat(z))
+        self.angle = angle
+        self.width = w
+        self.height = h
+        self.depth = d
+        self.confidence.setSpatial(confidence)
+        self.created = Date()
+        self.updated = self.created
+    }
 
     func index() -> Int {
         if context != nil {
@@ -1086,7 +1099,6 @@ public class SpatialObject {
             }
         } else {
             gap = centerDistance
-            print(theta, abs(abs(theta.truncatingRemainder(dividingBy: .pi)) - .pi))
             if isAligned(angle: theta, alignment: .pi, epsilon: adjustment.maxAngleDelta) {
                 relation = SpatialRelation(subject: subject, predicate: .opposite, object: self, delta: gap, angle: theta)
                 result.append(relation)

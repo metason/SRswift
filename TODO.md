@@ -13,6 +13,7 @@
 
 ## Clarify
 
+- expose x/y/z of position as dictionary kexs? cx/cy/cz? w/h/d?
 - README of Spatial Reasoner: add C# example
 - SpatialTerms: concept for language translation
 - Predicate: covering, (partially) hiding
