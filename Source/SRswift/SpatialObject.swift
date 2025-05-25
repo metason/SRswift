@@ -450,6 +450,10 @@ public class SpatialObject {
         angle = degrees * .pi / 180.0
     }
     
+    public func minDimension() -> Float {
+        return min(width, depth, height)
+    }
+    
     // returns 0 when no dominant direction, else axis direction x-y-z as 1-2-3
     public func mainDirection() -> Int {
         return long()
@@ -786,7 +790,8 @@ public class SpatialObject {
             zones.append(sectorOf(point: pt, nearBy: false, epsilon: 0.00001))
         }
         let localCenter = intoLocal(pt: subject.center)
-        var centerZone = sectorOf(point: localCenter, nearBy: false, epsilon: -adjustment.maxGap)
+        let epsilon = -min(adjustment.maxGap, subject.minDimension()/2.0)/2.0
+        var centerZone = sectorOf(point: localCenter, nearBy: false, epsilon: epsilon)
         
         /// nearness evaluated by center
         if centerDistance < subject.nearbyRadius() + nearbyRadius() {
@@ -835,7 +840,7 @@ public class SpatialObject {
         }
         
         /// side-related adjacancy in relation to object bbox
-        centerZone = sectorOf(point: localCenter, nearBy: true, epsilon: -adjustment.maxGap)
+        centerZone = sectorOf(point: localCenter, nearBy: true, epsilon: epsilon)
         var aligned = false // orthogonal aligned
         var isBeside = false
         if centerZone != .i {
@@ -972,7 +977,7 @@ public class SpatialObject {
                     if minY < 0.0 && maxY > height && minX < width/2.0 && maxX > -width/2.0 && minZ < depth/2.0 && maxZ > -depth/2.0 {
                         crossings += 1
                     }
-                    if crossings  > 0 {
+                    if crossings > 0 {
                         isDisjoint = false
                         relation = SpatialRelation(subject: subject, predicate: .crossing, object: self, delta: centerDistance, angle: theta)
                         result.append(relation)

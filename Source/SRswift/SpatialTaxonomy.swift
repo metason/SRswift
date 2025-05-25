@@ -228,6 +228,10 @@ public struct SpatialTaxonomy {
         }
     }
     
+    static public func hasConcepts() -> Bool {
+        return SpatialTaxonomy.concepts.count > 0
+    }
+    
     static public func getConcept(id: String) -> SpatialObjectConcept? {
         return SpatialTaxonomy.concepts.first(where: { $0.id == id })
     }

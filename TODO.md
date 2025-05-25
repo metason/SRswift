@@ -9,14 +9,16 @@
   
 ## BUG FIXES
 
+- missing relation: book on table in Test
+- crashes in predicate eval when not well formulated! 
 - check FIXME:
 
 ## Clarify
 
-- expose x/y/z of position as dictionary kexs? cx/cy/cz? w/h/d?
+- expose x/y/z of position as dictionary keys? cx/cy/cz? w/h/d?
 - README of Spatial Reasoner: add C# example
 - SpatialTerms: concept for language translation
-- Predicate: covering, (partially) hiding
+- Visibility predicates: covering, (partially) hiding
 - deduce sub topologies separately?
 - usage of NOT (or !) --> test cases
 - Euclidean Signed Distance Function (ESDF)
